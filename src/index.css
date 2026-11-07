@@ -153,16 +153,22 @@
     transform: translateY(2px);
     box-shadow: inset 0 4px 0 rgb(0 0 0 / 0.18);
   }
-  /* Outlines are clipped by the pixel corners, so buttons show focus inside. */
+  /*
+   * Outlines outside the box would be cut off by the pixel corners, so focus is
+   * drawn as an outline inset inside the border (still visible in forced colors).
+   */
   .ds-button:focus-visible {
-    outline: none;
-    box-shadow:
-      inset 0 0 0 3px var(--color-ds-sky-top),
-      inset 0 -4px 0 rgb(0 0 0 / 0.22);
+    outline: 3px solid var(--color-ds-sky-top);
+    outline-offset: -6px;
   }
   .ds-focus:focus-visible {
     outline: 3px solid var(--color-ds-sky-top);
     outline-offset: 2px;
+  }
+  /* For controls sitting inside a clipped (px-notch) container. */
+  .ds-focus-inset:focus-visible {
+    outline: 3px solid var(--color-ds-sky-top);
+    outline-offset: -3px;
   }
 }
 

@@ -19,7 +19,7 @@ export function Header({ mode, onModeChange, onHelp }: HeaderProps) {
                 type="button"
                 onClick={() => onModeChange(m)}
                 aria-pressed={mode === m}
-                className={`ds-focus min-h-10 px-2 text-[9px] uppercase sm:px-3 sm:text-[10px] ${
+                className={`ds-focus-inset min-h-10 px-2 text-[9px] uppercase sm:px-3 sm:text-[10px] ${
                   mode === m ? 'bg-ds-paper text-ds-ink shadow-[0_2px_0_var(--color-ds-frame)]' : 'text-ds-paper'
                 }`}
               >
