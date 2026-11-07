@@ -39,7 +39,7 @@ export function GuessGrid({ guesses, feedback }: GuessGridProps) {
           <br />
           Bottom: Shared Ability
         </p>
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col">
           {guesses
             .map((g, i) => ({ g, f: feedback[i], i }))
             .reverse()
