@@ -15,9 +15,9 @@ returns anything about the answer. Raw events are rolled up into `daily_totals` 
    ```sh
    npx supabase login
    npx supabase link --project-ref <project-ref>
-   npx supabase db push                                   # creates tables, views, functions, cron job
+   npx supabase db push --remote --yes                    # creates tables, views, functions, cron job
    npx supabase secrets set ALLOWED_ORIGINS="https://lucasphanpersonal.github.io,http://localhost:5173"
-   npx supabase functions deploy track --no-verify-jwt
+   npx supabase functions deploy track --no-verify-jwt --yes
    ```
    Set `ALLOWED_ORIGINS` **before** deploying. Secrets take effect on the function's next start, so
    if you change them later, redeploy the function.
