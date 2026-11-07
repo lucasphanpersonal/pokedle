@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
+import { GRID_COLUMNS } from '../config/gameConfig'
 import { TILE_FLIP_STAGGER_MS } from '../config/uiConfig'
 import type { GuessFeedback, MatchFeedback, NumberFeedback } from '../lib/compare'
 import { iconUrl } from '../lib/pokedex'
@@ -92,10 +93,11 @@ export function GuessCard({ guess, feedback, animate }: FeedbackRowProps) {
     return (
       <div
         key={i}
-        className={`${BG[result]} ${animate ? 'tile-flip' : ''} ${span} px-notch flex h-11 flex-col items-center justify-center px-0.5 text-center text-[8px] leading-[1.3] text-white shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)]`}
+        className={`${BG[result]} ${animate ? 'tile-flip' : ''} ${span} px-notch flex min-h-11 flex-col items-center justify-center px-0.5 text-center text-[8px] leading-[1.3] text-white shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)]`}
         style={delay(i + 1)}
         data-result={result}
       >
+        <span className="sr-only">{GRID_COLUMNS[i + 1]}: </span>
         <span className="[overflow-wrap:anywhere]">
           {content}
           {ARROW[result] && (
@@ -111,11 +113,12 @@ export function GuessCard({ guess, feedback, animate }: FeedbackRowProps) {
   return (
     <li className="grid grid-cols-12 gap-1">
       <div
-        className={`${BG[feedback.pokemon]} ${animate ? 'tile-flip' : ''} px-notch col-span-12 flex h-11 items-center gap-2 px-2 text-[9px] text-white shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)]`}
+        className={`${BG[feedback.pokemon]} ${animate ? 'tile-flip' : ''} px-notch col-span-12 flex min-h-11 items-center gap-2 px-2 text-[9px] text-white shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)]`}
         data-result={feedback.pokemon}
       >
         <img src={iconUrl(guess.id)} alt="" width={40} height={40} className="-my-1 h-10 w-10 shrink-0 [image-rendering:pixelated]" />
         <span className="min-w-0 [overflow-wrap:anywhere]">{guess.name}</span>
+        <span className="sr-only">, {LABEL[feedback.pokemon]}</span>
       </div>
       {[0, 1, 2, 3].map((i) => tile(i, 'col-span-3'))}
       {[4, 5, 6].map((i) => tile(i, 'col-span-4'))}
@@ -135,8 +138,7 @@ export function FeedbackRow({ guess, feedback, animate }: FeedbackRowProps) {
   const tiles = buildTiles(guess, feedback)
   return (
     <tr>
-      {/* Pokémon: sticky so it stays visible while the row scrolls on phones. */}
-      <th scope="row" className="sticky left-0 z-10 bg-ds-paper p-0 pr-1 font-normal">
+            <th scope="row" className="p-0 pr-1 font-normal">
         <div
           className={`${BG[feedback.pokemon]} ${animate ? 'tile-flip' : ''} flex h-16 w-[96px] flex-col items-center justify-center px-notch text-[7px] leading-[10px] text-white shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)] sm:h-[72px] sm:w-28 sm:text-[8px]`}
           data-result={feedback.pokemon}

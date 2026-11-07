@@ -32,7 +32,7 @@ export function GuessGrid({ guesses, feedback }: GuessGridProps) {
   return (
     <div className="ds-box p-2 sm:p-3">
       <div className="sm:hidden">
-        <p className="mb-2 text-center text-[7px] leading-3 text-ds-frame">
+        <p aria-hidden className="mb-2 text-center text-[8px] leading-3 text-ds-frame">
           Top: Type 1 · Type 2 · Gen · Height
           <br />
           Then: Weight · Color · Evolution
