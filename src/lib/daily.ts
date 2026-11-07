@@ -46,9 +46,23 @@ export function mulberry32(seed: number): () => number {
   }
 }
 
-/** Index of the day's answer in a pool of `poolSize` Pokémon. */
-export function dailyIndex(dateKey: string, poolSize: number): number {
-  if (poolSize <= 0) throw new Error('Answer pool is empty')
-  const rng = mulberry32(hashString(`pokemondle:${dateKey}`))
-  return Math.floor(rng() * poolSize)
+/**
+ * The day's answer, chosen by rendezvous hashing: every candidate gets a score
+ * from hash(date + id) and the highest score wins. Unlike "index into the
+ * list", this doesn't depend on list order or size, so regenerating the data
+ * or toggling a form category only changes a day's answer if that day's
+ * winner itself was removed (or a newly added Pokémon outscores it).
+ */
+export function dailyPick<T extends { id: number }>(dateKey: string, pool: readonly T[]): T {
+  if (pool.length === 0) throw new Error('Answer pool is empty')
+  let best = pool[0]
+  let bestScore = -1
+  for (const p of pool) {
+    const score = mulberry32(hashString(`pokemondle:${dateKey}:${p.id}`))()
+    if (score > bestScore || (score === bestScore && p.id < best.id)) {
+      best = p
+      bestScore = score
+    }
+  }
+  return best
 }

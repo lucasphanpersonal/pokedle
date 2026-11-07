@@ -19,16 +19,16 @@ describe('game flow', () => {
     expect(applyGuess(after, 99).result).toBe('game-over')
   })
   it('rejects duplicate guesses', () => {
-    const game = { mode: 'endless' as const, key: 'x', targetId: 1, guessIds: [2] }
+    const game = { v: 1 as const, mode: 'endless' as const, key: 'x', targetId: 1, guessIds: [2] }
     expect(applyGuess(game, 2).result).toBe('duplicate')
   })
   it('loses after the last guess', () => {
-    let game: SavedGame = { mode: 'endless', key: 'x', targetId: 1, guessIds: [] }
+    let game: SavedGame = { v: 1, mode: 'endless', key: 'x', targetId: 1, guessIds: [] }
     for (const id of [2, 3, 4]) game = applyGuess(game, id, 3).game
     expect(gameStatus(game, 3)).toBe('lost')
   })
   it('wins on the last guess rather than losing', () => {
-    const game = { mode: 'endless' as const, key: 'x', targetId: 1, guessIds: [2, 3, 1] }
+    const game = { v: 1 as const, mode: 'endless' as const, key: 'x', targetId: 1, guessIds: [2, 3, 1] }
     expect(gameStatus(game, 3)).toBe('won')
   })
   it('avoids repeating the previous endless answer', () => {
@@ -40,13 +40,23 @@ describe('game flow', () => {
 
 describe('isValidSave', () => {
   it('accepts a well-formed save', () => {
-    expect(isValidSave({ mode: 'daily', key: '2026-11-08', targetId: 1, guessIds: [2, 3] }, byId)).toBe(true)
+    expect(isValidSave({ v: 1, mode: 'daily', key: '2026-11-08', targetId: 1, guessIds: [2, 3] }, byId)).toBe(true)
   })
   it('rejects junk and unknown ids', () => {
     expect(isValidSave(null, byId)).toBe(false)
     expect(isValidSave('nope', byId)).toBe(false)
-    expect(isValidSave({ mode: 'daily', key: 'k', targetId: 99, guessIds: [] }, byId)).toBe(false)
-    expect(isValidSave({ mode: 'daily', key: 'k', targetId: 1, guessIds: [99] }, byId)).toBe(false)
-    expect(isValidSave({ mode: 'weekly', key: 'k', targetId: 1, guessIds: [] }, byId)).toBe(false)
+    expect(isValidSave({ v: 1, mode: 'daily', key: 'k', targetId: 99, guessIds: [] }, byId)).toBe(false)
+    expect(isValidSave({ v: 1, mode: 'daily', key: 'k', targetId: 1, guessIds: [99] }, byId)).toBe(false)
+    expect(isValidSave({ v: 1, mode: 'weekly', key: 'k', targetId: 1, guessIds: [] }, byId)).toBe(false)
+  })
+  it('rejects saves without the current version', () => {
+    expect(isValidSave({ mode: 'daily', key: 'k', targetId: 1, guessIds: [] }, byId)).toBe(false)
+  })
+  it('rejects impossible guess histories', () => {
+    const base = { v: 1, mode: 'daily', key: 'k', targetId: 1 }
+    expect(isValidSave({ ...base, guessIds: [2, 2] }, byId)).toBe(false)
+    expect(isValidSave({ ...base, guessIds: [1, 2] }, byId)).toBe(false)
+    expect(isValidSave({ ...base, guessIds: [2, 3, 4] }, byId, 2)).toBe(false)
+    expect(isValidSave({ ...base, guessIds: [2.5] }, byId)).toBe(false)
   })
 })

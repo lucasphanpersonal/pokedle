@@ -12,6 +12,7 @@ const BG: Record<MatchFeedback | NumberFeedback, string> = {
   mismatch: 'bg-fb-mismatch',
   higher: 'bg-fb-mismatch',
   lower: 'bg-fb-mismatch',
+  unknown: 'bg-fb-mismatch',
 }
 
 const ARROW: Partial<Record<NumberFeedback, string>> = { higher: '▲', lower: '▼' }

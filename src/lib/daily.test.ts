@@ -1,23 +1,30 @@
 import { describe, expect, it } from 'vitest'
-import { dailyIndex, hashString, localDateKey, mulberry32, puzzleNumber } from './daily'
+import { dailyPick, hashString, localDateKey, mulberry32, puzzleNumber } from './daily'
 
-describe('daily selection', () => {
+describe('dailyPick', () => {
+  const pool = Array.from({ length: 1351 }, (_, i) => ({ id: i + 1 }))
+  const day = (i: number) => `2026-12-${String(i + 1).padStart(2, '0')}`
+
   it('is stable for a given date', () => {
-    expect(dailyIndex('2026-11-08', 1351)).toBe(dailyIndex('2026-11-08', 1351))
+    expect(dailyPick('2026-11-08', pool)).toBe(dailyPick('2026-11-08', pool))
   })
   it('changes between days', () => {
-    const picks = new Set(Array.from({ length: 30 }, (_, i) => dailyIndex(`2026-12-${String(i + 1).padStart(2, '0')}`, 1351)))
+    const picks = new Set(Array.from({ length: 30 }, (_, i) => dailyPick(day(i), pool).id))
     expect(picks.size).toBeGreaterThan(25)
   })
-  it('stays within the pool', () => {
-    for (let d = 1; d <= 28; d++) {
-      const i = dailyIndex(`2027-02-${String(d).padStart(2, '0')}`, 10)
-      expect(i).toBeGreaterThanOrEqual(0)
-      expect(i).toBeLessThan(10)
+  it('does not depend on pool order', () => {
+    const reversed = [...pool].reverse()
+    for (let i = 0; i < 10; i++) expect(dailyPick(day(i), reversed).id).toBe(dailyPick(day(i), pool).id)
+  })
+  it('keeps the answer when other Pokémon are removed from the pool', () => {
+    for (let i = 0; i < 10; i++) {
+      const winner = dailyPick(day(i), pool)
+      const smaller = pool.filter((p) => p.id === winner.id || p.id % 3 !== 0)
+      expect(dailyPick(day(i), smaller).id).toBe(winner.id)
     }
   })
   it('rejects an empty pool', () => {
-    expect(() => dailyIndex('2026-11-08', 0)).toThrow()
+    expect(() => dailyPick('2026-11-08', [])).toThrow()
   })
 })
 

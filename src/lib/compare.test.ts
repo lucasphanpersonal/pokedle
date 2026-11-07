@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Pokemon } from '../types/pokemon'
-import { compareGuess, compareNumber, compareTypes } from './compare'
+import { compareGuess, compareNumber, compareTypes, compareWeight } from './compare'
 
 const mon = (over: Partial<Pokemon>): Pokemon => ({
   id: 1,
@@ -51,9 +51,16 @@ describe('compareNumber', () => {
   it('ignores floating point noise', () => {
     expect(compareNumber(0.1 + 0.2, 0.3)).toBe('match')
   })
-  it('handles the zero weight of Eternamax Eternatus', () => {
-    expect(compareNumber(0, 950)).toBe('higher')
-    expect(compareNumber(950, 0)).toBe('lower')
+})
+
+describe('compareWeight', () => {
+  it('gives no direction when a weight is unknown (Eternamax Eternatus)', () => {
+    expect(compareWeight(0, 950)).toBe('unknown')
+    expect(compareWeight(950, 0)).toBe('unknown')
+    expect(compareWeight(0, 0)).toBe('match')
+  })
+  it('compares known weights normally', () => {
+    expect(compareWeight(6, 7.2)).toBe('higher')
   })
 })
 

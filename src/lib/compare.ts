@@ -5,9 +5,10 @@ export type MatchFeedback = 'match' | 'partial' | 'mismatch'
 
 /**
  * Feedback for number attributes. 'higher' means the answer's value is higher
- * than the guess (show an up arrow); 'lower' means it is lower.
+ * than the guess (show an up arrow); 'lower' means it is lower. 'unknown'
+ * means one side has no official value, so no direction can be given.
  */
-export type NumberFeedback = 'match' | 'higher' | 'lower'
+export type NumberFeedback = 'match' | 'higher' | 'lower' | 'unknown'
 
 export interface GuessFeedback {
   pokemon: 'match' | 'mismatch'
@@ -52,13 +53,22 @@ export function compareTypes(guess: Pokemon, target: Pokemon): Pick<GuessFeedbac
   return { type1, type2 }
 }
 
+/**
+ * Weight 0 means "no official weight" (Eternamax Eternatus shows "???" in the
+ * games). Comparing against it would give a misleading arrow.
+ */
+export function compareWeight(guess: number, target: number): NumberFeedback {
+  if (guess <= 0 || target <= 0) return guess === target ? 'match' : 'unknown'
+  return compareNumber(guess, target)
+}
+
 export function compareGuess(guess: Pokemon, target: Pokemon): GuessFeedback {
   return {
     pokemon: guess.id === target.id ? 'match' : 'mismatch',
     ...compareTypes(guess, target),
     generation: compareNumber(guess.generation, target.generation),
     height: compareNumber(guess.height, target.height),
-    weight: compareNumber(guess.weight, target.weight),
+    weight: compareWeight(guess.weight, target.weight),
     color: guess.color === target.color ? 'match' : 'mismatch',
     evolutionStage: compareNumber(guess.evolutionStage, target.evolutionStage),
   }

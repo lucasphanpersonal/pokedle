@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MAX_GUESSES } from '../config/gameConfig'
 import { compareGuess, type GuessFeedback } from '../lib/compare'
 import { localDateKey, puzzleNumber } from '../lib/daily'
@@ -14,20 +14,22 @@ import {
   type SavedGame,
 } from '../lib/game'
 import { POKEDEX, POKEDEX_BY_ID } from '../lib/pokedex'
-import { loadJson, saveJson } from '../lib/storage'
+import { loadJson, saveJson, storageKey } from '../lib/storage'
 import type { Pokemon } from '../types/pokemon'
 
 export type { GameMode, GameStatus, GuessResult }
 
+type Games = Record<GameMode, SavedGame>
+
 function loadDaily(dateKey: string): SavedGame {
   const saved = loadJson('daily')
-  // A save from an earlier day (or one that no longer fits the data) starts fresh.
-  if (isValidSave(saved, POKEDEX_BY_ID) && saved.mode === 'daily' && saved.key === dateKey) {
-    const fresh = newDailyGame(dateKey, POKEDEX)
-    // If the answer pool changed since the save (config toggle), trust today's pick.
-    if (saved.targetId === fresh.targetId) return saved
+  const fresh = newDailyGame(dateKey, POKEDEX)
+  // Keep today's save only if it is for the same puzzle. A save from an
+  // earlier day, or a corrupt one, starts fresh.
+  if (isValidSave(saved, POKEDEX_BY_ID) && saved.mode === 'daily' && saved.key === dateKey && saved.targetId === fresh.targetId) {
+    return saved
   }
-  return newDailyGame(dateKey, POKEDEX)
+  return fresh
 }
 
 function loadEndless(): SavedGame {
@@ -36,35 +38,67 @@ function loadEndless(): SavedGame {
   return newEndlessGame(POKEDEX)
 }
 
+const loadGames = (): Games => ({ daily: loadDaily(localDateKey()), endless: loadEndless() })
+
+/** Replaces the daily game if the local date has moved on. */
+function rollOver(games: Games): Games {
+  const today = localDateKey()
+  return games.daily.key === today ? games : { ...games, daily: newDailyGame(today, POKEDEX) }
+}
+
 const lookup = (id: number) => POKEDEX_BY_ID.get(id) as Pokemon
+
+const msUntilLocalMidnight = () => {
+  const now = new Date()
+  const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
+  return midnight.getTime() - now.getTime()
+}
 
 /**
  * Game state for both modes. Each mode keeps its own game, so switching
  * between Daily and Endless never loses progress. Both are saved to
- * localStorage on every change.
+ * localStorage on every change and kept in sync across open tabs.
  */
 export function usePokemondle(mode: GameMode) {
-  const [games, setGames] = useState<Record<GameMode, SavedGame>>(() => ({
-    daily: loadDaily(localDateKey()),
-    endless: loadEndless(),
-  }))
+  const [games, setGamesState] = useState<Games>(loadGames)
+  // The latest state, updated synchronously so back-to-back guesses (before a
+  // re-render) are each validated against the result of the one before.
+  const gamesRef = useRef(games)
+
+  const commit = useCallback((next: Games) => {
+    if (next === gamesRef.current) return
+    gamesRef.current = next
+    setGamesState(next)
+  }, [])
 
   useEffect(() => saveJson('daily', games.daily), [games.daily])
   useEffect(() => saveJson('endless', games.endless), [games.endless])
 
-  // Roll the daily puzzle over at local midnight when the player comes back to the tab.
   useEffect(() => {
-    const checkDate = () => {
-      const today = localDateKey()
-      setGames((prev) => (prev.daily.key === today ? prev : { ...prev, daily: newDailyGame(today, POKEDEX) }))
+    const check = () => commit(rollOver(gamesRef.current))
+    // Another tab saved progress: pick it up instead of overwriting it later.
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === storageKey('daily') || e.key === storageKey('endless')) commit(rollOver(loadGames()))
     }
-    window.addEventListener('focus', checkDate)
-    document.addEventListener('visibilitychange', checkDate)
+    window.addEventListener('focus', check)
+    document.addEventListener('visibilitychange', check)
+    window.addEventListener('storage', onStorage)
+    // Also roll over at local midnight while the tab stays open.
+    let timer: number
+    const schedule = () => {
+      timer = window.setTimeout(() => {
+        check()
+        schedule()
+      }, msUntilLocalMidnight() + 1000)
+    }
+    schedule()
     return () => {
-      window.removeEventListener('focus', checkDate)
-      document.removeEventListener('visibilitychange', checkDate)
+      window.removeEventListener('focus', check)
+      document.removeEventListener('visibilitychange', check)
+      window.removeEventListener('storage', onStorage)
+      window.clearTimeout(timer)
     }
-  }, [])
+  }, [commit])
 
   const game = games[mode]
   const targetPokemon = lookup(game.targetId)
@@ -75,18 +109,25 @@ export function usePokemondle(mode: GameMode) {
   )
   const gameStatus = statusOf(game)
 
+  /**
+   * Records a guess in the current mode. Returns 'ok' if it was accepted.
+   * Side effects for an accepted guess (analytics, sounds) belong in the
+   * caller, keyed on the returned result.
+   */
   const submitGuess = useCallback(
     (pokemon: Pokemon): GuessResult => {
-      const { game: next, result } = applyGuess(games[mode], pokemon.id)
-      if (result === 'ok') setGames((prev) => ({ ...prev, [mode]: next }))
+      const current = rollOver(gamesRef.current)
+      const { game: next, result } = applyGuess(current[mode], pokemon.id)
+      commit(result === 'ok' ? { ...current, [mode]: next } : current)
       return result
     },
-    [games, mode],
+    [commit, mode],
   )
 
   const startNewEndlessGame = useCallback(() => {
-    setGames((prev) => ({ ...prev, endless: newEndlessGame(POKEDEX, Math.random, prev.endless.targetId) }))
-  }, [])
+    const current = gamesRef.current
+    commit({ ...current, endless: newEndlessGame(POKEDEX, Math.random, current.endless.targetId) })
+  }, [commit])
 
   return {
     mode,

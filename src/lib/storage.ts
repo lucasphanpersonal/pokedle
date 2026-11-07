@@ -4,6 +4,9 @@
  */
 const PREFIX = 'pokemondle:'
 
+/** The full localStorage key for one of our entries. */
+export const storageKey = (key: string) => PREFIX + key
+
 export function loadJson(key: string): unknown {
   try {
     const raw = window.localStorage.getItem(PREFIX + key)
