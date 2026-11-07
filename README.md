@@ -70,6 +70,16 @@ The app is a fully static site with no backend. The build uses relative asset pa
 so `dist/` works on Vercel or Netlify (build command `npm run build`, output `dist`) and on
 GitHub Pages under a sub-path.
 
+### GitHub Pages (current host)
+
+`.github/workflows/deploy.yml` lints, tests, builds and publishes `dist/` on every push to `main`
+(or manually from the Actions tab). The live site is https://lucasphanpersonal.github.io/pokemondle/.
+
+One-time setup: in the repo's **Settings → Pages → Build and deployment**, set **Source** to
+**GitHub Actions**. GitHub Pages needs the repository to be public on a free plan.
+
+Pull requests run the same lint, test and build checks (`.github/workflows/ci.yml`) without deploying.
+
 ## Analytics (Supabase)
 
 Anonymous player analytics run on a Supabase Edge Function. From the repo root:
