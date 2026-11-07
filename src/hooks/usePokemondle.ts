@@ -131,6 +131,8 @@ export function usePokemondle(mode: GameMode) {
 
   return {
     mode,
+    /** Identity of the current game: Daily = date key, Endless = start time (ISO). */
+    gameKey: game.key,
     targetPokemon,
     guesses,
     feedback,
