@@ -111,7 +111,7 @@ export function GuessCard({ guess, feedback, animate }: FeedbackRowProps) {
     )
   }
   return (
-    <li className="grid grid-cols-12 gap-1">
+    <li className="grid grid-cols-12 gap-1 border-t-2 border-dashed border-ds-frame/30 py-2 first:border-t-0 first:pt-0 last:pb-0">
       <div
         className={`${BG[feedback.pokemon]} ${animate ? 'tile-flip' : ''} px-notch col-span-12 flex min-h-11 items-center gap-2 px-2 text-[9px] text-white shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)]`}
         data-result={feedback.pokemon}
