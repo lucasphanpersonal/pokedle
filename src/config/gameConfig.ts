@@ -24,5 +24,6 @@ export const GRID_COLUMNS = [
   'Weight',
   'Color',
   'Evolution',
+  'Form',
   'Shared Ability',
 ] as const

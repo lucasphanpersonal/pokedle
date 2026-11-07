@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import type { Pokemon } from '../types/pokemon'
-import { abilityCellText, compareAbilities, compareGuess, compareNumber, compareTypes, compareWeight } from './compare'
+import {
+  abilityCellText,
+  compareAbilities,
+  compareForm,
+  compareGuess,
+  compareNumber,
+  compareTypes,
+  compareWeight,
+  formCellText,
+} from './compare'
 
 const mon = (over: Partial<Pokemon>): Pokemon => ({
   id: 1,
@@ -77,12 +86,30 @@ describe('compareGuess', () => {
       weight: 'lower',
       color: 'mismatch',
       evolutionStage: 'higher',
+      form: 'match',
       ability: { result: 'match', shared: ['Blaze'] },
     })
   })
   it('matches the answer itself on every attribute', () => {
     const p = mon({ type2: 'Flying', abilities: ['Blaze'] })
     expect(Object.values(compareGuess(p, p)).every((v) => (typeof v === 'string' ? v === 'match' : v.result === 'match'))).toBe(true)
+  })
+})
+
+describe('compareForm', () => {
+  it('matches the same form category', () => {
+    expect(compareForm(mon({ formCategory: 'mega' }), mon({ formCategory: 'mega' }))).toBe('match')
+  })
+  it('mismatches a different form category', () => {
+    expect(compareForm(mon({ formCategory: 'mega' }), mon({ formCategory: 'base' }))).toBe('mismatch')
+  })
+})
+
+describe('formCellText', () => {
+  it('shows a readable label for each category', () => {
+    expect(formCellText(mon({ formCategory: 'base' }))).toBe('Base')
+    expect(formCellText(mon({ formCategory: 'regional' }))).toBe('Regional')
+    expect(formCellText(mon({ formCategory: 'gmax' }))).toBe('Gigantamax')
   })
 })
 

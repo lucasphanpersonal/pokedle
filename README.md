@@ -32,12 +32,13 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   with each Pokémon's id. **Endless**: a new random Pokémon on demand. Each mode keeps its own saved game.
 - **No guess limit**: a game ends only when you guess the answer. The search box only accepts Pokémon picked from
   its suggestions; already guessed Pokémon are hidden from them. Matching ignores case, accents and punctuation ("flabebe" finds Flabébé).
-- **Columns**: Pokémon, Type 1, Type 2, Gen, Height, Weight, Color, Evolution (stage 1–3), Shared Ability.
+- **Columns**: Pokémon, Type 1, Type 2, Gen, Height, Weight, Color, Evolution (stage 1–3), Form, Shared Ability.
   Green = match, yellow = type in the other slot, red = no match, ▲/▼ = the answer is higher/lower.
+  Form is green when the guess and the answer share a form category (Base, Mega, Regional, Gigantamax, Cosmetic, Other), red otherwise; the tile shows the guess's own category.
   Shared Ability lists every ability the two share (hidden abilities count). With no match it is red and lists all of
   the guess's own abilities instead, or "Unknown" for the few new Megas with no ability data yet.
 - **Results**: after the last tile flips, a dialog shows the answer's artwork, the score and a spoiler-free emoji
-  grid (8 attribute columns per guess; the Pokémon column is left out). **Share** opens the system share sheet on
+  grid (9 attribute columns per guess, Form included; the Pokémon column is left out). **Share** opens the system share sheet on
   phones and tablets and copies to the clipboard on desktop.
 
 ### Look and feel
@@ -52,9 +53,9 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
 
 ### Layout on different devices
 
-- Desktop and tablet (≥ 640 px): all nine columns fit on screen.
+- Desktop and tablet (≥ 640 px): all ten columns fit on screen.
 - Phones (< 640 px): no sideways scrolling. Each guess is a compact card: sprite and name on top, then the
-  comparison tiles (Type 1, Type 2, Gen, Height / Weight, Color, Evolution) and a full-width Shared Ability strip,
+  comparison tiles in two rows of four (Type 1, Type 2, Gen, Height / Weight, Color, Evolution, Form) and a full-width Shared Ability strip,
   with a small key above the list. The search box uses 16 px text so iOS doesn't
   zoom, and every button and suggestion is at least 44 px tall for touch.
 - Keyboard: type to search, ↑/↓ to move through suggestions, Enter to guess, Esc to close a dialog.

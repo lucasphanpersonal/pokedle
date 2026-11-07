@@ -11,6 +11,7 @@ const miss: GuessFeedback = {
   weight: 'unknown',
   color: 'match',
   evolutionStage: 'match',
+  form: 'mismatch',
   ability: { result: 'mismatch', shared: [] },
 }
 const hit: GuessFeedback = {
@@ -22,13 +23,14 @@ const hit: GuessFeedback = {
   weight: 'match',
   color: 'match',
   evolutionStage: 'match',
+  form: 'match',
   ability: { result: 'match', shared: ['Static'] },
 }
 
 describe('share text', () => {
-  it('renders one emoji per attribute, Pokémon column excluded', () => {
-    expect(shareRow(miss)).toBe('🟨🟥⬆️⬇️🟥🟩🟩🟥')
-    expect(shareRow(hit)).toBe('🟩'.repeat(8))
+  it('renders one emoji per attribute (Form included), Pokémon column excluded', () => {
+    expect(shareRow(miss)).toBe('🟨🟥⬆️⬇️🟥🟩🟩🟥🟥')
+    expect(shareRow(hit)).toBe('🟩'.repeat(9))
   })
   it('builds a daily result', () => {
     const text = buildShareText({ mode: 'daily', puzzleNumber: 12, feedback: [miss, hit], url: 'https://x.test/' })
