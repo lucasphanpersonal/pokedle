@@ -24,6 +24,18 @@ src/config/gameConfig.ts      game settings, including which form categories are
 src/data/pokemon.json         generated dataset (committed, so the app needs no API at runtime)
 ```
 
+## Dataset
+
+`npm run fetch-data` pulls every Pokémon entry from PokéAPI (1,351 at the time of writing: 1,025 species
+plus regional forms, Megas, Gigantamax and other alternate forms) and writes `src/data/pokemon.json`.
+If pokeapi.co is unreachable it falls back to PokéAPI's static mirror on GitHub
+(`PokeAPI/api-data`); set `POKEAPI_SOURCE=live` or `POKEAPI_SOURCE=mirror` to force one.
+Responses are cached in `scripts/.cache/`.
+
+Known data quirks:
+- Colour comes from the species, so forms share it (Alolan Vulpix is listed as Brown, like Vulpix).
+- Eternamax Eternatus has no official weight and is stored as 0.
+
 ## Turning form categories on or off
 
 Every entry has a `formCategory` (`base`, `regional`, `mega`, `gmax`, `cosmetic`, `other`).
