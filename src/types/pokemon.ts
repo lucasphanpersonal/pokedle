@@ -30,5 +30,7 @@ export interface Pokemon {
   weight: number
   color: string
   evolutionStage: EvolutionStage
+  /** Every ability, hidden ones included, display-formatted ("Speed Boost"). Forms can differ from their base. */
+  abilities: string[]
   formCategory: FormCategory
 }

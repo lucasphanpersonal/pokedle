@@ -19,6 +19,13 @@ export interface GuessFeedback {
   weight: NumberFeedback
   color: 'match' | 'mismatch'
   evolutionStage: NumberFeedback
+  ability: AbilityFeedback
+}
+
+/** Shared Ability: 'match' with the shared names (all of them), or 'mismatch' with none. */
+export interface AbilityFeedback {
+  result: 'match' | 'mismatch'
+  shared: string[]
 }
 
 export type FeedbackKey = keyof GuessFeedback
@@ -62,6 +69,13 @@ export function compareWeight(guess: number, target: number): NumberFeedback {
   return compareNumber(guess, target)
 }
 
+/** Abilities both Pokémon can have (hidden ones included), in the guess's order. */
+export function compareAbilities(guess: Pokemon, target: Pokemon): AbilityFeedback {
+  const theirs = new Set(target.abilities)
+  const shared = [...new Set(guess.abilities)].filter((a) => theirs.has(a))
+  return { result: shared.length > 0 ? 'match' : 'mismatch', shared }
+}
+
 export function compareGuess(guess: Pokemon, target: Pokemon): GuessFeedback {
   return {
     pokemon: guess.id === target.id ? 'match' : 'mismatch',
@@ -71,5 +85,6 @@ export function compareGuess(guess: Pokemon, target: Pokemon): GuessFeedback {
     weight: compareWeight(guess.weight, target.weight),
     color: guess.color === target.color ? 'match' : 'mismatch',
     evolutionStage: compareNumber(guess.evolutionStage, target.evolutionStage),
+    ability: compareAbilities(guess, target),
   }
 }

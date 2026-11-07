@@ -19,10 +19,12 @@ import { fileURLToPath } from 'node:url'
 import type { Pokemon } from '../src/types/pokemon.ts'
 import {
   type ApiEvolutionNode,
+  type ApiAbility,
   type ApiName,
   type ApiPokemon,
   type ApiPokemonForm,
   type NamedRef,
+  abilitySlugs,
   categorize,
   displayName,
   englishName,
@@ -30,6 +32,7 @@ import {
   generationNumber,
   idFromUrl,
   sortedTypes,
+  titleCase,
 } from './lib/transform.ts'
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)))
@@ -199,6 +202,13 @@ async function main() {
       generation = Math.max(speciesGen, generationNumber(vg.generation.name))
     }
 
+    const abilities = await Promise.all(
+      abilitySlugs(p).map(async (ref) => {
+        const a = await get<ApiAbility>(ref.url)
+        return (englishName(a.names) ?? titleCase(a.name)).replaceAll('\u2019', "'")
+      }),
+    )
+
     const [type1, type2] = sortedTypes(p)
     const speciesName = englishName(species.names) ?? species.name
 
@@ -212,6 +222,7 @@ async function main() {
       height: p.height / 10,
       weight: p.weight / 10,
       color: species.color.name[0].toUpperCase() + species.color.name.slice(1),
+      abilities,
       evolutionStage: chain ? evolutionStage(chain.chain, species.name) : 1,
       formCategory: categorize(p, form, base),
     }
