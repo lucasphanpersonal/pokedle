@@ -11,7 +11,7 @@ interface GuessGridProps {
 export function GuessGrid({ guesses, feedback }: GuessGridProps) {
   return (
     <div className="ds-box overflow-x-auto p-3">
-      <table className="w-full min-w-[640px] border-separate border-spacing-1 text-center">
+      <table className="w-full min-w-[760px] border-separate border-spacing-1 text-center">
         <thead>
           <tr>
             {GRID_COLUMNS.map((col) => (

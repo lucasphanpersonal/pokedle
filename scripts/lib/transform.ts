@@ -27,6 +27,7 @@ export interface ApiPokemon {
   weight: number // hectograms
   types: { slot: number; type: NamedRef }[]
   stats: ApiStat[]
+  abilities: { slot: number; is_hidden: boolean; ability: NamedRef }[]
   species: NamedRef
   forms: NamedRef[]
 }
@@ -80,6 +81,21 @@ export function titleCase(slug: string): string {
 export function sortedTypes(p: ApiPokemon): [string, string | null] {
   const types = [...p.types].sort((a, b) => a.slot - b.slot).map((t) => titleCase(t.type.name))
   return [types[0], types[1] ?? null]
+}
+
+/** Minimal shape of /ability/{id}, just enough to get the English name. */
+export interface ApiAbility {
+  name: string
+  names: ApiName[]
+}
+
+/** Ability slugs in slot order (regular abilities, then hidden), without repeats. */
+export function abilitySlugs(p: ApiPokemon): NamedRef[] {
+  const seen = new Set<string>()
+  return [...p.abilities]
+    .sort((a, b) => a.slot - b.slot)
+    .map((a) => a.ability)
+    .filter((a) => !seen.has(a.name) && seen.add(a.name))
 }
 
 function statLine(p: ApiPokemon): string {

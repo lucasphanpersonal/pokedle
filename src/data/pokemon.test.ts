@@ -32,6 +32,18 @@ describe('pokemon.json', () => {
       expect([1, 2, 3]).toContain(p.evolutionStage)
     }
   })
+  it('lists abilities as display names', () => {
+    for (const p of data) {
+      expect(new Set(p.abilities).size).toBe(p.abilities.length)
+      for (const a of p.abilities) expect(a, `${p.name} ability`).toMatch(/^[A-Z0-9]/)
+      // PokéAPI has no ability data yet for a few brand-new Megas.
+      if (p.formCategory !== 'mega') expect(p.abilities.length, `${p.name} abilities`).toBeGreaterThan(0)
+    }
+    const abilities = (name: string) => data.find((p) => p.name === name)?.abilities
+    expect(abilities('Charizard')).toEqual(['Blaze', 'Solar Power'])
+    expect(abilities('Greninja')).toEqual(['Torrent', 'Protean'])
+    expect(abilities('Mega Charizard X')).toEqual(['Tough Claws'])
+  })
   it('numbers stages by position in the line, babies included', () => {
     const stage = (name: string) => data.find((p) => p.name === name)?.evolutionStage
     expect([stage('Pichu'), stage('Pikachu'), stage('Raichu')]).toEqual([1, 2, 3])

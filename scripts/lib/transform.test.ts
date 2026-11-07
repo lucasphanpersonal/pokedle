@@ -22,6 +22,7 @@ function mon(over: Partial<ApiPokemon> & { name: string }): ApiPokemon {
     weight: 100,
     types: [{ slot: 1, type: ref('fire') }],
     stats: [{ base_stat: 50, stat: ref('hp') }],
+    abilities: [],
     species: ref(over.name.split('-')[0], '/api/v2/pokemon-species/1/'),
     forms: [],
     ...over,

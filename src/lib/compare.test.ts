@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Pokemon } from '../types/pokemon'
-import { compareGuess, compareNumber, compareTypes, compareWeight } from './compare'
+import { compareAbilities, compareGuess, compareNumber, compareTypes, compareWeight } from './compare'
 
 const mon = (over: Partial<Pokemon>): Pokemon => ({
   id: 1,
@@ -13,6 +13,7 @@ const mon = (over: Partial<Pokemon>): Pokemon => ({
   weight: 10,
   color: 'Red',
   evolutionStage: 1,
+  abilities: [],
   formCategory: 'base',
   ...over,
 })
@@ -66,8 +67,8 @@ describe('compareWeight', () => {
 
 describe('compareGuess', () => {
   it('compares every attribute', () => {
-    const target = mon({ id: 2, generation: 3, height: 2, weight: 5, color: 'Blue', evolutionStage: 2 })
-    expect(compareGuess(mon({}), target)).toEqual({
+    const target = mon({ id: 2, generation: 3, height: 2, weight: 5, color: 'Blue', evolutionStage: 2, abilities: ['Blaze'] })
+    expect(compareGuess(mon({ abilities: ['Blaze', 'Intimidate'] }), target)).toEqual({
       pokemon: 'mismatch',
       type1: 'match',
       type2: 'match',
@@ -76,10 +77,37 @@ describe('compareGuess', () => {
       weight: 'lower',
       color: 'mismatch',
       evolutionStage: 'higher',
+      ability: { result: 'match', shared: ['Blaze'] },
     })
   })
   it('matches the answer itself on every attribute', () => {
-    const p = mon({ type2: 'Flying' })
-    expect(Object.values(compareGuess(p, p)).every((v) => v === 'match')).toBe(true)
+    const p = mon({ type2: 'Flying', abilities: ['Blaze'] })
+    expect(Object.values(compareGuess(p, p)).every((v) => (typeof v === 'string' ? v === 'match' : v.result === 'match'))).toBe(true)
+  })
+})
+
+describe('compareAbilities', () => {
+  const target = mon({ abilities: ['Blaze', 'Solar Power'] })
+  it('matches and lists every shared ability, hidden ones included', () => {
+    expect(compareAbilities(mon({ abilities: ['Solar Power', 'Blaze', 'Torrent'] }), target)).toEqual({
+      result: 'match',
+      shared: ['Solar Power', 'Blaze'],
+    })
+  })
+  it('matches on a single shared ability', () => {
+    expect(compareAbilities(mon({ abilities: ['Overgrow', 'Solar Power'] }), target)).toEqual({
+      result: 'match',
+      shared: ['Solar Power'],
+    })
+  })
+  it('is a mismatch with nothing shared', () => {
+    expect(compareAbilities(mon({ abilities: ['Torrent'] }), target)).toEqual({ result: 'mismatch', shared: [] })
+  })
+  it('is a mismatch when either side has no abilities', () => {
+    expect(compareAbilities(mon({}), target).result).toBe('mismatch')
+    expect(compareAbilities(target, mon({})).result).toBe('mismatch')
+  })
+  it('is included in compareGuess', () => {
+    expect(compareGuess(mon({ abilities: ['Blaze'] }), target).ability).toEqual({ result: 'match', shared: ['Blaze'] })
   })
 })

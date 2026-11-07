@@ -38,6 +38,9 @@ export function FeedbackRow({ guess, feedback }: FeedbackRowProps) {
       <Cell result={feedback.weight}>{guess.weight > 0 ? `${guess.weight} kg` : '???'}</Cell>
       <Cell result={feedback.color}>{guess.color}</Cell>
       <Cell result={feedback.evolutionStage}>{guess.evolutionStage}</Cell>
+      <Cell result={feedback.ability.result}>
+        {feedback.ability.shared.length > 0 ? feedback.ability.shared.join(', ') : 'None'}
+      </Cell>
     </tr>
   )
 }
