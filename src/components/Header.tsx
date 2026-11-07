@@ -8,8 +8,8 @@ interface HeaderProps {
 
 export function Header({ mode, onModeChange, onHelp }: HeaderProps) {
   return (
-    <header className="ds-titlebar flex items-center justify-between gap-2 px-4 py-3">
-      <h1 className="text-base sm:text-xl">POKEDLE</h1>
+    <header className="ds-titlebar flex flex-wrap items-center justify-between gap-2 px-4 py-3">
+      <h1 className="text-[11px] sm:text-xl whitespace-nowrap">POKEMONDLE</h1>
       <div className="flex items-center gap-2 text-[10px] sm:text-xs">
         {(['daily', 'endless'] as const).map((m) => (
           <button

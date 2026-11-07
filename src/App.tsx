@@ -3,13 +3,13 @@ import { GuessGrid } from './components/GuessGrid'
 import { Header, type GameMode } from './components/Header'
 import { HelpModal } from './components/HelpModal'
 import { SearchBar } from './components/SearchBar'
-import { usePokedle } from './hooks/usePokedle'
+import { usePokemondle } from './hooks/usePokemondle'
 import { POKEDEX } from './lib/pokedex'
 
 export default function App() {
   const [mode, setMode] = useState<GameMode>('daily')
   const [showHelp, setShowHelp] = useState(false)
-  const { guesses, gameStatus, submitGuess } = usePokedle()
+  const { guesses, gameStatus, submitGuess } = usePokemondle()
 
   return (
     <div className="mx-auto flex min-h-screen max-w-4xl flex-col">

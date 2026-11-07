@@ -1,4 +1,4 @@
-# Pokedle
+# Pokemondle
 
 A Wordle-style guessing game covering every Pokémon from Gen 1 to Gen 9, including regional forms, Megas and Gigantamax.
 
@@ -18,7 +18,7 @@ npm run fetch-data # rebuild src/data/pokemon.json from PokéAPI
 ```
 scripts/fetchPokemonData.ts   builds the local Pokémon dataset from PokéAPI
 src/components/               Header, SearchBar, GuessGrid, FeedbackRow, WinModal, HelpModal
-src/hooks/usePokedle.ts       game state (target, guesses, status)
+src/hooks/usePokemondle.ts       game state (target, guesses, status)
 src/lib/                      dataset loading and game logic
 src/config/gameConfig.ts      game settings, including which form categories are enabled
 src/data/pokemon.json         generated dataset (committed, so the app needs no API at runtime)
