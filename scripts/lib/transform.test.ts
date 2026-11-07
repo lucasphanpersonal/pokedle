@@ -79,6 +79,9 @@ describe('displayName', () => {
     expect(displayName(mon({ name: 'vulpix-x' }), form({ form_names: en('X Form') }), 'Vulpix')).toBe('Vulpix (X Form)')
     expect(displayName(mon({ name: 'vulpix-big-one' }), null, 'Vulpix')).toBe('Vulpix (Big One)')
   })
+  it('uses straight apostrophes', () => {
+    expect(displayName(mon({ name: 'farfetchd', is_default: true }), null, 'Farfetch\u2019d')).toBe("Farfetch'd")
+  })
   it('applies overrides for colliding official names', () => {
     expect(displayName(mon({ name: 'meowstic-female-mega' }), form({ names: en('Mega Meowstic') }), 'Meowstic')).toBe(
       'Mega Meowstic (Female)',

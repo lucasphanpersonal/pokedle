@@ -13,7 +13,7 @@
  *
  * Responses are cached in scripts/.cache so re-runs are fast and polite.
  */
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Pokemon } from '../src/types/pokemon.ts'
@@ -41,31 +41,52 @@ const MIRROR_BASE = 'https://raw.githubusercontent.com/PokeAPI/api-data/master/d
 const CONCURRENCY = 12
 
 type Source = 'live' | 'mirror'
-let source: Source = (process.env.POKEAPI_SOURCE as Source) || 'live'
+const forcedSource = process.env.POKEAPI_SOURCE
+if (forcedSource && forcedSource !== 'live' && forcedSource !== 'mirror') {
+  throw new Error(`POKEAPI_SOURCE must be "live" or "mirror", got "${forcedSource}"`)
+}
+let source: Source = (forcedSource as Source | undefined) ?? 'live'
 
-/** Accepts "/api/v2/pokemon/37/" or a full pokeapi.co URL. */
+const REQUEST_TIMEOUT_MS = 20_000
+
+/** Normalizes "/api/v2/pokemon/37" or a full pokeapi.co URL to "/api/v2/pokemon/37/". */
 function toPath(resource: string): string {
   const p = resource.replace(/^https?:\/\/pokeapi\.co/, '')
   return p.endsWith('/') ? p : `${p}/`
 }
 
-function requestUrl(apiPath: string): string {
-  return source === 'live' ? `${LIVE_BASE}${apiPath}` : `${MIRROR_BASE}${apiPath}index.json`
+function requestUrl(apiPath: string, query = ''): string {
+  return source === 'live' ? `${LIVE_BASE}${apiPath}${query}` : `${MIRROR_BASE}${apiPath}index.json`
 }
+
+class HttpError extends Error {
+  readonly status: number
+  constructor(status: number, url: string) {
+    super(`HTTP ${status} for ${url}`)
+    this.status = status
+  }
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 async function fetchWithRetry(url: string, attempts = 4): Promise<unknown> {
   let lastError: unknown
   for (let i = 0; i < attempts; i++) {
+    let waitMs = 500 * 2 ** i
     try {
-      const res = await fetch(url)
+      const res = await fetch(url, { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) })
       if (res.ok) return await res.json()
-      if (res.status === 404) throw new Error(`404 ${url}`)
-      lastError = new Error(`${res.status} ${url}`)
-    } catch (err) {
+      const err = new HttpError(res.status, url)
+      // Client errors other than rate limiting won't succeed on retry.
+      if (res.status >= 400 && res.status < 500 && res.status !== 429) throw err
+      const retryAfter = Number(res.headers.get('retry-after'))
+      if (res.status === 429 && retryAfter > 0) waitMs = retryAfter * 1000
       lastError = err
-      if (String(err).includes('404')) throw err
+    } catch (err) {
+      if (err instanceof HttpError && err.status !== 429 && err.status < 500) throw err
+      lastError = err
     }
-    await new Promise((r) => setTimeout(r, 500 * 2 ** i))
+    await sleep(waitMs)
   }
   throw lastError
 }
@@ -83,7 +104,10 @@ function get<T>(resource: string): Promise<T> {
         return JSON.parse(await readFile(cacheFile, 'utf8'))
       } catch {
         const data = await fetchWithRetry(requestUrl(apiPath))
-        await writeFile(cacheFile, JSON.stringify(data))
+        // Write-then-rename so an interrupted run never leaves a truncated cache file.
+        const tmp = `${cacheFile}.${process.pid}.tmp`
+        await writeFile(tmp, JSON.stringify(data))
+        await rename(tmp, cacheFile)
         return data
       }
     })()
@@ -131,15 +155,30 @@ interface ApiSpecies {
   varieties: { is_default: boolean; pokemon: NamedRef }[]
 }
 
+interface ApiList {
+  count: number
+  results: NamedRef[]
+}
+
+/**
+ * The full /pokemon list. Live: one request with a large limit (not cached, so
+ * new Pokémon show up). Mirror: its index.json already holds every entry.
+ * Fails loudly if the list is incomplete rather than writing a partial dataset.
+ */
+async function fetchPokemonList(): Promise<ApiList> {
+  const list = (await fetchWithRetry(requestUrl('/api/v2/pokemon/', '?limit=100000&offset=0'))) as ApiList
+  if (!Array.isArray(list.results) || list.results.length !== list.count) {
+    throw new Error(`Incomplete Pokémon list: got ${list.results?.length} of ${list.count}`)
+  }
+  return list
+}
+
 async function main() {
   await mkdir(CACHE_DIR, { recursive: true })
   await pickSource()
   console.log(`Source: ${source === 'live' ? LIVE_BASE : MIRROR_BASE}`)
 
-  const list = await get<{ results: NamedRef[] }>('/api/v2/pokemon/?limit=100000&offset=0').catch(() =>
-    // The mirror stores the full list at /pokemon/index.json.
-    get<{ results: NamedRef[] }>('/api/v2/pokemon/'),
-  )
+  const list = await fetchPokemonList()
   console.log(`Fetching ${list.results.length} Pokémon entries...`)
 
   const entries = await mapLimit(list.results, CONCURRENCY, async (ref) => {

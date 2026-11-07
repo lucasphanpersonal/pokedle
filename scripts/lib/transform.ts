@@ -56,6 +56,8 @@ const COSMETIC_PATTERNS = [/-totem\b/, /-power-construct$/, /^pikachu-.*-cap$/, 
  * Keyed by PokéAPI pokemon slug.
  */
 const NAME_OVERRIDES: Record<string, string> = {
+  'darmanitan-galar-standard': 'Galarian Darmanitan',
+  'darmanitan-galar-zen': 'Galarian Darmanitan (Zen Mode)',
   'meowstic-male-mega': 'Mega Meowstic (Male)',
   'meowstic-female-mega': 'Mega Meowstic (Female)',
   'zygarde-10-power-construct': '10% Zygarde (Power Construct)',
@@ -112,6 +114,15 @@ export function categorize(p: ApiPokemon, form: ApiPokemonForm | null, base: Api
  * "Mega Charizard X"), otherwise "Species (Form)".
  */
 export function displayName(
+  p: ApiPokemon,
+  form: ApiPokemonForm | null,
+  speciesName: string,
+): string {
+  // Straight apostrophes so typed guesses like "Farfetch'd" match.
+  return rawDisplayName(p, form, speciesName).replaceAll('\u2019', "'")
+}
+
+function rawDisplayName(
   p: ApiPokemon,
   form: ApiPokemonForm | null,
   speciesName: string,
