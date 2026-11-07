@@ -91,18 +91,25 @@ describe('displayName', () => {
 
 describe('evolutionStage', () => {
   const node = (name: string, ...next: ApiEvolutionNode[]): ApiEvolutionNode => ({ species: ref(name), evolves_to: next })
-  const chain = node('bulbasaur', node('ivysaur', node('venusaur')))
-  it('maps chain depth to stage', () => {
-    expect(evolutionStage(chain, 'bulbasaur')).toBe('Basic')
-    expect(evolutionStage(chain, 'ivysaur')).toBe('Stage 1')
-    expect(evolutionStage(chain, 'venusaur')).toBe('Stage 2')
+
+  it('counts 1, 2, 3 along a line', () => {
+    const chain = node('bulbasaur', node('ivysaur', node('venusaur')))
+    expect(evolutionStage(chain, 'bulbasaur')).toBe(1)
+    expect(evolutionStage(chain, 'ivysaur')).toBe(2)
+    expect(evolutionStage(chain, 'venusaur')).toBe(3)
+  })
+  it('counts baby Pokémon as the first stage', () => {
+    const chain = node('pichu', node('pikachu', node('raichu')))
+    expect(evolutionStage(chain, 'pichu')).toBe(1)
+    expect(evolutionStage(chain, 'pikachu')).toBe(2)
+    expect(evolutionStage(chain, 'raichu')).toBe(3)
   })
   it('handles branching chains', () => {
     const eevee = node('eevee', node('vaporeon'), node('sylveon'))
-    expect(evolutionStage(eevee, 'sylveon')).toBe('Stage 1')
+    expect(evolutionStage(eevee, 'sylveon')).toBe(2)
   })
   it('throws when the species is missing', () => {
-    expect(() => evolutionStage(chain, 'pikachu')).toThrow()
+    expect(() => evolutionStage(node('bulbasaur'), 'pikachu')).toThrow()
   })
 })
 

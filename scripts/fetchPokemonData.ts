@@ -212,7 +212,7 @@ async function main() {
       height: p.height / 10,
       weight: p.weight / 10,
       color: species.color.name[0].toUpperCase() + species.color.name.slice(1),
-      evolutionStage: chain ? evolutionStage(chain.chain, species.name) : 'Basic',
+      evolutionStage: chain ? evolutionStage(chain.chain, species.name) : 1,
       formCategory: categorize(p, form, base),
     }
     return entry

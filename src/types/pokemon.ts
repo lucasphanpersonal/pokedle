@@ -10,7 +10,8 @@ export type FormCategory =
   | 'cosmetic' // same types and stats as the base form (Pikachu caps, Totems, ...)
   | 'other' // any other battle-relevant alternate form (Rotom, Deoxys, ...)
 
-export type EvolutionStage = 'Basic' | 'Stage 1' | 'Stage 2'
+/** Position in the evolution line: 1 = first, 2 = second, 3 = third. Babies count (Pichu 1, Pikachu 2). */
+export type EvolutionStage = 1 | 2 | 3
 
 export interface Pokemon {
   /** Unique PokéAPI pokemon id (matches the sprite URL). */
