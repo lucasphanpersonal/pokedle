@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { validateBatch } from '../../supabase/functions/track/validate'
-import { flush, isTrackingEnabled, resetQueueForTests, setTrackingOptOut, trackFinish, trackGuess } from './analytics'
+import { flush, isBrowserDoNotTrack, isOptedOutByPlayer, isTrackingEnabled, resetQueueForTests, setTrackingOptOut, trackFinish, trackGuess } from './analytics'
 import { localDateKey } from './daily'
 
 const URL = 'https://example.test/track'
@@ -144,9 +144,49 @@ describe('opt-out and no endpoint', () => {
     setTrackingOptOut(false)
     expect(isTrackingEnabled()).toBe(true)
   })
+  it('clears the queue on opt-out so flush sends nothing', () => {
+    trackGuess(daily, { guessId: 1, guessNumber: 1, isCorrect: false })
+    expect(setTrackingOptOut(true)).toBe(true)
+    flush()
+    silent()
+    setTrackingOptOut(false)
+    flush()
+    silent()
+  })
+  it('opt-out holds when localStorage throws', () => {
+    trackGuess(daily, { guessId: 1, guessNumber: 1, isCorrect: false })
+    const boom = () => {
+      throw new Error('denied')
+    }
+    vi.stubGlobal('localStorage', { getItem: boom, setItem: boom, removeItem: boom, key: boom, length: 0 })
+    expect(setTrackingOptOut(true)).toBe(false)
+    expect(isOptedOutByPlayer()).toBe(true)
+    expect(isTrackingEnabled()).toBe(false)
+    attempt()
+    silent()
+    expect(setTrackingOptOut(false)).toBe(false)
+    expect(isOptedOutByPlayer()).toBe(false)
+  })
+  it('detects browser privacy signals', () => {
+    expect(isBrowserDoNotTrack()).toBe(false)
+    vi.stubGlobal('navigator', { globalPrivacyControl: true })
+    expect(isBrowserDoNotTrack()).toBe(true)
+    vi.stubGlobal('navigator', { doNotTrack: '1' })
+    expect(isBrowserDoNotTrack()).toBe(true)
+    vi.stubGlobal('navigator', { doNotTrack: '0', globalPrivacyControl: false })
+    expect(isBrowserDoNotTrack()).toBe(false)
+  })
 })
 
 describe('duplicates', () => {
+  it('sends game_finished only once when finish is reported twice', async () => {
+    trackGuess(daily, { guessId: 25, guessNumber: 1, isCorrect: true })
+    trackFinish(daily, 'won', 1)
+    trackFinish(daily, 'won', 1)
+    const sent = (await bodies()).flatMap((b) => (b as { events: { event: string }[] }).events)
+    expect(sent.filter((e) => e.event === 'game_finished')).toHaveLength(1)
+  })
+
   it('sends game_started only once, even across a reload', async () => {
     trackGuess(daily, { guessId: 1, guessNumber: 1, isCorrect: false })
     flush()

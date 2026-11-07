@@ -43,8 +43,12 @@ function storage(): Storage | null {
   }
 }
 
+/** In-memory copy of the opt-out, so it holds even if localStorage throws. */
+let optedOutInMemory = false
+
 /** True if the player switched analytics off in the Help modal. */
 export function isOptedOutByPlayer(): boolean {
+  if (optedOutInMemory) return true
   try {
     return storage()?.getItem(OPT_OUT_KEY) === 'true'
   } catch {
@@ -68,17 +72,26 @@ export function isTrackingEnabled(): boolean {
   return !isBrowserDoNotTrack() && !isOptedOutByPlayer()
 }
 
-/** Backs the Help modal's "Share anonymous stats" switch. Opting out also drops anything still queued. */
-export function setTrackingOptOut(optOut: boolean): void {
+/**
+ * Backs the Help modal's "Share anonymous stats" switch. Opting out takes
+ * effect immediately (queue dropped, in-memory flag set) even if the flag
+ * cannot be saved. Returns whether the choice was persisted.
+ */
+export function setTrackingOptOut(optOut: boolean): boolean {
+  if (optOut) {
+    queue.length = 0
+    optedOutInMemory = true
+  } else {
+    optedOutInMemory = false
+  }
   try {
-    if (optOut) {
-      storage()?.setItem(OPT_OUT_KEY, 'true')
-      queue.length = 0
-    } else {
-      storage()?.removeItem(OPT_OUT_KEY)
-    }
+    const s = storage()
+    if (!s) return false
+    if (optOut) s.setItem(OPT_OUT_KEY, 'true')
+    else s.removeItem(OPT_OUT_KEY)
+    return true
   } catch {
-    // ignore
+    return false
   }
 }
 
@@ -279,7 +292,8 @@ export function startAnalytics(): void {
   window.addEventListener('pagehide', flush)
 }
 
-/** Test helper: clears the in-memory queue. */
+/** Test helper: clears the in-memory queue and opt-out flag. */
 export function resetQueueForTests(): void {
   queue.length = 0
+  optedOutInMemory = false
 }

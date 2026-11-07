@@ -15,7 +15,8 @@ export function HelpModal({ onClose }: HelpModalProps) {
 
   const toggle = () => {
     setTrackingOptOut(on)
-    setOptedOut(on)
+    // Show the real state, which holds in memory even if it couldn't be saved.
+    setOptedOut(isOptedOutByPlayer())
   }
 
   return (
@@ -32,7 +33,7 @@ export function HelpModal({ onClose }: HelpModalProps) {
 
         <h2 className="mb-2 mt-5 text-xs">Privacy</h2>
         <p>
-          The game records anonymous gameplay stats (guesses, wins, device type) with no cookies, accounts or personal
+          The game records anonymous game events (guesses, results, device type) with no cookies, accounts or personal
           data. Browsers that send Do Not Track or Global Privacy Control are never tracked.
         </p>
         <button

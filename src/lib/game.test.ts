@@ -71,15 +71,20 @@ describe('applyGuessToGames', () => {
     const g = games('2026-11-08')
     const { applied, result } = applyGuessToGames(g, 'endless', 2, '2026-11-08', pool)
     expect(result).toBe('ok')
-    expect(applied).toEqual({ mode: 'endless', gameKey: 'e', targetId: 1, guessNumber: 1 })
+    expect(applied).toEqual({ mode: 'endless', gameKey: 'e', targetId: 1, guessNumber: 1, status: 'playing' })
   })
   it('tags a guess after midnight with the new day, not the stale cached one', () => {
     const stale = games('2026-11-08')
     const fresh = newDailyGame('2026-11-09', pool)
     const out = applyGuessToGames(stale, 'daily', 5, '2026-11-09', pool)
-    expect(out.applied).toEqual({ mode: 'daily', gameKey: '2026-11-09', targetId: fresh.targetId, guessNumber: 1 })
+    expect(out.applied).toEqual({ mode: 'daily', gameKey: '2026-11-09', targetId: fresh.targetId, guessNumber: 1, status: 'playing' })
     expect(out.games.daily.key).toBe('2026-11-09')
     expect(out.games.daily.guessIds).toEqual([5])
+  })
+  it('reports a finishing guess as won, for the new day after midnight', () => {
+    const target = newDailyGame('2026-11-09', pool).targetId
+    const out = applyGuessToGames(games('2026-11-08'), 'daily', target, '2026-11-09', pool)
+    expect(out.applied).toMatchObject({ gameKey: '2026-11-09', status: 'won' })
   })
   it('reports nothing for rejected guesses', () => {
     const g = games('2026-11-08')

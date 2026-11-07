@@ -73,6 +73,8 @@ export interface AppliedGuess {
   targetId: number
   /** 1-based position of the guess within that game. */
   guessNumber: number
+  /** Status of that game after the guess. */
+  status: GameStatus
 }
 
 /**
@@ -93,7 +95,9 @@ export function applyGuessToGames(
   return {
     games: { ...current, [mode]: game },
     result,
-    applied: { mode, gameKey: game.key, targetId: game.targetId, guessNumber: game.guessIds.length },
+    applied: { mode, gameKey: game.key, targetId: game.targetId, guessNumber: game.guessIds.length,
+      status: gameStatus(game),
+    },
   }
 }
 

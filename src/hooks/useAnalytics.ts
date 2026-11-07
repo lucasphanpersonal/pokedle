@@ -48,10 +48,16 @@ export function useAnalytics(game: GameView): (pokemon: Pokemon) => GuessResult 
     (pokemon: Pokemon): GuessResult => {
       const { result, applied } = submitGuessDetailed(pokemon)
       if (result === 'ok' && applied) {
-        trackGuess(
-          { mode: applied.mode, gameKey: applied.gameKey, targetId: applied.targetId },
-          { guessId: pokemon.id, guessNumber: applied.guessNumber, isCorrect: pokemon.id === applied.targetId },
-        )
+        const ref = { mode: applied.mode, gameKey: applied.gameKey, targetId: applied.targetId }
+        trackGuess(ref, {
+          guessId: pokemon.id,
+          guessNumber: applied.guessNumber,
+          isCorrect: pokemon.id === applied.targetId,
+        })
+        // Finish for the applied game right away: after a midnight rollover the
+        // rendered game differs, so the effect below would never see this
+        // transition. trackFinish is once-per-game, so the effect can't double-send.
+        if (applied.status !== 'playing') trackFinish(ref, applied.status, applied.guessNumber)
       }
       return result
     },
