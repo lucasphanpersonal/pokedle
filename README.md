@@ -53,11 +53,14 @@ Anonymous player analytics run on a Supabase Edge Function. From the repo root:
 
 ```sh
 npx supabase link --project-ref <project-ref>   # connect this repo to your Supabase project
-npx supabase db push                            # create the tables, views and daily roll-up job
+npx supabase db push --remote --yes            # create the tables, views and daily roll-up job
 npx supabase secrets set ALLOWED_ORIGINS="https://lucasphanpersonal.github.io,http://localhost:5173"   # sites allowed to send events (set BEFORE deploying)
-npx supabase functions deploy track --no-verify-jwt   # deploy the event-collecting function
+npx supabase functions deploy track --no-verify-jwt --yes   # deploy the event-collecting function
 ```
 
 Secrets take effect on the function's next start; redeploy after changing them.
+With Supabase CLI 3, `db push` targets a local database unless you pass `--remote`, and `--yes` skips the confirmation prompt for hosted projects. `link` creates `supabase/.temp/`, which is git-ignored.
+
+The live project is `inxvlunfwsssifvjkgtz` (US); the client sends events to `https://inxvlunfwsssifvjkgtz.supabase.co/functions/v1/track`.
 
 See [supabase/README.md](supabase/README.md) for details.
