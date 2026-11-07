@@ -1,11 +1,22 @@
 import { useId, useState } from 'react'
+import { MAX_GUESSES } from '../config/gameConfig'
 import { isBrowserDoNotTrack, isOptedOutByPlayer, setTrackingOptOut } from '../lib/analytics'
+import { Modal } from './Modal'
 
 interface HelpModalProps {
   onClose: () => void
 }
 
-export function HelpModal({ onClose }: HelpModalProps) {
+function Swatch({ className, children }: { className: string; children: string }) {
+  return (
+    <span className={`${className} inline-flex h-6 min-w-6 items-center justify-center rounded px-1 text-[9px] text-white`}>
+      {children}
+    </span>
+  )
+}
+
+/** Privacy note and the analytics on/off switch. */
+function StatsToggle() {
   const labelId = useId()
   const noteId = useId()
   // Browsers sending GPC / Do Not Track are never tracked, whatever the switch says.
@@ -20,52 +31,84 @@ export function HelpModal({ onClose }: HelpModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4">
-      <div className="ds-box my-auto w-full max-w-md p-6 text-[10px] leading-5">
-        <h2 className="mb-3 text-xs">How to play</h2>
-        <p>Guess the hidden Pokémon. Every guess shows how close each attribute is.</p>
-        <ul className="mt-3 list-disc space-y-1 pl-4">
-          <li>Green: exact match</li>
-          <li>Yellow: right type, wrong slot</li>
-          <li>Red: no match</li>
-          <li>Arrows: the answer is higher or lower</li>
-        </ul>
-
-        <h2 className="mb-2 mt-5 text-xs">Privacy</h2>
-        <p>
-          The game records anonymous game events (guesses, results, device type) with no cookies, accounts or personal
-          data. Browsers that send Do Not Track or Global Privacy Control are never tracked.
-        </p>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={on}
-          aria-labelledby={labelId}
-          aria-describedby={browserBlocks ? noteId : undefined}
-          disabled={browserBlocks}
-          onClick={toggle}
-          className="mt-2 flex min-h-11 w-full items-center justify-between gap-3 text-left disabled:opacity-60"
-        >
-          <span id={labelId}>Share anonymous stats</span>
-          <span className="flex items-center gap-2" aria-hidden="true">
-            <span>{on ? 'ON' : 'OFF'}</span>
-            <span
-              className={`flex h-6 w-11 items-center border-2 border-ds-frame px-0.5 ${on ? 'justify-end bg-ds-red' : 'justify-start bg-ds-paper'}`}
-            >
-              <span className="h-4 w-4 bg-ds-frame" />
-            </span>
+    <section className="mt-5 border-t-2 border-ds-frame-light pt-4 text-[10px] leading-5">
+      <h3 className="mb-2 text-[11px]">Privacy</h3>
+      <p>
+        The game records anonymous game events (guesses, results, device type) with no cookies, accounts or personal
+        data. Browsers that send Do Not Track or Global Privacy Control are never tracked.
+      </p>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={on}
+        aria-labelledby={labelId}
+        aria-describedby={browserBlocks ? noteId : undefined}
+        disabled={browserBlocks}
+        onClick={toggle}
+        className="ds-focus mt-2 flex min-h-11 w-full items-center justify-between gap-3 text-left disabled:opacity-60"
+      >
+        <span id={labelId}>Share anonymous stats</span>
+        <span className="flex items-center gap-2" aria-hidden="true">
+          <span>{on ? 'ON' : 'OFF'}</span>
+          <span
+            className={`flex h-6 w-11 items-center rounded-full border-2 border-ds-frame px-0.5 ${on ? 'justify-end bg-fb-match' : 'justify-start bg-ds-paper'}`}
+          >
+            <span className="h-4 w-4 rounded-full bg-ds-frame" />
           </span>
-        </button>
-        {browserBlocks && (
-          <p id={noteId} className="mt-1">
-            Off: your browser sends Do Not Track or Global Privacy Control.
-          </p>
-        )}
+        </span>
+      </button>
+      {browserBlocks && (
+        <p id={noteId} className="mt-1 text-[9px] text-ds-frame">
+          Off: your browser sends Do Not Track or Global Privacy Control.
+        </p>
+      )}
+    </section>
+  )
+}
 
-        <button type="button" onClick={onClose} className="mt-4 min-h-11 underline">
-          Got it
-        </button>
+export function HelpModal({ onClose }: HelpModalProps) {
+  return (
+    <Modal title="How to play" onClose={onClose}>
+      <div className="space-y-4 text-[10px] leading-5">
+        <p>
+          Guess the hidden Pokémon in {MAX_GUESSES} tries. Every Pokémon from Gen 1 to 9 is in, including regional forms,
+          Megas and Gigantamax.
+        </p>
+        <p>Start typing a name and pick from the list. Each guess shows how close it is:</p>
+        <ul className="space-y-2">
+          <li className="flex items-center gap-2">
+            <Swatch className="bg-fb-match">✓</Swatch> Exact match
+          </li>
+          <li className="flex items-center gap-2">
+            <Swatch className="bg-fb-partial text-ds-ink">~</Swatch> Right type, other slot
+          </li>
+          <li className="flex items-center gap-2">
+            <Swatch className="bg-fb-mismatch">✕</Swatch> No match
+          </li>
+          <li className="flex items-center gap-2">
+            <Swatch className="bg-fb-mismatch">▲</Swatch> The answer is higher
+          </li>
+          <li className="flex items-center gap-2">
+            <Swatch className="bg-fb-mismatch">▼</Swatch> The answer is lower
+          </li>
+        </ul>
+        <dl className="space-y-2">
+          <div>
+            <dt className="inline">Gen, Height, Weight, Evolution: </dt>
+            <dd className="inline">arrows point toward the answer. Evolution is the stage in its line (Pichu 1, Pikachu 2, Raichu 3).</dd>
+          </div>
+          <div>
+            <dt className="inline">Shared Ability: </dt>
+            <dd className="inline">green with the ability names if your guess and the answer share any ability (hidden ones count), otherwise red with "None".</dd>
+          </div>
+        </dl>
+        <p>
+          <strong>Daily</strong> is the same Pokémon for everyone, new each day at midnight. <strong>Endless</strong> gives you a
+          fresh Pokémon whenever you like. Your progress is saved on this device.
+        </p>
+        <p className="hidden sm:block">Keyboard: type to search, ↑/↓ to pick, Enter to guess, Esc to close.</p>
       </div>
-    </div>
+      <StatsToggle />
+    </Modal>
   )
 }
