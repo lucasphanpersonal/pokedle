@@ -64,8 +64,8 @@ function Tile({
   )
 }
 
-export function FeedbackRow({ guess, feedback, animate }: FeedbackRowProps) {
-  const tiles: [Result, ReactNode][] = [
+function buildTiles(guess: Pokemon, feedback: GuessFeedback): [Result, ReactNode][] {
+  return [
     [feedback.type1, guess.type1],
     [feedback.type2, guess.type2 ?? 'None'],
     [feedback.generation, `Gen ${guess.generation}`],
@@ -75,6 +75,64 @@ export function FeedbackRow({ guess, feedback, animate }: FeedbackRowProps) {
     [feedback.evolutionStage, `Stage ${guess.evolutionStage}`],
     [feedback.ability.result, feedback.ability.shared.length > 0 ? feedback.ability.shared.join(', ') : 'None'],
   ]
+}
+
+/**
+ * Phone layout: one compact card per guess (sprite + name, a 4 + 3 tile grid,
+ * then a full-width Shared Ability strip) so nothing scrolls sideways.
+ * Tablets and desktops use the table row below.
+ */
+export function GuessCard({ guess, feedback, animate }: FeedbackRowProps) {
+  const tiles = buildTiles(guess, feedback)
+  const ability = tiles[7]
+  const delay = (i: number): CSSProperties | undefined =>
+    animate ? { animationDelay: `${i * TILE_FLIP_STAGGER_MS}ms` } : undefined
+  const tile = (i: number, span: string) => {
+    const [result, content] = tiles[i]
+    return (
+      <div
+        key={i}
+        className={`${BG[result]} ${animate ? 'tile-flip' : ''} ${span} px-notch flex h-11 flex-col items-center justify-center px-0.5 text-center text-[8px] leading-[1.3] text-white shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)]`}
+        style={delay(i + 1)}
+        data-result={result}
+      >
+        <span className="[overflow-wrap:anywhere]">
+          {content}
+          {ARROW[result] && (
+            <span aria-hidden className="ml-0.5 text-[9px]">
+              {ARROW[result]}
+            </span>
+          )}
+        </span>
+        <span className="sr-only">, {LABEL[result]}</span>
+      </div>
+    )
+  }
+  return (
+    <li className="grid grid-cols-12 gap-1">
+      <div
+        className={`${BG[feedback.pokemon]} ${animate ? 'tile-flip' : ''} px-notch col-span-12 flex h-11 items-center gap-2 px-2 text-[9px] text-white shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)]`}
+        data-result={feedback.pokemon}
+      >
+        <img src={iconUrl(guess.id)} alt="" width={40} height={40} className="-my-1 h-10 w-10 shrink-0 [image-rendering:pixelated]" />
+        <span className="min-w-0 [overflow-wrap:anywhere]">{guess.name}</span>
+      </div>
+      {[0, 1, 2, 3].map((i) => tile(i, 'col-span-3'))}
+      {[4, 5, 6].map((i) => tile(i, 'col-span-4'))}
+      <div
+        className={`${BG[ability[0]]} ${animate ? 'tile-flip' : ''} px-notch col-span-12 flex min-h-8 items-center justify-center px-2 py-1 text-center text-[8px] leading-[1.3] text-white shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)]`}
+        style={delay(8)}
+        data-result={ability[0]}
+      >
+        <span className="[overflow-wrap:anywhere]">Ability: {ability[1]}</span>
+        <span className="sr-only">, {LABEL[ability[0]]}</span>
+      </div>
+    </li>
+  )
+}
+
+export function FeedbackRow({ guess, feedback, animate }: FeedbackRowProps) {
+  const tiles = buildTiles(guess, feedback)
   return (
     <tr>
       {/* Pokémon: sticky so it stays visible while the row scrolls on phones. */}

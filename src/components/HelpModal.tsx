@@ -112,6 +112,10 @@ export function HelpModal({ onClose }: HelpModalProps) {
           is in, including regional forms, Megas and Gigantamax.
         </p>
         <p>Start typing a name and pick from the list. Each guess shows how close it is:</p>
+        <p className="sm:hidden">
+          On a phone each guess is a card: Type 1, Type 2, Gen and Height on top, then Weight, Color and Evolution, with
+          Shared Ability along the bottom.
+        </p>
         <ul className="space-y-2">
           <li className="flex items-center gap-2">
             <Swatch className="bg-fb-match">✓</Swatch> Exact match

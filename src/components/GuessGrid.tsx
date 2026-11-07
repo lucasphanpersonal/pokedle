@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { GRID_COLUMNS } from '../config/gameConfig'
 import type { GuessFeedback } from '../lib/compare'
 import type { Pokemon } from '../types/pokemon'
-import { FeedbackRow } from './FeedbackRow'
+import { FeedbackRow, GuessCard } from './FeedbackRow'
 
 interface GuessGridProps {
   guesses: Pokemon[]
@@ -14,8 +14,8 @@ interface GuessGridProps {
  * mounted flip in, so a game restored on reload (or a mode switch, which
  * remounts the grid) appears instantly.
  *
- * Phones scroll the table sideways with the Pokémon column pinned; tablets
- * and desktops fit all nine columns.
+ * Phones show one compact card per guess (no sideways scrolling); tablets
+ * and desktops show the full nine-column table.
  */
 export function GuessGrid({ guesses, feedback }: GuessGridProps) {
   // Captured once at mount: how many guesses were restored rather than made now.
@@ -31,18 +31,29 @@ export function GuessGrid({ guesses, feedback }: GuessGridProps) {
 
   return (
     <div className="ds-box p-2 sm:p-3">
-      <div className="overflow-x-auto overscroll-x-contain">
-        <table className="w-full min-w-[700px] border-separate border-spacing-1 sm:min-w-0">
+      <div className="sm:hidden">
+        <p className="mb-2 text-center text-[7px] leading-3 text-ds-frame">
+          Top: Type 1 · Type 2 · Gen · Height
+          <br />
+          Then: Weight · Color · Evolution
+          <br />
+          Bottom: Shared Ability
+        </p>
+        <ul className="flex flex-col gap-2">
+          {guesses
+            .map((g, i) => ({ g, f: feedback[i], i }))
+            .reverse()
+            .map(({ g, f, i }) => (
+              <GuessCard key={g.id} guess={g} feedback={f} animate={i >= restoredCount} />
+            ))}
+        </ul>
+      </div>
+      <div className="hidden sm:block">
+        <table className="w-full border-separate border-spacing-1">
           <thead>
             <tr>
-              {GRID_COLUMNS.map((col, i) => (
-                <th
-                  key={col}
-                  scope="col"
-                  className={`p-1 text-center text-[8px] leading-3 font-normal sm:text-[9px] ${
-                    i === 0 ? 'sticky left-0 z-10 bg-ds-paper' : ''
-                  }`}
-                >
+              {GRID_COLUMNS.map((col) => (
+                <th key={col} scope="col" className="p-1 text-center text-[9px] leading-3 font-normal">
                   {col}
                 </th>
               ))}
@@ -58,7 +69,6 @@ export function GuessGrid({ guesses, feedback }: GuessGridProps) {
           </tbody>
         </table>
       </div>
-      <p className="mt-2 text-center text-[8px] text-ds-frame sm:hidden">Swipe the table sideways to see every column →</p>
     </div>
   )
 }
