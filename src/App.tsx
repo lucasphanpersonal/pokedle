@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { GuessGrid } from './components/GuessGrid'
 import { Header } from './components/Header'
 import { HelpModal } from './components/HelpModal'
@@ -10,9 +10,13 @@ import { useAnalytics } from './hooks/useAnalytics'
 import { usePokemondle, type GameMode } from './hooks/usePokemondle'
 import { POKEDEX } from './lib/pokedex'
 import { loadJson, saveJson } from './lib/storage'
+import type { Pokemon } from './types/pokemon'
 
 /** Time for a whole new row to finish flipping. */
 const ROW_REVEAL_MS = (GRID_COLUMNS.length - 1) * TILE_FLIP_STAGGER_MS + TILE_FLIP_DURATION_MS
+
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
 
 function GuessPips({ used, max }: { used: number; max: number }) {
   return (
@@ -35,17 +39,23 @@ export default function App() {
   const submitGuess = useAnalytics(game)
   const gameId = `${mode}:${game.gameKey}`
 
-  // Hold the result screen until the winning/losing row has flipped in.
-  const [revealing, setRevealing] = useState(false)
-  const lastCount = useRef({ gameId, count: game.guesses.length })
-  useEffect(() => {
-    const prev = lastCount.current
-    lastCount.current = { gameId, count: game.guesses.length }
-    if (prev.gameId !== gameId || game.guesses.length <= prev.count) return
-    setRevealing(true)
-    const t = window.setTimeout(() => setRevealing(false), ROW_REVEAL_MS)
-    return () => window.clearTimeout(t)
-  }, [gameId, game.guesses.length])
+  // Hold the result screen until the newest row has flipped in. Started from
+  // the guess itself; keyed by game so switching modes never leaves it stuck.
+  const [reveal, setReveal] = useState<{ gameId: string; token: number } | null>(null)
+  const revealToken = useRef(0)
+  const onGuess = useCallback(
+    (pokemon: Pokemon) => {
+      const result = submitGuess(pokemon)
+      if (result === 'ok' && !prefersReducedMotion()) {
+        const token = ++revealToken.current
+        setReveal({ gameId, token })
+        window.setTimeout(() => setReveal((cur) => (cur?.token === token ? null : cur)), ROW_REVEAL_MS)
+      }
+      return result
+    },
+    [submitGuess, gameId],
+  )
+  const revealing = reveal?.gameId === gameId
 
   const [dismissedResult, setDismissedResult] = useState<string | null>(null)
   const finished = game.gameStatus !== 'playing'
@@ -71,7 +81,7 @@ export default function App() {
           <SearchBar
             pokedex={POKEDEX}
             guessedIds={game.guesses.map((g) => g.id)}
-            onGuess={submitGuess}
+            onGuess={onGuess}
             disabled={finished}
           />
         </div>

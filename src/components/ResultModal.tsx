@@ -45,6 +45,7 @@ function Countdown() {
 const OUTCOME_TEXT: Record<ShareOutcome, string> = {
   shared: 'Shared!',
   copied: 'Copied to clipboard!',
+  cancelled: '',
   failed: "Couldn't share. Try again.",
 }
 

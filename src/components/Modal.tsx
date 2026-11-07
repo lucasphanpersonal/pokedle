@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 interface ModalProps {
   title: string
@@ -6,28 +7,42 @@ interface ModalProps {
   children: ReactNode
 }
 
-/** DS-style dialog box: closes on Escape, backdrop tap, or the X button. */
+/**
+ * DS-style dialog box: closes on Escape, backdrop tap, or the X button.
+ * Rendered outside #root, which is made inert while open, so keyboard and
+ * screen-reader focus can't wander to the page behind it.
+ */
 export function Modal({ title, onClose, children }: ModalProps) {
   const titleId = useId()
   const closeRef = useRef<HTMLButtonElement>(null)
+  // Latest onClose without re-running the focus effect on every parent render.
+  const onCloseRef = useRef(onClose)
+  useEffect(() => {
+    onCloseRef.current = onClose
+  })
 
   useEffect(() => {
     const previouslyFocused = document.activeElement as HTMLElement | null
+    const root = document.getElementById('root')
+    root?.setAttribute('inert', '')
     closeRef.current?.focus()
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') onCloseRef.current()
     }
     document.addEventListener('keydown', onKey)
     return () => {
       document.removeEventListener('keydown', onKey)
+      // Another dialog may have opened in the meantime; only the last one un-inerts.
+      if (!document.querySelector('[data-modal]')) root?.removeAttribute('inert')
       previouslyFocused?.focus?.()
     }
-  }, [onClose])
+  }, [])
 
-  return (
+  return createPortal(
     <div
+      data-modal
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-3 sm:items-center sm:p-4"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+      onClick={(e) => e.target === e.currentTarget && onCloseRef.current()}
     >
       <div
         role="dialog"
@@ -42,7 +57,7 @@ export function Modal({ title, onClose, children }: ModalProps) {
           <button
             ref={closeRef}
             type="button"
-            onClick={onClose}
+            onClick={() => onCloseRef.current()}
             aria-label="Close"
             className="ds-focus -m-2 flex h-11 w-11 shrink-0 items-center justify-center text-sm"
           >
@@ -51,6 +66,7 @@ export function Modal({ title, onClose, children }: ModalProps) {
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

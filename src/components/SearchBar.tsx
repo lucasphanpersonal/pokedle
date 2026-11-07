@@ -57,9 +57,11 @@ export function SearchBar({ pokedex, guessedIds, onGuess, disabled }: SearchBarP
       setActive((i) => (i - 1 + suggestions.length) % suggestions.length)
     } else if (e.key === 'Enter') {
       e.preventDefault()
-      const pick = suggestions[active]
-      if (pick) choose(pick)
-      else if (query.trim()) setMessage('No Pokémon by that name.')
+      if (!query.trim()) return setMessage('Type a Pokémon name to guess.')
+      if (!suggestions.length) return setMessage('No Pokémon by that name.')
+      // If the list was closed (Esc), Enter reopens it rather than guessing blind.
+      if (!showList) return setOpen(true)
+      choose(suggestions[active])
     } else if (e.key === 'Escape') {
       setOpen(false)
     }
@@ -73,7 +75,7 @@ export function SearchBar({ pokedex, guessedIds, onGuess, disabled }: SearchBarP
           type="text"
           role="combobox"
           aria-expanded={showList}
-          aria-controls={listId}
+          aria-controls={showList ? listId : undefined}
           aria-autocomplete="list"
           aria-activedescendant={showList ? `${listId}-${active}` : undefined}
           aria-label="Guess a Pokémon"
@@ -99,8 +101,10 @@ export function SearchBar({ pokedex, guessedIds, onGuess, disabled }: SearchBarP
         />
         <button
           type="button"
-          disabled={disabled || !suggestions[active]}
-          onClick={() => suggestions[active] && choose(suggestions[active])}
+          disabled={disabled || !showList || !suggestions[active]}
+          // Keep focus (and the open list) in the input when the button is pressed.
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => showList && suggestions[active] && choose(suggestions[active])}
           className="ds-button bg-ds-red px-3 text-[10px] text-ds-paper disabled:opacity-40"
         >
           Guess

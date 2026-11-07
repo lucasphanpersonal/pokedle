@@ -52,7 +52,7 @@ export function buildShareText({ mode, puzzleNumber, status, feedback, maxGuesse
   return [`${title} ${score}`, ...feedback.map(shareRow), url].join('\n')
 }
 
-export type ShareOutcome = 'shared' | 'copied' | 'failed'
+export type ShareOutcome = 'shared' | 'copied' | 'cancelled' | 'failed'
 
 /**
  * Opens the system share sheet on phones and tablets, otherwise copies to the
@@ -67,7 +67,7 @@ export async function shareResult(text: string): Promise<ShareOutcome> {
       return 'shared'
     } catch (err) {
       // The player closed the share sheet: don't fall through to a copy.
-      if (err instanceof DOMException && err.name === 'AbortError') return 'failed'
+      if (err instanceof DOMException && err.name === 'AbortError') return 'cancelled'
     }
   }
   try {
