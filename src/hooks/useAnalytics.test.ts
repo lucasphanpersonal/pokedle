@@ -10,12 +10,9 @@ describe('finishedTransition', () => {
   it('reports playing -> won', () => {
     expect(finishedTransition(playing, { ...playing, status: 'won' })).toBe('won')
   })
-  it('reports playing -> lost', () => {
-    expect(finishedTransition(playing, { ...playing, status: 'lost' })).toBe('lost')
-  })
   it('ignores a mode switch or new game, even from playing to won', () => {
     expect(finishedTransition(playing, { id: 'endless:x', status: 'won' })).toBeNull()
-    expect(finishedTransition(playing, { id: 'daily:2026-11-09', status: 'lost' })).toBeNull()
+    expect(finishedTransition(playing, { id: 'daily:2026-11-09', status: 'won' })).toBeNull()
   })
   it('sends once when the same state is seen twice (StrictMode)', () => {
     const won: SeenGame = { ...playing, status: 'won' }

@@ -1,5 +1,5 @@
 import type { GuessFeedback, MatchFeedback, NumberFeedback } from './compare'
-import type { GameMode, GameStatus } from './game'
+import type { GameMode } from './game'
 
 /**
  * Emoji per tile. The Pokémon column is left out: it is only ever green on
@@ -32,23 +32,22 @@ export function shareRow(f: GuessFeedback): string {
 export interface ShareInput {
   mode: GameMode
   puzzleNumber: number | null
-  status: GameStatus
   feedback: GuessFeedback[]
-  maxGuesses: number
   url: string
 }
 
 /**
  * Spoiler-free result, e.g.
  *
- *   Pokemondle #12 4/10
+ *   Pokemondle #12 4 guesses
  *   🟥🟩⬆️⬇️⬆️🟥⬇️🟥
  *   ...
  *   https://...
  */
-export function buildShareText({ mode, puzzleNumber, status, feedback, maxGuesses, url }: ShareInput): string {
+export function buildShareText({ mode, puzzleNumber, feedback, url }: ShareInput): string {
   const title = mode === 'daily' && puzzleNumber !== null ? `Pokemondle #${puzzleNumber}` : 'Pokemondle Endless'
-  const score = status === 'won' ? `${feedback.length}/${maxGuesses}` : `X/${maxGuesses}`
+  const n = feedback.length
+  const score = `${n} ${n === 1 ? 'guess' : 'guesses'}`
   return [`${title} ${score}`, ...feedback.map(shareRow), url].join('\n')
 }
 

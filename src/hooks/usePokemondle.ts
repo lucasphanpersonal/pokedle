@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { MAX_GUESSES } from '../config/gameConfig'
 import { compareGuess, type GuessFeedback } from '../lib/compare'
 import { localDateKey, puzzleNumber } from '../lib/daily'
 import {
@@ -146,8 +145,6 @@ export function usePokemondle(mode: GameMode) {
     guesses,
     feedback,
     gameStatus,
-    maxGuesses: MAX_GUESSES,
-    guessesLeft: MAX_GUESSES - guesses.length,
     /** Daily puzzle number (#1 = launch day); null in Endless mode. */
     puzzleNumber: mode === 'daily' ? puzzleNumber(game.key) : null,
     submitGuess,

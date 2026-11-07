@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { SHARE_URL_FALLBACK } from '../config/uiConfig'
 import type { GuessFeedback } from '../lib/compare'
-import type { GameMode, GameStatus } from '../lib/game'
+import type { GameMode } from '../lib/game'
 import { spriteUrl } from '../lib/pokedex'
 import { buildShareText, shareResult, shareRow, type ShareOutcome } from '../lib/share'
 import type { Pokemon } from '../types/pokemon'
@@ -9,10 +9,8 @@ import { Modal } from './Modal'
 
 interface ResultModalProps {
   mode: GameMode
-  status: Exclude<GameStatus, 'playing'>
   target: Pokemon
   feedback: GuessFeedback[]
-  maxGuesses: number
   puzzleNumber: number | null
   onClose: () => void
   onNewGame?: () => void
@@ -50,13 +48,12 @@ const OUTCOME_TEXT: Record<ShareOutcome, string> = {
 }
 
 /** End-of-game screen: the answer's artwork, score, emoji grid and Share. */
-export function ResultModal({ mode, status, target, feedback, maxGuesses, puzzleNumber, onClose, onNewGame }: ResultModalProps) {
+export function ResultModal({ mode, target, feedback, puzzleNumber, onClose, onNewGame }: ResultModalProps) {
   const [outcome, setOutcome] = useState<ShareOutcome | null>(null)
-  const won = status === 'won'
-  const text = buildShareText({ mode, puzzleNumber, status, feedback, maxGuesses, url: shareUrl() })
+  const text = buildShareText({ mode, puzzleNumber, feedback, url: shareUrl() })
 
   return (
-    <Modal title={won ? 'Gotcha!' : 'Out of guesses!'} onClose={onClose}>
+    <Modal title="Gotcha!" onClose={onClose}>
       <div className="flex flex-col items-center gap-4 text-center text-[10px] leading-5">
         <img
           src={spriteUrl(target.id)}
@@ -66,15 +63,7 @@ export function ResultModal({ mode, status, target, feedback, maxGuesses, puzzle
           className="h-36 w-36 drop-shadow-[0_4px_0_rgb(0_0_0/0.15)] sm:h-40 sm:w-40"
         />
         <p className="text-xs leading-6">
-          {won ? (
-            <>
-              You caught <strong>{target.name}</strong> in {feedback.length} {feedback.length === 1 ? 'guess' : 'guesses'}!
-            </>
-          ) : (
-            <>
-              It was <strong>{target.name}</strong>.
-            </>
-          )}
+          You caught <strong>{target.name}</strong> in {feedback.length} {feedback.length === 1 ? 'guess' : 'guesses'}!
         </p>
 
         <pre aria-label="Your result grid" className="font-sans text-base leading-5 tracking-tight">

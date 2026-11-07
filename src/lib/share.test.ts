@@ -31,15 +31,19 @@ describe('share text', () => {
     expect(shareRow(hit)).toBe('🟩'.repeat(8))
   })
   it('builds a daily result', () => {
-    const text = buildShareText({ mode: 'daily', puzzleNumber: 12, status: 'won', feedback: [miss, hit], maxGuesses: 10, url: 'https://x.test/' })
-    expect(text).toBe(`Pokemondle #12 2/10\n${shareRow(miss)}\n${shareRow(hit)}\nhttps://x.test/`)
+    const text = buildShareText({ mode: 'daily', puzzleNumber: 12, feedback: [miss, hit], url: 'https://x.test/' })
+    expect(text).toBe(`Pokemondle #12 2 guesses\n${shareRow(miss)}\n${shareRow(hit)}\nhttps://x.test/`)
   })
-  it('marks losses with X and labels endless games', () => {
-    const text = buildShareText({ mode: 'endless', puzzleNumber: null, status: 'lost', feedback: [miss], maxGuesses: 10, url: 'u' })
-    expect(text.split('\n')[0]).toBe('Pokemondle Endless X/10')
+  it('counts guesses past ten and labels endless games', () => {
+    const many = Array.from({ length: 14 }, () => miss)
+    const text = buildShareText({ mode: 'endless', puzzleNumber: null, feedback: many, url: 'u' })
+    expect(text.split('\n')[0]).toBe('Pokemondle Endless 14 guesses')
+  })
+  it('uses the singular for a one-guess win', () => {
+    expect(buildShareText({ mode: 'daily', puzzleNumber: 1, feedback: [hit], url: 'u' }).split('\n')[0]).toBe('Pokemondle #1 1 guess')
   })
   it('never reveals names', () => {
-    const text = buildShareText({ mode: 'daily', puzzleNumber: 1, status: 'won', feedback: [hit], maxGuesses: 10, url: 'u' })
+    const text = buildShareText({ mode: 'daily', puzzleNumber: 1, feedback: [hit], url: 'u' })
     expect(text).not.toContain('Static')
   })
 })

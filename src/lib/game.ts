@@ -1,9 +1,9 @@
-import { MAX_GUESSES } from '../config/gameConfig'
 import type { Pokemon } from '../types/pokemon'
 import { dailyPick } from './daily'
 
 export type GameMode = 'daily' | 'endless'
-export type GameStatus = 'playing' | 'won' | 'lost'
+/** A game ends only when the player guesses the answer. There is no guess limit. */
+export type GameStatus = 'playing' | 'won'
 
 /**
  * Everything needed to restore a game. Stored as ids so saved games stay small
@@ -40,21 +40,15 @@ export function newEndlessGame(
   return { v: SAVE_VERSION, mode: 'endless', key: now.toISOString(), targetId: target.id, guessIds: [] }
 }
 
-export function gameStatus(game: SavedGame, maxGuesses = MAX_GUESSES): GameStatus {
-  if (game.guessIds.includes(game.targetId)) return 'won'
-  if (game.guessIds.length >= maxGuesses) return 'lost'
-  return 'playing'
+export function gameStatus(game: SavedGame): GameStatus {
+  return game.guessIds.includes(game.targetId) ? 'won' : 'playing'
 }
 
 export type GuessResult = 'ok' | 'duplicate' | 'game-over'
 
 /** Returns the updated game, or the reason the guess was rejected. */
-export function applyGuess(
-  game: SavedGame,
-  guessId: number,
-  maxGuesses = MAX_GUESSES,
-): { game: SavedGame; result: GuessResult } {
-  if (gameStatus(game, maxGuesses) !== 'playing') return { game, result: 'game-over' }
+export function applyGuess(game: SavedGame, guessId: number): { game: SavedGame; result: GuessResult } {
+  if (gameStatus(game) !== 'playing') return { game, result: 'game-over' }
   if (game.guessIds.includes(guessId)) return { game, result: 'duplicate' }
   return { game: { ...game, guessIds: [...game.guessIds, guessId] }, result: 'ok' }
 }
@@ -102,11 +96,7 @@ export function applyGuessToGames(
 }
 
 /** True if a saved game still makes sense against the current Pokédex. */
-export function isValidSave(
-  game: unknown,
-  byId: Map<number, Pokemon>,
-  maxGuesses = MAX_GUESSES,
-): game is SavedGame {
+export function isValidSave(game: unknown, byId: Map<number, Pokemon>): game is SavedGame {
   if (!game || typeof game !== 'object') return false
   const g = game as Partial<SavedGame>
   if (!Array.isArray(g.guessIds)) return false
@@ -118,7 +108,6 @@ export function isValidSave(
     typeof g.key === 'string' &&
     typeof g.targetId === 'number' &&
     byId.has(g.targetId) &&
-    ids.length <= maxGuesses &&
     new Set(ids).size === ids.length &&
     // Nothing may be recorded after the winning guess.
     (winAt === -1 || winAt === ids.length - 1) &&

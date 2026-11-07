@@ -1,5 +1,4 @@
 import { useId, useState } from 'react'
-import { MAX_GUESSES } from '../config/gameConfig'
 import { isBrowserDoNotTrack, isOptedOutByPlayer, setTrackingOptOut } from '../lib/analytics'
 import { Modal } from './Modal'
 
@@ -71,8 +70,8 @@ export function HelpModal({ onClose }: HelpModalProps) {
     <Modal title="How to play" onClose={onClose}>
       <div className="space-y-4 text-[10px] leading-5">
         <p>
-          Guess the hidden Pokémon in {MAX_GUESSES} tries. Every Pokémon from Gen 1 to 9 is in, including regional forms,
-          Megas and Gigantamax.
+          Guess the hidden Pokémon. There is no guess limit: keep going until you find it. Every Pokémon from Gen 1 to 9
+          is in, including regional forms, Megas and Gigantamax.
         </p>
         <p>Start typing a name and pick from the list. Each guess shows how close it is:</p>
         <ul className="space-y-2">

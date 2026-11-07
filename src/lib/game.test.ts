@@ -22,14 +22,14 @@ describe('game flow', () => {
     const game = { v: 1 as const, mode: 'endless' as const, key: 'x', targetId: 1, guessIds: [2] }
     expect(applyGuess(game, 2).result).toBe('duplicate')
   })
-  it('loses after the last guess', () => {
+  it('has no guess limit: a game stays open until the answer is guessed', () => {
     let game: SavedGame = { v: 1, mode: 'endless', key: 'x', targetId: 1, guessIds: [] }
-    for (const id of [2, 3, 4]) game = applyGuess(game, id, 3).game
-    expect(gameStatus(game, 3)).toBe('lost')
-  })
-  it('wins on the last guess rather than losing', () => {
-    const game = { v: 1 as const, mode: 'endless' as const, key: 'x', targetId: 1, guessIds: [2, 3, 1] }
-    expect(gameStatus(game, 3)).toBe('won')
+    for (let id = 2; id <= 60; id++) game = applyGuess(game, id).game
+    expect(game.guessIds).toHaveLength(59)
+    expect(gameStatus(game)).toBe('playing')
+    const { game: won, result } = applyGuess(game, 1)
+    expect(result).toBe('ok')
+    expect(gameStatus(won)).toBe('won')
   })
   it('avoids repeating the previous endless answer', () => {
     const first = newEndlessGame(pool, () => 0)
@@ -56,7 +56,7 @@ describe('isValidSave', () => {
     const base = { v: 1, mode: 'daily', key: 'k', targetId: 1 }
     expect(isValidSave({ ...base, guessIds: [2, 2] }, byId)).toBe(false)
     expect(isValidSave({ ...base, guessIds: [1, 2] }, byId)).toBe(false)
-    expect(isValidSave({ ...base, guessIds: [2, 3, 4] }, byId, 2)).toBe(false)
+    expect(isValidSave({ ...base, guessIds: [2, 3, 1, 4] }, byId)).toBe(false)
     expect(isValidSave({ ...base, guessIds: [2.5] }, byId)).toBe(false)
   })
 })
