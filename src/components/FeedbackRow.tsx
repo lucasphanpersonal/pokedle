@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { GRID_COLUMNS } from '../config/gameConfig'
 import { TILE_FLIP_STAGGER_MS } from '../config/uiConfig'
-import type { GuessFeedback, MatchFeedback, NumberFeedback } from '../lib/compare'
+import { abilityCellText, type GuessFeedback, type MatchFeedback, type NumberFeedback } from '../lib/compare'
 import { iconUrl } from '../lib/pokedex'
 import type { Pokemon } from '../types/pokemon'
 
@@ -74,7 +74,7 @@ function buildTiles(guess: Pokemon, feedback: GuessFeedback): [Result, ReactNode
     [feedback.weight, guess.weight > 0 ? `${guess.weight} kg` : '???'],
     [feedback.color, guess.color],
     [feedback.evolutionStage, `Stage ${guess.evolutionStage}`],
-    [feedback.ability.result, feedback.ability.shared.length > 0 ? feedback.ability.shared.join(', ') : 'None'],
+    [feedback.ability.result, abilityCellText(guess, feedback.ability)],
   ]
 }
 
