@@ -46,3 +46,16 @@ Set any of them to `false` in `src/config/gameConfig.ts` to remove them from the
 The app is a fully static site with no backend. The build uses relative asset paths,
 so `dist/` works on Vercel or Netlify (build command `npm run build`, output `dist`) and on
 GitHub Pages under a sub-path.
+
+## Analytics (Supabase)
+
+Anonymous player analytics run on a Supabase Edge Function. From the repo root:
+
+```sh
+npx supabase link --project-ref <project-ref>   # connect this repo to your Supabase project
+npx supabase db push                            # create the tables, views and daily roll-up job
+npx supabase functions deploy track --no-verify-jwt   # deploy the event-collecting function
+npx supabase secrets set ALLOWED_ORIGINS="https://lucasphanpersonal.github.io,http://localhost:5173"   # sites allowed to send events
+```
+
+See [supabase/README.md](supabase/README.md) for details.

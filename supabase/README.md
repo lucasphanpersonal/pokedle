@@ -1,0 +1,62 @@
+# Pokedle analytics backend (Supabase)
+
+Anonymous gameplay analytics: one Edge Function (`track`) writing to a locked-down Postgres.
+The browser only needs the **function URL**. No keys ship in the client.
+
+Privacy design: the function hashes `salt + IP + user agent` into `visitor_hash`, where the salt
+rotates daily and is deleted after 2 days. IP and UA are never stored. The function never
+returns anything about the answer. Raw events are rolled up into `daily_totals` after 6 months.
+
+## One-time setup
+
+1. Create a project at <https://supabase.com/dashboard> (region: US). Note the **project ref**
+   (the `abcdxyz` part of `https://abcdxyz.supabase.co`) and set a database password.
+2. From the repo root:
+   ```sh
+   npx supabase login
+   npx supabase link --project-ref <project-ref>
+   npx supabase db push                                   # creates tables, views, functions, cron job
+   npx supabase functions deploy track --no-verify-jwt
+   npx supabase secrets set ALLOWED_ORIGINS="https://lucasphanpersonal.github.io,http://localhost:5173"
+   ```
+   `--no-verify-jwt` is required because browsers call the function without a Supabase token.
+   `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided to the function automatically.
+3. The function URL is `https://<project-ref>.supabase.co/functions/v1/track`. That is the only
+   value the client will need (e.g. as `VITE_TRACK_URL`).
+
+Quick smoke test (should print `204`):
+```sh
+curl -s -o /dev/null -w "%{http_code}\n" -X POST "https://<project-ref>.supabase.co/functions/v1/track" \
+  -H "Origin: http://localhost:5173" -H "Content-Type: text/plain" \
+  -d '{"events":[{"event":"game_started","game_id":"3fa85b3a-8158-46e3-8e84-af7319e0d0a4","mode":"endless","target_id":25,"device":"desktop"}]}'
+```
+Delete test rows afterwards: `delete from events where game_id = '3fa85b3a-8158-46e3-8e84-af7319e0d0a4';`
+
+## Reading the data
+
+Open **Dashboard > SQL Editor** and run, for example:
+
+```sql
+select * from daily_players order by day desc limit 30;      -- unique players per day and mode
+select * from daily_puzzle_stats order by puzzle_date desc;  -- solve rate / avg guesses per puzzle
+select * from guess_histogram order by mode, guess_count;    -- guesses-to-win distribution
+select * from top_guesses;                                   -- 50 most common guesses
+select * from top_first_guesses;                             -- 50 most common opening guesses
+select * from mode_split;                                    -- daily vs endless
+select * from streak_share order by day desc;                -- share of finishers with streak >= 2
+select * from daily_totals order by day desc;                -- rolled-up history (older than 6 months)
+```
+Use the editor's **Save** to keep them as saved queries. The views are not readable with the anon key.
+`target_id` and `guess_id` are National Dex numbers.
+
+`select public_daily_stats(current_date);` is the only thing the anon role may call: aggregates
+for one daily puzzle (games finished, solve rate, guess histogram), never the target or per-player data.
+
+## Maintenance
+
+- `rollup_old_events()` runs daily at 03:15 UTC via pg_cron. If the migration printed a notice that
+  pg_cron was unavailable, enable it under **Database > Extensions** and run
+  `select cron.schedule('pokedle-rollup', '15 3 * * *', 'select public.rollup_old_events()');`
+- Logs: **Edge Functions > track > Logs**.
+- Rate limit: ~300 events per visitor per UTC day (HTTP 429 beyond that).
+- Tests for the validation logic: `npm test`.
