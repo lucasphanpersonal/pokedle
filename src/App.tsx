@@ -4,6 +4,7 @@ import { Header } from './components/Header'
 import { HelpModal } from './components/HelpModal'
 import { SearchBar } from './components/SearchBar'
 import { WinModal } from './components/WinModal'
+import { useAnalytics } from './hooks/useAnalytics'
 import { usePokemondle, type GameMode } from './hooks/usePokemondle'
 import { POKEDEX } from './lib/pokedex'
 
@@ -13,6 +14,7 @@ export default function App() {
   // Which finished game's win screen was dismissed, so it doesn't reopen.
   const [dismissedWin, setDismissedWin] = useState<string | null>(null)
   const game = usePokemondle(mode)
+  const submitGuess = useAnalytics(game)
   const winKey = `${mode}:${game.targetPokemon.id}:${game.guesses.length}`
 
   return (
@@ -22,7 +24,7 @@ export default function App() {
         <p className="text-center text-[10px]">
           {game.puzzleNumber !== null ? `Daily #${game.puzzleNumber}` : 'Endless'} · {game.guessesLeft} guesses left
         </p>
-        <SearchBar pokedex={POKEDEX} onGuess={game.submitGuess} disabled={game.gameStatus !== 'playing'} />
+        <SearchBar pokedex={POKEDEX} onGuess={submitGuess} disabled={game.gameStatus !== 'playing'} />
         {game.gameStatus === 'lost' && (
           <p className="ds-box p-3 text-center text-[10px] leading-5">
             Out of guesses! It was {game.targetPokemon.name}.

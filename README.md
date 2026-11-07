@@ -64,3 +64,13 @@ With Supabase CLI 3, `db push` targets a local database unless you pass `--remot
 The live project is `inxvlunfwsssifvjkgtz` (US); the client sends events to `https://inxvlunfwsssifvjkgtz.supabase.co/functions/v1/track`.
 
 See [supabase/README.md](supabase/README.md) for details.
+
+### Client-side tracking and opting out
+
+The game sends events to the `track` function only when `VITE_TRACK_URL` is set. `.env.production` sets it
+(the URL is public), so production builds report; `npm run dev` does not unless you copy `.env.example` to
+`.env.local`. Events are batched per game and sent when a game ends or the page is hidden or closed.
+
+Players are opted out automatically if their browser sends Global Privacy Control (`navigator.globalPrivacyControl`)
+or Do Not Track, or if `localStorage['pokemondle:analytics-opt-out']` is `'true'` (`setTrackingOptOut()` in
+`src/lib/analytics.ts` sets it).
