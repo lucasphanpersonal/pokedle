@@ -29,12 +29,18 @@ describe('pokemon.json', () => {
       expect(p.height).toBeGreaterThan(0)
       // Eternamax Eternatus has no official weight ("???" in-game), stored as 0.
       if (p.name !== 'Eternamax Eternatus') expect(p.weight, `${p.name} weight`).toBeGreaterThan(0)
-      expect(['Basic', 'Stage 1', 'Stage 2']).toContain(p.evolutionStage)
+      expect([1, 2, 3]).toContain(p.evolutionStage)
     }
+  })
+  it('numbers stages by position in the line, babies included', () => {
+    const stage = (name: string) => data.find((p) => p.name === name)?.evolutionStage
+    expect([stage('Pichu'), stage('Pikachu'), stage('Raichu')]).toEqual([1, 2, 3])
+    expect([stage('Munchlax'), stage('Snorlax')]).toEqual([1, 2])
+    expect([stage('Mime Jr.'), stage('Mr. Mime'), stage('Mr. Rime')]).toEqual([1, 2, 3])
   })
   it('matches known reference entries', () => {
     const find = (name: string) => data.find((p) => p.name === name)
-    expect(find('Charizard')).toMatchObject({ generation: 1, evolutionStage: 'Stage 2', type1: 'Fire', type2: 'Flying' })
+    expect(find('Charizard')).toMatchObject({ generation: 1, evolutionStage: 3, type1: 'Fire', type2: 'Flying' })
     expect(find('Alolan Vulpix')).toMatchObject({ generation: 7, type1: 'Ice', formCategory: 'regional' })
     expect(find('Mega Charizard X')).toMatchObject({ generation: 6, type2: 'Dragon', formCategory: 'mega' })
   })

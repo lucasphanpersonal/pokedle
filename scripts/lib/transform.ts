@@ -137,21 +137,22 @@ function rawDisplayName(
   return `${speciesName} (${titleCase(suffix)})`
 }
 
-const STAGES: EvolutionStage[] = ['Basic', 'Stage 1', 'Stage 2']
-
-/** Depth of a species in its evolution chain: 0 = Basic, 1 = Stage 1, 2 = Stage 2. */
+/**
+ * Evolution stage: position in the family's line, counted from 1. Baby
+ * Pokémon count like any other stage, so Pichu = 1, Pikachu = 2, Raichu = 3.
+ */
 export function evolutionStage(chain: ApiEvolutionNode, speciesName: string): EvolutionStage {
-  const walk = (node: ApiEvolutionNode, depth: number): number | null => {
-    if (node.species.name === speciesName) return depth
+  const walk = (node: ApiEvolutionNode, stage: number): number | null => {
+    if (node.species.name === speciesName) return stage
     for (const next of node.evolves_to) {
-      const found = walk(next, depth + 1)
+      const found = walk(next, stage + 1)
       if (found !== null) return found
     }
     return null
   }
-  const depth = walk(chain, 0)
-  if (depth === null) throw new Error(`${speciesName} not found in its evolution chain`)
-  return STAGES[Math.min(depth, 2)]
+  const stage = walk(chain, 1)
+  if (stage === null) throw new Error(`${speciesName} not found in its evolution chain`)
+  return Math.min(stage, 3) as EvolutionStage
 }
 
 const ROMAN: Record<string, number> = { i: 1, ii: 2, iii: 3, iv: 4, v: 5, vi: 6, vii: 7, viii: 8, ix: 9 }
