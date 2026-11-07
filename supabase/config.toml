@@ -1,0 +1,7 @@
+# Minimal Supabase CLI config. Hosted project settings live in the dashboard.
+project_id = "pokedle"
+
+[functions.track]
+# The browser sends no Supabase JWT; abuse is handled inside the function
+# (origin allow-list, validation, per-visitor rate limit).
+verify_jwt = false
