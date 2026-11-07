@@ -1,12 +1,14 @@
-import type { Pokemon } from '../types/pokemon'
 import { GRID_COLUMNS } from '../config/gameConfig'
+import type { GuessFeedback } from '../lib/compare'
+import type { Pokemon } from '../types/pokemon'
 import { FeedbackRow } from './FeedbackRow'
 
 interface GuessGridProps {
   guesses: Pokemon[]
+  feedback: GuessFeedback[]
 }
 
-export function GuessGrid({ guesses }: GuessGridProps) {
+export function GuessGrid({ guesses, feedback }: GuessGridProps) {
   return (
     <div className="ds-box overflow-x-auto p-3">
       <table className="w-full min-w-[640px] border-separate border-spacing-1 text-center">
@@ -20,9 +22,13 @@ export function GuessGrid({ guesses }: GuessGridProps) {
           </tr>
         </thead>
         <tbody>
-          {guesses.map((g) => (
-            <FeedbackRow key={g.id} guess={g} />
-          ))}
+          {/* Newest guess on top, like most Pokédle-style games. */}
+          {guesses
+            .map((g, i) => ({ g, f: feedback[i] }))
+            .reverse()
+            .map(({ g, f }) => (
+              <FeedbackRow key={g.id} guess={g} feedback={f} />
+            ))}
         </tbody>
       </table>
       {guesses.length === 0 && (

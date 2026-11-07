@@ -1,4 +1,4 @@
-export type GameMode = 'daily' | 'endless'
+import type { GameMode } from '../lib/game'
 
 interface HeaderProps {
   mode: GameMode
