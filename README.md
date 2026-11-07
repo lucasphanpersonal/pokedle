@@ -30,8 +30,8 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
 
 - **Daily**: everyone gets the same Pokémon on the same calendar day (local time), picked by hashing the date
   with each Pokémon's id. **Endless**: a new random Pokémon on demand. Each mode keeps its own saved game.
-- **10 guesses** (`MAX_GUESSES`). The search box only accepts Pokémon picked from its suggestions; already
-  guessed Pokémon are hidden from them. Matching ignores case, accents and punctuation ("flabebe" finds Flabébé).
+- **No guess limit**: a game ends only when you guess the answer. The search box only accepts Pokémon picked from
+  its suggestions; already guessed Pokémon are hidden from them. Matching ignores case, accents and punctuation ("flabebe" finds Flabébé).
 - **Columns**: Pokémon, Type 1, Type 2, Gen, Height, Weight, Color, Evolution (stage 1–3), Shared Ability.
   Green = match, yellow = type in the other slot, red = no match, ▲/▼ = the answer is higher/lower.
   Shared Ability lists every ability the two share (hidden abilities count), or "None".

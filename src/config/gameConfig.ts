@@ -14,9 +14,6 @@ export const ENABLED_FORM_CATEGORIES: Record<FormCategory, boolean> = {
   other: true,
 }
 
-/** Maximum guesses before the game is lost. */
-export const MAX_GUESSES = 10
-
 /** Column headers for the guess grid, in display order. */
 export const GRID_COLUMNS = [
   'Pokémon',

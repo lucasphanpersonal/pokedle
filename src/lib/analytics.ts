@@ -7,7 +7,7 @@
  * send Global Privacy Control / Do Not Track or switch off "Share anonymous
  * stats" in the Help modal (which sets the opt-out flag via setTrackingOptOut).
  */
-import { ENABLED_FORM_CATEGORIES, MAX_GUESSES } from '../config/gameConfig'
+import { ENABLED_FORM_CATEGORIES } from '../config/gameConfig'
 import type { GameMode } from './game'
 import { storageKey } from './storage'
 
@@ -124,7 +124,7 @@ function appVersion(): string | undefined {
 }
 
 function config(): Record<string, boolean | number> {
-  const cfg: Record<string, boolean | number> = { max_guesses: MAX_GUESSES }
+  const cfg: Record<string, boolean | number> = {}
   for (const [category, enabled] of Object.entries(ENABLED_FORM_CATEGORIES)) cfg[`form_${category}`] = enabled
   return cfg
 }
@@ -222,8 +222,8 @@ export function trackGuess(g: GameRef, guess: { guessId: number; guessNumber: nu
   }
 }
 
-/** Call when a game moves to won/lost. Sent at most once per game, then flushes. */
-export function trackFinish(g: GameRef, result: 'won' | 'lost', guessCount: number, now: number = Date.now()): void {
+/** Call when a game is won. Sent at most once per game, then flushes. */
+export function trackFinish(g: GameRef, result: 'won', guessCount: number, now: number = Date.now()): void {
   try {
     if (!isTrackingEnabled()) return
     const { key, record } = getRecord(g.mode, g.gameKey)

@@ -83,12 +83,12 @@ describe('invalid input', () => {
   })
   it('rejects out-of-range or wrong-typed numbers', () => {
     expect(err([{ ...guess, guess_number: 0 }])).toBe('invalid_guess_number')
-    expect(err([{ ...guess, guess_number: 51 }])).toBe('invalid_guess_number')
+    expect(err([{ ...guess, guess_number: 501 }])).toBe('invalid_guess_number')
     expect(err([{ ...guess, guess_id: 1.5 }])).toBe('invalid_guess_id')
     expect(err([{ ...guess, guess_id: '4' }])).toBe('invalid_guess_id')
     expect(err([{ ...guess, is_correct: 'no' }])).toBe('invalid_is_correct')
     expect(err([{ ...started, target_id: 0 }])).toBe('invalid_target_id')
-    expect(err([{ ...finished, guess_count: 51 }])).toBe('invalid_guess_count')
+    expect(err([{ ...finished, guess_count: 501 }])).toBe('invalid_guess_count')
     expect(err([{ ...finished, streak: -1 }])).toBe('invalid_streak')
     expect(err([{ ...finished, duration_s: 86401 }])).toBe('invalid_duration')
     expect(err([{ ...finished, result: 'draw' }])).toBe('invalid_result')
@@ -138,6 +138,6 @@ describe('invalid input', () => {
     }
   })
   it('rejects the batch when a later event in the same game is invalid', () => {
-    expect(err([started, guess, { ...guess, guess_number: 99 }])).toBe('invalid_guess_number')
+    expect(err([started, guess, { ...guess, guess_number: 501 }])).toBe('invalid_guess_number')
   })
 })

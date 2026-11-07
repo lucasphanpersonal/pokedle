@@ -61,14 +61,15 @@ describe('payload', () => {
     expect(events.some((e) => 'streak' in e)).toBe(false)
   })
 
-  it('sends an endless loss that the server accepts, without puzzle_date', async () => {
-    for (let n = 1; n <= 10; n++) trackGuess(endless, { guessId: 100 + n, guessNumber: n, isCorrect: false })
-    trackFinish(endless, 'lost', 10)
+  it('sends an endless win after more than ten guesses that the server accepts, without puzzle_date', async () => {
+    for (let n = 1; n <= 12; n++) trackGuess(endless, { guessId: 100 + n, guessNumber: n, isCorrect: false })
+    trackGuess(endless, { guessId: 1, guessNumber: 13, isCorrect: true })
+    trackFinish(endless, 'won', 13)
     const [body] = await bodies()
     const r = validateBatch(body)
     expect(r.ok).toBe(true)
     const events = (body as { events: Record<string, unknown>[] }).events
-    expect(events).toHaveLength(12)
+    expect(events).toHaveLength(15)
     expect(events.every((e) => !('puzzle_date' in e))).toBe(true)
   })
 
@@ -111,7 +112,7 @@ describe('payload', () => {
 describe('opt-out and no endpoint', () => {
   const attempt = () => {
     trackGuess(daily, { guessId: 1, guessNumber: 1, isCorrect: false })
-    trackFinish(daily, 'lost', 1)
+    trackFinish(daily, 'won', 1)
     flush()
   }
   const silent = () => {

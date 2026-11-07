@@ -16,6 +16,7 @@ returns anything about the answer. Raw events are rolled up into `daily_totals` 
    npx supabase login
    npx supabase link --project-ref <project-ref>
    npx supabase db push --remote --yes                    # creates tables, views, functions, cron job
+   # Later migrations (e.g. 20261107120000_widen_guess_caps.sql) are applied by the same command.
    npx supabase secrets set ALLOWED_ORIGINS="https://lucasphanpersonal.github.io,http://localhost:5173"
    npx supabase functions deploy track --no-verify-jwt --yes
    ```

@@ -2,6 +2,8 @@
 // so it can be unit tested with vitest.
 
 export const MAX_BATCH = 60
+// There is no guess limit in the game, so this is only a sanity bound against junk data.
+export const MAX_GUESS_NUMBER = 500
 
 export type EventName = 'game_started' | 'guess_made' | 'game_finished'
 
@@ -163,14 +165,16 @@ function validateEvent(
 
   if (name === 'guess_made') {
     if (!isInt(e.guess_id, 1, 100_000)) return bad('invalid_guess_id')
-    if (!isInt(e.guess_number, 1, 50)) return bad('invalid_guess_number')
+    if (!isInt(e.guess_number, 1, MAX_GUESS_NUMBER)) return bad('invalid_guess_number')
     if (typeof e.is_correct !== 'boolean') return bad('invalid_is_correct')
     row.guess_id = e.guess_id
     row.guess_number = e.guess_number
     row.is_correct = e.is_correct
   } else if (name === 'game_finished') {
+    // 'lost' is no longer sent by the game (there is no loss state), but older cached
+    // clients may still send it, so it stays accepted.
     if (e.result !== 'won' && e.result !== 'lost') return bad('invalid_result')
-    if (!isInt(e.guess_count, 1, 50)) return bad('invalid_guess_count')
+    if (!isInt(e.guess_count, 1, MAX_GUESS_NUMBER)) return bad('invalid_guess_count')
     row.result = e.result
     row.guess_count = e.guess_count
     if (e.streak !== undefined && e.streak !== null) {

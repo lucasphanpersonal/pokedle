@@ -18,19 +18,6 @@ const ROW_REVEAL_MS = (GRID_COLUMNS.length - 1) * TILE_FLIP_STAGGER_MS + TILE_FL
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
 
-function GuessPips({ used, max }: { used: number; max: number }) {
-  return (
-    <div className="flex items-center justify-center gap-1" aria-label={`${used} of ${max} guesses used`}>
-      {Array.from({ length: max }, (_, i) => (
-        <span
-          key={i}
-          className={`h-2.5 w-2.5 rounded-full border-2 border-ds-frame ${i < used ? 'bg-ds-red' : 'bg-ds-paper'}`}
-        />
-      ))}
-    </div>
-  )
-}
-
 export default function App() {
   const [mode, setMode] = useState<GameMode>('daily')
   // Show the rules automatically on a player's first visit.
@@ -74,7 +61,9 @@ export default function App() {
           <p className="text-[10px] sm:text-xs">
             {game.puzzleNumber !== null ? `Daily #${game.puzzleNumber}` : 'Endless mode'}
           </p>
-          <GuessPips used={game.guesses.length} max={game.maxGuesses} />
+          <p className="text-[9px] text-ds-frame">
+            {game.guesses.length} {game.guesses.length === 1 ? 'guess' : 'guesses'}
+          </p>
         </div>
 
         <div className="mx-auto w-full max-w-xl">
@@ -93,7 +82,7 @@ export default function App() {
               onClick={() => setDismissedResult(null)}
               className="ds-button bg-ds-paper px-4 text-[10px]"
             >
-              {game.gameStatus === 'won' ? 'See results' : `It was ${game.targetPokemon.name}`}
+              See results
             </button>
             {mode === 'endless' && (
               <button type="button" onClick={game.startNewEndlessGame} className="ds-button bg-ds-red px-4 text-[10px] text-ds-paper">
@@ -110,10 +99,8 @@ export default function App() {
       {showResult && (
         <ResultModal
           mode={mode}
-          status={game.gameStatus as 'won' | 'lost'}
           target={game.targetPokemon}
           feedback={game.feedback}
-          maxGuesses={game.maxGuesses}
           puzzleNumber={game.puzzleNumber}
           onClose={() => setDismissedResult(gameId)}
           onNewGame={mode === 'endless' ? game.startNewEndlessGame : undefined}
