@@ -1,0 +1,36 @@
+# Pokedle
+
+A Wordle-style guessing game covering every Pokémon from Gen 1 to Gen 9, including regional forms, Megas and Gigantamax.
+
+## Getting started
+
+```bash
+npm install
+npm run dev        # local dev server
+npm run build      # static production build in dist/
+npm run preview    # serve the production build locally
+npm run test       # unit tests
+npm run fetch-data # rebuild src/data/pokemon.json from PokéAPI
+```
+
+## Project layout
+
+```
+scripts/fetchPokemonData.ts   builds the local Pokémon dataset from PokéAPI
+src/components/               Header, SearchBar, GuessGrid, FeedbackRow, WinModal, HelpModal
+src/hooks/usePokedle.ts       game state (target, guesses, status)
+src/lib/                      dataset loading and game logic
+src/config/gameConfig.ts      game settings, including which form categories are enabled
+src/data/pokemon.json         generated dataset (committed, so the app needs no API at runtime)
+```
+
+## Turning form categories on or off
+
+Every entry has a `formCategory` (`base`, `regional`, `mega`, `gmax`, `cosmetic`, `other`).
+Set any of them to `false` in `src/config/gameConfig.ts` to remove them from the game.
+
+## Deploying
+
+The app is a fully static site with no backend. The build uses relative asset paths,
+so `dist/` works on Vercel or Netlify (build command `npm run build`, output `dist`) and on
+GitHub Pages under a sub-path.
