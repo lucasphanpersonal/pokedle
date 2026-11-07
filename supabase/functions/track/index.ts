@@ -2,7 +2,7 @@
 // Accepts batched analytics events, validates them against an allow-list,
 // derives a daily-rotating anonymous visitor hash, and inserts with the service role.
 // The IP and user agent are only used to compute the hash and are never stored.
-import { createClient } from 'npm:@supabase/supabase-js@2'
+import { createClient } from 'npm:@supabase/supabase-js@2.119.0'
 import { validateBatch } from './validate.ts'
 
 const MAX_BODY_BYTES = 64 * 1024
@@ -53,17 +53,25 @@ async function getDailySalt(day: string): Promise<string> {
     .from('daily_salts')
     .upsert({ day, salt: fresh }, { onConflict: 'day', ignoreDuplicates: true })
   if (error) throw error
+  // Privacy housekeeping that does not depend on pg_cron: drop salts older than 2 days.
+  const cutoff = new Date(Date.parse(`${day}T00:00:00Z`) - 2 * 86_400_000).toISOString().slice(0, 10)
+  const { error: delError } = await supabase.from('daily_salts').delete().lt('day', cutoff)
+  if (delError) console.error('salt cleanup failed')
   const salt = await read()
   if (!salt) throw new Error('salt missing')
   return salt
 }
 
 function clientIp(req: Request): string {
-  const cf = req.headers.get('cf-connecting-ip')
-  if (cf) return cf.trim()
+  const cf = req.headers.get('cf-connecting-ip')?.trim()
+  if (cf) return cf
+  const real = req.headers.get('x-real-ip')?.trim()
+  if (real) return real
   return (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim()
 }
 
+// The Origin check is CORS hygiene, not access control (non-browser clients can forge it).
+// The real defences are validation and the per-visitor rate limit.
 Deno.serve(async (req) => {
   const origin = req.headers.get('origin')?.replace(/\/$/, '') ?? null
   if (!origin || !allowedOrigins.includes(origin)) return respond(403, null, 'forbidden')
@@ -90,21 +98,31 @@ Deno.serve(async (req) => {
     const now = new Date()
     const day = now.toISOString().slice(0, 10)
     const salt = await getDailySalt(day)
-    const visitorHash = await sha256(`${salt}|${clientIp(req)}|${req.headers.get('user-agent') ?? ''}`)
+    // Without any IP, do not pool everyone into one visitor: mix in a random value
+    // and skip the rate limit for this request.
+    const ip = clientIp(req)
+    const identity = ip || hex(crypto.getRandomValues(new Uint8Array(16)).buffer)
+    const visitorHash = await sha256(`${salt}|${identity}|${req.headers.get('user-agent') ?? ''}`)
 
-    const { count, error: countError } = await supabase
-      .from('events')
-      .select('id', { count: 'exact', head: true })
-      .eq('visitor_hash', visitorHash)
-      .gte('received_at', `${day}T00:00:00Z`)
-    if (countError) throw countError
-    if ((count ?? 0) + result.rows.length > MAX_EVENTS_PER_VISITOR_PER_DAY) {
-      return respond(429, origin, 'rate_limited')
+    if (ip) {
+      const { count, error: countError } = await supabase
+        .from('events')
+        .select('id', { count: 'exact', head: true })
+        .eq('visitor_hash', visitorHash)
+        .gte('received_at', `${day}T00:00:00Z`)
+      if (countError) throw countError
+      if ((count ?? 0) + result.rows.length > MAX_EVENTS_PER_VISITOR_PER_DAY) {
+        return respond(429, origin, 'rate_limited')
+      }
     }
 
+    // Retries/duplicates are silently ignored (unique on game_id, event, guess_number).
     const { error } = await supabase
       .from('events')
-      .insert(result.rows.map((r) => ({ ...r, visitor_hash: visitorHash })))
+      .upsert(
+        result.rows.map((r) => ({ ...r, visitor_hash: visitorHash })),
+        { onConflict: 'game_id,event,guess_number', ignoreDuplicates: true },
+      )
     if (error) throw error
     return respond(204, origin)
   } catch (err) {

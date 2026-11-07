@@ -27,7 +27,10 @@ create table public.events (
   constraint events_puzzle_date_matches_mode check (
     (mode = 'daily'   and puzzle_date is not null) or
     (mode = 'endless' and puzzle_date is null)
-  )
+  ),
+  -- Dedupe retries: one game_started / game_finished per game, one guess per guess_number.
+  -- (nulls not distinct needs Postgres 15+, which Supabase uses.)
+  constraint events_dedupe unique nulls not distinct (game_id, event, guess_number)
 );
 
 create index events_received_at_idx on public.events (received_at);
@@ -69,7 +72,7 @@ revoke all on public.daily_totals from anon, authenticated;
 revoke all on sequence public.events_id_seq from anon, authenticated;
 
 grant select, insert on public.events      to service_role;
-grant select, insert on public.daily_salts to service_role;
+grant select, insert, delete on public.daily_salts to service_role;
 grant usage on sequence public.events_id_seq to service_role;
 
 -- ---------------------------------------------------------------- rollup ----
@@ -192,28 +195,50 @@ revoke all on public.daily_players, public.daily_puzzle_stats, public.guess_hist
 -- Aggregate-only stats for one daily puzzle, callable by anon (for a future
 -- in-game "global stats" panel). Never returns target_id or anything per-player.
 -- histogram: {"1": n, "2": n, ..., "lost": n}
+-- Returns nulls / empty histogram when fewer than 5 games finished (too small to
+-- be meaningful or anonymous). Dates older than 400 days or more than 1 day in the
+-- future raise an error.
 create or replace function public.public_daily_stats(p_date date)
 returns table (games_finished bigint, wins bigint, solve_rate numeric, histogram jsonb)
-language sql
+language plpgsql
 stable
 security definer
 set search_path = public, pg_temp
 as $$
+declare
+  today date := (now() at time zone 'utc')::date;
+  n bigint;
+begin
+  if p_date is null or p_date < today - 400 or p_date > today + 1 then
+    raise exception 'date out of range' using errcode = '22023';
+  end if;
+
+  select count(*) into n
+  from public.events
+  where event = 'game_finished' and mode = 'daily' and puzzle_date = p_date;
+
+  if n < 5 then
+    return query select n, null::bigint, null::numeric, '{}'::jsonb;
+    return;
+  end if;
+
+  return query
   with f as (
     select result, guess_count
     from public.events
     where event = 'game_finished' and mode = 'daily' and puzzle_date = p_date
   ),
   h as (
-    select coalesce(guess_count::text, 'lost') as k, count(*) as n
+    select coalesce(guess_count::text, 'lost') as k, count(*) as c
     from (select case when result = 'won' then guess_count end as guess_count from f) x
     group by 1
   )
   select
-    (select count(*) from f),
+    n,
     (select count(*) from f where result = 'won'),
-    round((select count(*) from f where result = 'won')::numeric / nullif((select count(*) from f), 0), 4),
-    coalesce((select jsonb_object_agg(k, n) from h), '{}'::jsonb);
+    round((select count(*) from f where result = 'won')::numeric / n, 4),
+    coalesce((select jsonb_object_agg(k, c) from h), '{}'::jsonb);
+end;
 $$;
 
 revoke all on function public.public_daily_stats(date) from public;

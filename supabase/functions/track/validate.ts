@@ -110,7 +110,8 @@ function validateEvent(
   if (e.mode === 'daily') {
     if (typeof e.puzzle_date !== 'string' || !isRealDate(e.puzzle_date)) return bad('invalid_puzzle_date')
     // Clients may be a day ahead/behind UTC; anything further is garbage.
-    const diff = Math.abs(Date.parse(`${e.puzzle_date}T00:00:00Z`) - now.getTime())
+    const today = Date.parse(`${now.toISOString().slice(0, 10)}T00:00:00Z`)
+    const diff = Math.abs(Date.parse(`${e.puzzle_date}T00:00:00Z`) - today)
     if (diff > 3 * DAY_MS) return bad('invalid_puzzle_date')
     puzzleDate = e.puzzle_date
   } else if (e.puzzle_date !== undefined && e.puzzle_date !== null) {

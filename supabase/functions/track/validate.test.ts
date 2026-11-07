@@ -100,4 +100,44 @@ describe('invalid input', () => {
     expect(err([{ ...started, config: { a: { b: 1 } } }])).toBe('invalid_config')
     expect(err([{ ...started, config: { a: 'has spaces and symbols!' } }])).toBe('invalid_config')
   })
+  it('enforces the +-3 day puzzle_date window', () => {
+    expect(run([{ ...started, puzzle_date: '2026-11-10' }]).ok).toBe(true)
+    expect(run([{ ...started, puzzle_date: '2026-11-04' }]).ok).toBe(true)
+    expect(err([{ ...started, puzzle_date: '2026-11-11' }])).toBe('invalid_puzzle_date')
+    expect(err([{ ...started, puzzle_date: '2026-11-03' }])).toBe('invalid_puzzle_date')
+  })
+  it('rejects bad config shapes', () => {
+    const many = Object.fromEntries(Array.from({ length: 17 }, (_, i) => [`k${i}`, i]))
+    expect(err([{ ...started, config: many }])).toBe('invalid_config')
+    expect(err([{ ...started, config: { a: 2e9 } }])).toBe('invalid_config')
+    expect(err([{ ...started, config: { a: Number.NaN } }])).toBe('invalid_config')
+    expect(err([{ ...started, config: JSON.parse('{"__proto__": 1}') }])).toBe('invalid_config')
+    expect(err([{ ...started, config: [1] }])).toBe('invalid_config')
+  })
+  it('lowercases uppercase UUIDs', () => {
+    const r = run([{ ...started, game_id: GAME.toUpperCase() }])
+    expect(r.ok && r.game_id).toBe(GAME)
+    expect(r.ok && r.rows[0].game_id).toBe(GAME)
+  })
+  it('accepts explicit nulls for optional fields', () => {
+    const r = run([{ ...finished, streak: null, duration_s: null, app_version: null, config: null }])
+    expect(r.ok).toBe(true)
+    if (r.ok) {
+      expect(r.rows[0].streak).toBeNull()
+      expect(r.rows[0].app_version).toBeNull()
+      expect(r.rows[0].config).toEqual({})
+    }
+  })
+  it("accepts result 'lost'", () => {
+    const r = run([{ ...finished, result: 'lost', guess_count: 6 }])
+    expect(r.ok && r.rows[0].result).toBe('lost')
+  })
+  it('rejects bad app_version characters', () => {
+    for (const v of ['1 2', '1.0;drop', '<b>', '']) {
+      expect(err([{ ...started, app_version: v }])).toBe('invalid_app_version')
+    }
+  })
+  it('rejects the batch when a later event in the same game is invalid', () => {
+    expect(err([started, guess, { ...guess, guess_number: 99 }])).toBe('invalid_guess_number')
+  })
 })

@@ -54,8 +54,10 @@ Anonymous player analytics run on a Supabase Edge Function. From the repo root:
 ```sh
 npx supabase link --project-ref <project-ref>   # connect this repo to your Supabase project
 npx supabase db push                            # create the tables, views and daily roll-up job
+npx supabase secrets set ALLOWED_ORIGINS="https://lucasphanpersonal.github.io,http://localhost:5173"   # sites allowed to send events (set BEFORE deploying)
 npx supabase functions deploy track --no-verify-jwt   # deploy the event-collecting function
-npx supabase secrets set ALLOWED_ORIGINS="https://lucasphanpersonal.github.io,http://localhost:5173"   # sites allowed to send events
 ```
+
+Secrets take effect on the function's next start; redeploy after changing them.
 
 See [supabase/README.md](supabase/README.md) for details.
