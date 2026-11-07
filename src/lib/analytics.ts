@@ -4,7 +4,8 @@
  *
  * Everything here is best effort: it never throws and never blocks the game.
  * Tracking is a no-op without VITE_TRACK_URL, and is skipped for players who
- * send Global Privacy Control / Do Not Track or set the opt-out flag.
+ * send Global Privacy Control / Do Not Track or switch off "Share anonymous
+ * stats" in the Help modal (which sets the opt-out flag via setTrackingOptOut).
  */
 import { ENABLED_FORM_CATEGORIES, MAX_GUESSES } from '../config/gameConfig'
 import type { GameMode } from './game'
@@ -42,9 +43,20 @@ function storage(): Storage | null {
   }
 }
 
-function optedOutByFlag(): boolean {
+/** True if the player switched analytics off in the Help modal. */
+export function isOptedOutByPlayer(): boolean {
   try {
     return storage()?.getItem(OPT_OUT_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+/** True if the browser itself asks not to be tracked (GPC or Do Not Track). */
+export function isBrowserDoNotTrack(): boolean {
+  try {
+    const nav = globalThis.navigator as (Navigator & { globalPrivacyControl?: boolean }) | undefined
+    return nav?.globalPrivacyControl === true || nav?.doNotTrack === '1'
   } catch {
     return false
   }
@@ -53,16 +65,10 @@ function optedOutByFlag(): boolean {
 /** True if there is an endpoint and the player has not opted out in any way. */
 export function isTrackingEnabled(): boolean {
   if (!endpoint()) return false
-  try {
-    const nav = globalThis.navigator as (Navigator & { globalPrivacyControl?: boolean }) | undefined
-    if (nav?.globalPrivacyControl === true || nav?.doNotTrack === '1') return false
-  } catch {
-    // ignore
-  }
-  return !optedOutByFlag()
+  return !isBrowserDoNotTrack() && !isOptedOutByPlayer()
 }
 
-/** For a Help-modal toggle. Opting out also drops anything still queued. */
+/** Backs the Help modal's "Share anonymous stats" switch. Opting out also drops anything still queued. */
 export function setTrackingOptOut(optOut: boolean): void {
   try {
     if (optOut) {

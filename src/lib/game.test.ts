@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Pokemon } from '../types/pokemon'
-import { applyGuess, gameStatus, isValidSave, newDailyGame, newEndlessGame, type SavedGame } from './game'
+import { applyGuess, applyGuessToGames, gameStatus, isValidSave, newDailyGame, newEndlessGame, type SavedGame } from './game'
 
 const pool = [1, 2, 3, 4, 5].map((id) => ({ id }) as Pokemon)
 const byId = new Map(pool.map((p) => [p.id, p]))
@@ -58,5 +58,32 @@ describe('isValidSave', () => {
     expect(isValidSave({ ...base, guessIds: [1, 2] }, byId)).toBe(false)
     expect(isValidSave({ ...base, guessIds: [2, 3, 4] }, byId, 2)).toBe(false)
     expect(isValidSave({ ...base, guessIds: [2.5] }, byId)).toBe(false)
+  })
+})
+
+describe('applyGuessToGames', () => {
+  const games = (dailyKey: string) => ({
+    daily: newDailyGame(dailyKey, pool),
+    endless: { v: 1 as const, mode: 'endless' as const, key: 'e', targetId: 1, guessIds: [] },
+  })
+
+  it('reports the game the guess landed in', () => {
+    const g = games('2026-11-08')
+    const { applied, result } = applyGuessToGames(g, 'endless', 2, '2026-11-08', pool)
+    expect(result).toBe('ok')
+    expect(applied).toEqual({ mode: 'endless', gameKey: 'e', targetId: 1, guessNumber: 1 })
+  })
+  it('tags a guess after midnight with the new day, not the stale cached one', () => {
+    const stale = games('2026-11-08')
+    const fresh = newDailyGame('2026-11-09', pool)
+    const out = applyGuessToGames(stale, 'daily', 5, '2026-11-09', pool)
+    expect(out.applied).toEqual({ mode: 'daily', gameKey: '2026-11-09', targetId: fresh.targetId, guessNumber: 1 })
+    expect(out.games.daily.key).toBe('2026-11-09')
+    expect(out.games.daily.guessIds).toEqual([5])
+  })
+  it('reports nothing for rejected guesses', () => {
+    const g = games('2026-11-08')
+    const first = applyGuessToGames(g, 'daily', 5, '2026-11-08', pool)
+    expect(applyGuessToGames(first.games, 'daily', 5, '2026-11-08', pool)).toMatchObject({ result: 'duplicate', applied: null })
   })
 })

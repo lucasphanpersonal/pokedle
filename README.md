@@ -71,6 +71,8 @@ The game sends events to the `track` function only when `VITE_TRACK_URL` is set.
 (the URL is public), so production builds report; `npm run dev` does not unless you copy `.env.example` to
 `.env.local`. Events are batched per game and sent when a game ends or the page is hidden or closed.
 
-Players are opted out automatically if their browser sends Global Privacy Control (`navigator.globalPrivacyControl`)
+Players can switch off "Share anonymous stats" in the Help screen (the "?" button), which also explains what is
+recorded. Players are opted out automatically if their browser sends Global Privacy Control (`navigator.globalPrivacyControl`)
 or Do Not Track, or if `localStorage['pokemondle:analytics-opt-out']` is `'true'` (`setTrackingOptOut()` in
-`src/lib/analytics.ts` sets it).
+`src/lib/analytics.ts` sets it, and the Help switch calls it). When the browser sends GPC or Do Not Track, the
+switch is shown off and disabled.

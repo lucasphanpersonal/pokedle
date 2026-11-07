@@ -59,6 +59,44 @@ export function applyGuess(
   return { game: { ...game, guessIds: [...game.guessIds, guessId] }, result: 'ok' }
 }
 
+export type Games = Record<GameMode, SavedGame>
+
+/** Replaces the daily game if `today` (a local date key) is a different day. */
+export function rollOverGames(games: Games, today: string, pool: Pokemon[]): Games {
+  return games.daily.key === today ? games : { ...games, daily: newDailyGame(today, pool) }
+}
+
+/** The game a guess was applied to, as it stood after the guess. */
+export interface AppliedGuess {
+  mode: GameMode
+  gameKey: string
+  targetId: number
+  /** 1-based position of the guess within that game. */
+  guessNumber: number
+}
+
+/**
+ * Applies a guess to `mode` after rolling the daily game over to `today`, and
+ * reports which game it landed in. Analytics must tag the event with this, not
+ * with whatever game the UI last rendered (which may be yesterday's).
+ */
+export function applyGuessToGames(
+  games: Games,
+  mode: GameMode,
+  guessId: number,
+  today: string,
+  pool: Pokemon[],
+): { games: Games; result: GuessResult; applied: AppliedGuess | null } {
+  const current = rollOverGames(games, today, pool)
+  const { game, result } = applyGuess(current[mode], guessId)
+  if (result !== 'ok') return { games: current, result, applied: null }
+  return {
+    games: { ...current, [mode]: game },
+    result,
+    applied: { mode, gameKey: game.key, targetId: game.targetId, guessNumber: game.guessIds.length },
+  }
+}
+
 /** True if a saved game still makes sense against the current Pokédex. */
 export function isValidSave(
   game: unknown,
