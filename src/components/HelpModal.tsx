@@ -1,5 +1,6 @@
 import { useId, useState } from 'react'
 import { isBrowserDoNotTrack, isOptedOutByPlayer, setTrackingOptOut } from '../lib/analytics'
+import { isCrtOn, setCrt } from '../lib/display'
 import { Modal } from './Modal'
 
 interface HelpModalProps {
@@ -8,15 +9,65 @@ interface HelpModalProps {
 
 function Swatch({ className, children }: { className: string; children: string }) {
   return (
-    <span className={`${className} inline-flex h-6 min-w-6 items-center justify-center rounded px-1 text-[9px] text-white`}>
+    <span className={`${className} inline-flex h-6 min-w-6 items-center justify-center px-notch [--px:2px] px-1 text-[9px] text-white`}>
       {children}
     </span>
   )
 }
 
+/** A labelled pixel on/off switch. */
+function PixelSwitch({ label, on, disabled, describedBy, onToggle }: {
+  label: string
+  on: boolean
+  disabled?: boolean
+  describedBy?: string
+  onToggle: () => void
+}) {
+  const labelId = useId()
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-labelledby={labelId}
+      aria-describedby={describedBy}
+      disabled={disabled}
+      onClick={onToggle}
+      className="ds-focus mt-2 flex min-h-11 w-full items-center justify-between gap-3 text-left disabled:opacity-60"
+    >
+      <span id={labelId}>{label}</span>
+      <span className="flex items-center gap-2" aria-hidden="true">
+        <span>{on ? 'ON' : 'OFF'}</span>
+        <span
+          className={`flex h-6 w-11 items-center border-2 border-ds-frame px-0.5 ${on ? 'justify-end bg-fb-match' : 'justify-start bg-ds-paper'}`}
+        >
+          <span className="h-4 w-4 bg-ds-frame" />
+        </span>
+      </span>
+    </button>
+  )
+}
+
+function DisplaySettings() {
+  const [crt, setCrtState] = useState(isCrtOn)
+  return (
+    <section className="mt-5 border-t-2 border-ds-frame-light pt-4 text-[10px] leading-5">
+      <h3 className="mb-2 text-[11px]">Display</h3>
+      <PixelSwitch
+        label="CRT screen effect"
+        on={crt}
+        onToggle={() => {
+          setCrt(!crt)
+          setCrtState(!crt)
+        }}
+      />
+      <p className="mt-1 text-[9px] text-ds-frame">Scanlines and a soft glow, like an old handheld or TV.</p>
+    </section>
+  )
+}
+
 /** Privacy note and the analytics on/off switch. */
 function StatsToggle() {
-  const labelId = useId()
   const noteId = useId()
   // Browsers sending GPC / Do Not Track are never tracked, whatever the switch says.
   const [browserBlocks] = useState(isBrowserDoNotTrack)
@@ -36,26 +87,13 @@ function StatsToggle() {
         The game records anonymous game events (guesses, results, device type) with no cookies, accounts or personal
         data. Browsers that send Do Not Track or Global Privacy Control are never tracked.
       </p>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={on}
-        aria-labelledby={labelId}
-        aria-describedby={browserBlocks ? noteId : undefined}
+      <PixelSwitch
+        label="Share anonymous stats"
+        on={on}
         disabled={browserBlocks}
-        onClick={toggle}
-        className="ds-focus mt-2 flex min-h-11 w-full items-center justify-between gap-3 text-left disabled:opacity-60"
-      >
-        <span id={labelId}>Share anonymous stats</span>
-        <span className="flex items-center gap-2" aria-hidden="true">
-          <span>{on ? 'ON' : 'OFF'}</span>
-          <span
-            className={`flex h-6 w-11 items-center rounded-full border-2 border-ds-frame px-0.5 ${on ? 'justify-end bg-fb-match' : 'justify-start bg-ds-paper'}`}
-          >
-            <span className="h-4 w-4 rounded-full bg-ds-frame" />
-          </span>
-        </span>
-      </button>
+        describedBy={browserBlocks ? noteId : undefined}
+        onToggle={toggle}
+      />
       {browserBlocks && (
         <p id={noteId} className="mt-1 text-[9px] text-ds-frame">
           Off: your browser sends Do Not Track or Global Privacy Control.
@@ -107,6 +145,7 @@ export function HelpModal({ onClose }: HelpModalProps) {
         </p>
         <p className="hidden sm:block">Keyboard: type to search, ↑/↓ to pick, Enter to guess, Esc to close.</p>
       </div>
+      <DisplaySettings />
       <StatsToggle />
     </Modal>
   )

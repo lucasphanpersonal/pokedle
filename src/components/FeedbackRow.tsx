@@ -48,7 +48,7 @@ function Tile({
   return (
     <td className="p-0">
       <div
-        className={`${BG[result]} ${animate ? 'tile-flip' : ''} flex h-16 flex-col items-center justify-center rounded-lg px-1 text-center text-[9px] leading-[1.35] text-white shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)] sm:h-[72px] sm:text-[10px]`}
+        className={`${BG[result]} ${animate ? 'tile-flip' : ''} flex h-16 flex-col items-center justify-center px-notch px-1 text-center text-[9px] leading-[1.35] text-white shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)] sm:h-[72px] sm:text-[10px]`}
         style={style}
         data-result={result}
       >
@@ -80,7 +80,7 @@ export function FeedbackRow({ guess, feedback, animate }: FeedbackRowProps) {
       {/* Pokémon: sticky so it stays visible while the row scrolls on phones. */}
       <th scope="row" className="sticky left-0 z-10 bg-ds-paper p-0 pr-1 font-normal">
         <div
-          className={`${BG[feedback.pokemon]} ${animate ? 'tile-flip' : ''} flex h-16 w-[96px] flex-col items-center justify-center rounded-lg text-[7px] leading-[10px] text-white shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)] sm:h-[72px] sm:w-28 sm:text-[8px]`}
+          className={`${BG[feedback.pokemon]} ${animate ? 'tile-flip' : ''} flex h-16 w-[96px] flex-col items-center justify-center px-notch text-[7px] leading-[10px] text-white shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)] sm:h-[72px] sm:w-28 sm:text-[8px]`}
           data-result={feedback.pokemon}
         >
           <img src={iconUrl(guess.id)} alt="" width={40} height={40} className="-my-1 h-10 w-10 [image-rendering:pixelated]" />

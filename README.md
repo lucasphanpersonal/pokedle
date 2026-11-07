@@ -39,6 +39,16 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   grid (8 attribute columns per guess; the Pokémon column is left out). **Share** opens the system share sheet on
   phones and tablets and copies to the clipboard on desktop.
 
+### Look and feel
+
+- **Pixel art style**: dialog boxes use a pixel-art frame (`.ds-box`, an inline SVG border image with stepped
+  corners), buttons and tiles have stepped "pixel" corners (`.ds-button`, `.px-notch`), the sky is drawn in flat
+  bands, and every image is scaled with `image-rendering: pixelated`. The results screen shows the Pokémon's
+  in-game pixel sprite, scaled up crisply (falling back to the official artwork if a form has no sprite).
+- **CRT screen effect**: scanlines, a faint RGB phosphor mask, a vignette and a slow flicker drawn over the page
+  (`html.crt body::after` in `src/index.css`). On by default; players can turn it off under **Help → Display**
+  (saved per device in `localStorage['pokemondle:crt']`). The flicker stops for "reduce motion".
+
 ### Layout on different devices
 
 - Desktop and tablet (≥ 640 px): all nine columns fit on screen.
