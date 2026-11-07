@@ -182,7 +182,7 @@
     opacity: 1;
   }
   48% {
-    opacity: 0.94;
+    opacity: 0.97;
   }
   50% {
     opacity: 1;
@@ -196,20 +196,20 @@ html.crt body::after {
   z-index: 100;
   pointer-events: none;
   background:
-    repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.16) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.09) 0 1px, transparent 1px 3px),
     repeating-linear-gradient(
       to right,
-      rgb(255 0 0 / 0.04) 0 1px,
-      rgb(0 255 0 / 0.03) 1px 2px,
-      rgb(0 0 255 / 0.04) 2px 3px
+      rgb(255 0 0 / 0.025) 0 1px,
+      rgb(0 255 0 / 0.02) 1px 2px,
+      rgb(0 0 255 / 0.025) 2px 3px
     ),
-    radial-gradient(ellipse at center, transparent 62%, rgb(0 0 0 / 0.32) 100%);
+    radial-gradient(ellipse at center, transparent 66%, rgb(0 0 0 / 0.18) 100%);
   animation: crt-flicker 7s steps(1) infinite;
 }
 
 html.crt body {
   /* Slight phosphor bloom on text. */
-  text-shadow: 0 0 1px rgb(255 255 255 / 0.25);
+  text-shadow: 0 0 1px rgb(255 255 255 / 0.12);
 }
 
 @media (prefers-reduced-motion: reduce) {
