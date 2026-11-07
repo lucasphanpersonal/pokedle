@@ -4,7 +4,8 @@
  *
  * Everything here is best effort: it never throws and never blocks the game.
  * Tracking is a no-op without VITE_TRACK_URL, and is skipped for players who
- * send Global Privacy Control / Do Not Track or set the opt-out flag.
+ * send Global Privacy Control / Do Not Track or switch off "Share anonymous
+ * stats" in the Help modal (which sets the opt-out flag via setTrackingOptOut).
  */
 import { ENABLED_FORM_CATEGORIES, MAX_GUESSES } from '../config/gameConfig'
 import type { GameMode } from './game'
@@ -42,9 +43,24 @@ function storage(): Storage | null {
   }
 }
 
-function optedOutByFlag(): boolean {
+/** In-memory copy of the opt-out, so it holds even if localStorage throws. */
+let optedOutInMemory = false
+
+/** True if the player switched analytics off in the Help modal. */
+export function isOptedOutByPlayer(): boolean {
+  if (optedOutInMemory) return true
   try {
     return storage()?.getItem(OPT_OUT_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+/** True if the browser itself asks not to be tracked (GPC or Do Not Track). */
+export function isBrowserDoNotTrack(): boolean {
+  try {
+    const nav = globalThis.navigator as (Navigator & { globalPrivacyControl?: boolean }) | undefined
+    return nav?.globalPrivacyControl === true || nav?.doNotTrack === '1'
   } catch {
     return false
   }
@@ -53,26 +69,29 @@ function optedOutByFlag(): boolean {
 /** True if there is an endpoint and the player has not opted out in any way. */
 export function isTrackingEnabled(): boolean {
   if (!endpoint()) return false
-  try {
-    const nav = globalThis.navigator as (Navigator & { globalPrivacyControl?: boolean }) | undefined
-    if (nav?.globalPrivacyControl === true || nav?.doNotTrack === '1') return false
-  } catch {
-    // ignore
-  }
-  return !optedOutByFlag()
+  return !isBrowserDoNotTrack() && !isOptedOutByPlayer()
 }
 
-/** For a Help-modal toggle. Opting out also drops anything still queued. */
-export function setTrackingOptOut(optOut: boolean): void {
+/**
+ * Backs the Help modal's "Share anonymous stats" switch. Opting out takes
+ * effect immediately (queue dropped, in-memory flag set) even if the flag
+ * cannot be saved. Returns whether the choice was persisted.
+ */
+export function setTrackingOptOut(optOut: boolean): boolean {
+  if (optOut) {
+    queue.length = 0
+    optedOutInMemory = true
+  } else {
+    optedOutInMemory = false
+  }
   try {
-    if (optOut) {
-      storage()?.setItem(OPT_OUT_KEY, 'true')
-      queue.length = 0
-    } else {
-      storage()?.removeItem(OPT_OUT_KEY)
-    }
+    const s = storage()
+    if (!s) return false
+    if (optOut) s.setItem(OPT_OUT_KEY, 'true')
+    else s.removeItem(OPT_OUT_KEY)
+    return true
   } catch {
-    // ignore
+    return false
   }
 }
 
@@ -273,7 +292,8 @@ export function startAnalytics(): void {
   window.addEventListener('pagehide', flush)
 }
 
-/** Test helper: clears the in-memory queue. */
+/** Test helper: clears the in-memory queue and opt-out flag. */
 export function resetQueueForTests(): void {
   queue.length = 0
+  optedOutInMemory = false
 }

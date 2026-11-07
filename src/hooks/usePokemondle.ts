@@ -3,12 +3,15 @@ import { MAX_GUESSES } from '../config/gameConfig'
 import { compareGuess, type GuessFeedback } from '../lib/compare'
 import { localDateKey, puzzleNumber } from '../lib/daily'
 import {
-  applyGuess,
+  applyGuessToGames,
+  rollOverGames,
   gameStatus as statusOf,
   isValidSave,
   newDailyGame,
   newEndlessGame,
+  type AppliedGuess,
   type GameMode,
+  type Games,
   type GameStatus,
   type GuessResult,
   type SavedGame,
@@ -18,8 +21,6 @@ import { loadJson, saveJson, storageKey } from '../lib/storage'
 import type { Pokemon } from '../types/pokemon'
 
 export type { GameMode, GameStatus, GuessResult }
-
-type Games = Record<GameMode, SavedGame>
 
 function loadDaily(dateKey: string): SavedGame {
   const saved = loadJson('daily')
@@ -42,8 +43,7 @@ const loadGames = (): Games => ({ daily: loadDaily(localDateKey()), endless: loa
 
 /** Replaces the daily game if the local date has moved on. */
 function rollOver(games: Games): Games {
-  const today = localDateKey()
-  return games.daily.key === today ? games : { ...games, daily: newDailyGame(today, POKEDEX) }
+  return rollOverGames(games, localDateKey(), POKEDEX)
 }
 
 const lookup = (id: number) => POKEDEX_BY_ID.get(id) as Pokemon
@@ -110,19 +110,28 @@ export function usePokemondle(mode: GameMode) {
   const gameStatus = statusOf(game)
 
   /**
-   * Records a guess in the current mode. Returns 'ok' if it was accepted.
+   * Records a guess in the current mode. `result` is 'ok' if it was accepted,
+   * and then `applied` says which game it landed in (it can differ from the
+   * rendered game if local midnight passed before the rollover was committed).
    * Side effects for an accepted guess (analytics, sounds) belong in the
-   * caller, keyed on the returned result.
+   * caller, keyed on this.
    */
-  const submitGuess = useCallback(
-    (pokemon: Pokemon): GuessResult => {
-      const current = rollOver(gamesRef.current)
-      const { game: next, result } = applyGuess(current[mode], pokemon.id)
-      commit(result === 'ok' ? { ...current, [mode]: next } : current)
-      return result
+  const submitGuessDetailed = useCallback(
+    (pokemon: Pokemon): { result: GuessResult; applied: AppliedGuess | null } => {
+      const { games: next, result, applied } = applyGuessToGames(
+        gamesRef.current,
+        mode,
+        pokemon.id,
+        localDateKey(),
+        POKEDEX,
+      )
+      commit(next)
+      return { result, applied }
     },
     [commit, mode],
   )
+
+  const submitGuess = useCallback((pokemon: Pokemon): GuessResult => submitGuessDetailed(pokemon).result, [submitGuessDetailed])
 
   const startNewEndlessGame = useCallback(() => {
     const current = gamesRef.current
@@ -142,6 +151,7 @@ export function usePokemondle(mode: GameMode) {
     /** Daily puzzle number (#1 = launch day); null in Endless mode. */
     puzzleNumber: mode === 'daily' ? puzzleNumber(game.key) : null,
     submitGuess,
+    submitGuessDetailed,
     startNewEndlessGame,
   }
 }

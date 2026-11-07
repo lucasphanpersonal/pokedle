@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { startAnalytics, trackFinish, trackGuess } from '../lib/analytics'
-import type { GameStatus, GuessResult } from '../lib/game'
+import type { AppliedGuess, GameStatus, GuessResult } from '../lib/game'
 import type { Pokemon } from '../types/pokemon'
 
 interface GameView {
@@ -9,7 +9,25 @@ interface GameView {
   targetPokemon: Pokemon
   guesses: Pokemon[]
   gameStatus: GameStatus
-  submitGuess: (pokemon: Pokemon) => GuessResult
+  submitGuessDetailed: (pokemon: Pokemon) => { result: GuessResult; applied: AppliedGuess | null }
+}
+
+/** What the previous render of the hook saw: which game, and its status. */
+export interface SeenGame {
+  id: string
+  status: GameStatus
+}
+
+/**
+ * Decides whether this render is the moment a game finished. Only a
+ * playing -> won/lost change within the same game counts, so a finished game
+ * seen on first mount, a mode switch or new game, and the same state seen
+ * twice (StrictMode's double effect) all report nothing.
+ */
+export function finishedTransition(last: SeenGame | null, current: SeenGame): 'won' | 'lost' | null {
+  if (!last || last.id !== current.id) return null
+  if (last.status !== 'playing' || current.status === 'playing') return null
+  return current.status
 }
 
 /**
@@ -21,39 +39,37 @@ interface GameView {
  * per-game stored flag also dedupes across StrictMode and tabs).
  */
 export function useAnalytics(game: GameView): (pokemon: Pokemon) => GuessResult {
-  const { mode, gameKey, targetPokemon, guesses, gameStatus, submitGuess } = game
-  const latest = useRef({ mode, gameKey, targetId: targetPokemon.id, guessCount: guesses.length })
-  useEffect(() => {
-    latest.current = { mode, gameKey, targetId: targetPokemon.id, guessCount: guesses.length }
-  })
-
+  const { mode, gameKey, targetPokemon, guesses, gameStatus, submitGuessDetailed } = game
   useEffect(() => startAnalytics(), [])
 
+  // Tagged with the game the guess was actually applied to (not the rendered
+  // one), so a guess just after local midnight isn't filed under yesterday.
   const wrapped = useCallback(
     (pokemon: Pokemon): GuessResult => {
-      const before = latest.current
-      const result = submitGuess(pokemon)
-      if (result === 'ok') {
-        trackGuess(
-          { mode: before.mode, gameKey: before.gameKey, targetId: before.targetId },
-          { guessId: pokemon.id, guessNumber: before.guessCount + 1, isCorrect: pokemon.id === before.targetId },
-        )
-        // Back-to-back guesses before a re-render: keep the count in step.
-        latest.current = { ...before, guessCount: before.guessCount + 1 }
+      const { result, applied } = submitGuessDetailed(pokemon)
+      if (result === 'ok' && applied) {
+        const ref = { mode: applied.mode, gameKey: applied.gameKey, targetId: applied.targetId }
+        trackGuess(ref, {
+          guessId: pokemon.id,
+          guessNumber: applied.guessNumber,
+          isCorrect: pokemon.id === applied.targetId,
+        })
+        // Finish for the applied game right away: after a midnight rollover the
+        // rendered game differs, so the effect below would never see this
+        // transition. trackFinish is once-per-game, so the effect can't double-send.
+        if (applied.status !== 'playing') trackFinish(ref, applied.status, applied.guessNumber)
       }
       return result
     },
-    [submitGuess],
+    [submitGuessDetailed],
   )
 
-  const prev = useRef<{ id: string; status: GameStatus } | null>(null)
+  const prev = useRef<SeenGame | null>(null)
   useEffect(() => {
-    const id = `${mode}:${gameKey}`
-    const last = prev.current
-    prev.current = { id, status: gameStatus }
-    if (last && last.id === id && last.status === 'playing' && gameStatus !== 'playing') {
-      trackFinish({ mode, gameKey, targetId: targetPokemon.id }, gameStatus, guesses.length)
-    }
+    const current = { id: `${mode}:${gameKey}`, status: gameStatus }
+    const finished = finishedTransition(prev.current, current)
+    prev.current = current
+    if (finished) trackFinish({ mode, gameKey, targetId: targetPokemon.id }, finished, guesses.length)
   }, [mode, gameKey, gameStatus, targetPokemon.id, guesses.length])
 
   return wrapped
