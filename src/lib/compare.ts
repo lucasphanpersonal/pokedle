@@ -1,0 +1,65 @@
+import type { Pokemon } from '../types/pokemon'
+
+/** Feedback for text attributes (types, colour). */
+export type MatchFeedback = 'match' | 'partial' | 'mismatch'
+
+/**
+ * Feedback for number attributes. 'higher' means the answer's value is higher
+ * than the guess (show an up arrow); 'lower' means it is lower.
+ */
+export type NumberFeedback = 'match' | 'higher' | 'lower'
+
+export interface GuessFeedback {
+  pokemon: 'match' | 'mismatch'
+  type1: MatchFeedback
+  type2: MatchFeedback
+  generation: NumberFeedback
+  height: NumberFeedback
+  weight: NumberFeedback
+  color: 'match' | 'mismatch'
+  evolutionStage: NumberFeedback
+}
+
+export type FeedbackKey = keyof GuessFeedback
+
+/**
+ * Compares numbers at one decimal place, which is the precision of the data
+ * (heights in 0.1 m, weights in 0.1 kg). Avoids float noise like 0.1 + 0.2.
+ */
+export function compareNumber(guess: number, target: number): NumberFeedback {
+  const g = Math.round(guess * 10)
+  const t = Math.round(target * 10)
+  if (g === t) return 'match'
+  return t > g ? 'higher' : 'lower'
+}
+
+/**
+ * Type 1: green if it matches the answer's Type 1, yellow if it matches the
+ * answer's Type 2 instead, red otherwise.
+ * Type 2: green if it matches the answer's Type 2 (two single-type Pokémon
+ * both match on "none"), yellow if it matches the answer's Type 1 instead,
+ * red otherwise.
+ */
+export function compareTypes(guess: Pokemon, target: Pokemon): Pick<GuessFeedback, 'type1' | 'type2'> {
+  const type1: MatchFeedback =
+    guess.type1 === target.type1 ? 'match' : guess.type1 === target.type2 ? 'partial' : 'mismatch'
+  const type2: MatchFeedback =
+    guess.type2 === target.type2
+      ? 'match'
+      : guess.type2 !== null && guess.type2 === target.type1
+        ? 'partial'
+        : 'mismatch'
+  return { type1, type2 }
+}
+
+export function compareGuess(guess: Pokemon, target: Pokemon): GuessFeedback {
+  return {
+    pokemon: guess.id === target.id ? 'match' : 'mismatch',
+    ...compareTypes(guess, target),
+    generation: compareNumber(guess.generation, target.generation),
+    height: compareNumber(guess.height, target.height),
+    weight: compareNumber(guess.weight, target.weight),
+    color: guess.color === target.color ? 'match' : 'mismatch',
+    evolutionStage: compareNumber(guess.evolutionStage, target.evolutionStage),
+  }
+}

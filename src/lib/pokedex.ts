@@ -9,5 +9,8 @@ export const POKEDEX: Pokemon[] = allPokemon.filter(
   (p) => ENABLED_FORM_CATEGORIES[p.formCategory],
 )
 
+/** Lookup by PokéAPI id. */
+export const POKEDEX_BY_ID: Map<number, Pokemon> = new Map(POKEDEX.map((p) => [p.id, p]))
+
 export const spriteUrl = (id: number) =>
   `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`
