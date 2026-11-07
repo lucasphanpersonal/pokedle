@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Pokemon } from '../types/pokemon'
-import { compareAbilities, compareGuess, compareNumber, compareTypes, compareWeight } from './compare'
+import { abilityCellText, compareAbilities, compareGuess, compareNumber, compareTypes, compareWeight } from './compare'
 
 const mon = (over: Partial<Pokemon>): Pokemon => ({
   id: 1,
@@ -106,6 +106,16 @@ describe('compareAbilities', () => {
   it('is a mismatch when either side has no abilities', () => {
     expect(compareAbilities(mon({}), target).result).toBe('mismatch')
     expect(compareAbilities(target, mon({})).result).toBe('mismatch')
+  })
+  it('shows the shared names on a match, and all the guess\'s abilities on no match', () => {
+    const shared = compareAbilities(mon({ abilities: ['Blaze', 'Torrent'] }), target)
+    expect(abilityCellText(mon({ abilities: ['Blaze', 'Torrent'] }), shared)).toBe('Blaze')
+    const none = compareAbilities(mon({ abilities: ['Torrent', 'Rain Dish'] }), target)
+    expect(abilityCellText(mon({ abilities: ['Torrent', 'Rain Dish'] }), none)).toBe('Torrent, Rain Dish')
+  })
+  it('shows Unknown on no match when the guess has no ability data', () => {
+    const none = compareAbilities(mon({}), target)
+    expect(abilityCellText(mon({}), none)).toBe('Unknown')
   })
   it('is included in compareGuess', () => {
     expect(compareGuess(mon({ abilities: ['Blaze'] }), target).ability).toEqual({ result: 'match', shared: ['Blaze'] })

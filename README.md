@@ -34,7 +34,8 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   its suggestions; already guessed Pokémon are hidden from them. Matching ignores case, accents and punctuation ("flabebe" finds Flabébé).
 - **Columns**: Pokémon, Type 1, Type 2, Gen, Height, Weight, Color, Evolution (stage 1–3), Shared Ability.
   Green = match, yellow = type in the other slot, red = no match, ▲/▼ = the answer is higher/lower.
-  Shared Ability lists every ability the two share (hidden abilities count), or "None".
+  Shared Ability lists every ability the two share (hidden abilities count). With no match it is red and lists all of
+  the guess's own abilities instead, or "Unknown" for the few new Megas with no ability data yet.
 - **Results**: after the last tile flips, a dialog shows the answer's artwork, the score and a spoiler-free emoji
   grid (8 attribute columns per guess; the Pokémon column is left out). **Share** opens the system share sheet on
   phones and tablets and copies to the clipboard on desktop.

@@ -76,6 +76,16 @@ export function compareAbilities(guess: Pokemon, target: Pokemon): AbilityFeedba
   return { result: shared.length > 0 ? 'match' : 'mismatch', shared }
 }
 
+/**
+ * What the Shared Ability cell shows. On a match: the shared names. On no
+ * match: all of the guess's own abilities, so the player can see none of
+ * them are the answer's. Gen 9 Megas have no ability data yet, so they show "Unknown".
+ */
+export function abilityCellText(guess: Pokemon, feedback: AbilityFeedback): string {
+  if (feedback.result === 'match') return feedback.shared.join(', ')
+  return guess.abilities.length > 0 ? guess.abilities.join(', ') : 'Unknown'
+}
+
 export function compareGuess(guess: Pokemon, target: Pokemon): GuessFeedback {
   return {
     pokemon: guess.id === target.id ? 'match' : 'mismatch',
