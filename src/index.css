@@ -57,3 +57,64 @@
     text-shadow: 2px 2px 0 rgb(0 0 0 / 0.35);
   }
 }
+
+/* Flip-reveal for guess tiles, one tile after another, like Wordle. */
+@keyframes tile-flip {
+  0% {
+    transform: perspective(400px) rotateX(-90deg);
+    opacity: 0;
+  }
+  45% {
+    opacity: 1;
+  }
+  100% {
+    transform: perspective(400px) rotateX(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes pop-in {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@layer components {
+  .tile-flip {
+    animation: tile-flip 450ms ease-out both;
+  }
+
+  .pop-in {
+    animation: pop-in 180ms ease-out both;
+  }
+
+  /* DS-style menu button: chunky border, pressed look on tap. */
+  .ds-button {
+    min-height: 44px;
+    border: 3px solid var(--color-ds-frame);
+    border-radius: 10px;
+    box-shadow: 0 3px 0 var(--color-ds-frame);
+    transition: transform 80ms, box-shadow 80ms;
+  }
+  .ds-button:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--color-ds-frame);
+  }
+  .ds-button:focus-visible,
+  .ds-focus:focus-visible {
+    outline: 3px solid var(--color-ds-sky-top);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile-flip,
+  .pop-in {
+    animation: none;
+  }
+}

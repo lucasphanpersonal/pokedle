@@ -28,6 +28,8 @@ export default defineConfig({
   base: './',
   define: { __APP_VERSION__: JSON.stringify(appVersion()) },
   plugins: [react(), tailwindcss()],
+  // The bundled Pokémon dataset makes the main chunk ~540 kB (~115 kB gzipped).
+  build: { chunkSizeWarningLimit: 700 },
   test: {
     environment: 'node',
   },

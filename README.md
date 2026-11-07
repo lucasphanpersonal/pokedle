@@ -17,12 +17,35 @@ npm run fetch-data # rebuild src/data/pokemon.json from PokéAPI
 
 ```
 scripts/fetchPokemonData.ts   builds the local Pokémon dataset from PokéAPI
-src/components/               Header, SearchBar, GuessGrid, FeedbackRow, WinModal, HelpModal
-src/hooks/usePokemondle.ts       game state (target, guesses, status)
-src/lib/                      dataset loading and game logic
+src/components/               Header, SearchBar, GuessGrid, FeedbackRow, ResultModal, HelpModal, Modal
+src/hooks/usePokemondle.ts    game state (target, guesses, status), saved to localStorage
+src/hooks/useAnalytics.ts     wraps guesses with anonymous analytics
+src/lib/                      dataset + search, comparison, daily seed, game rules, share text, storage
 src/config/gameConfig.ts      game settings, including which form categories are enabled
+src/config/uiConfig.ts        animation timing and the share-link fallback
 src/data/pokemon.json         generated dataset (committed, so the app needs no API at runtime)
 ```
+
+## How the game plays
+
+- **Daily**: everyone gets the same Pokémon on the same calendar day (local time), picked by hashing the date
+  with each Pokémon's id. **Endless**: a new random Pokémon on demand. Each mode keeps its own saved game.
+- **10 guesses** (`MAX_GUESSES`). The search box only accepts Pokémon picked from its suggestions; already
+  guessed Pokémon are hidden from them. Matching ignores case, accents and punctuation ("flabebe" finds Flabébé).
+- **Columns**: Pokémon, Type 1, Type 2, Gen, Height, Weight, Color, Evolution (stage 1–3), Shared Ability.
+  Green = match, yellow = type in the other slot, red = no match, ▲/▼ = the answer is higher/lower.
+  Shared Ability lists every ability the two share (hidden abilities count), or "None".
+- **Results**: after the last tile flips, a dialog shows the answer's artwork, the score and a spoiler-free emoji
+  grid (8 attribute columns per guess; the Pokémon column is left out). **Share** opens the system share sheet on
+  phones and tablets and copies to the clipboard on desktop.
+
+### Layout on different devices
+
+- Desktop and tablet (≥ 640 px): all nine columns fit on screen.
+- Phones: the grid scrolls sideways with the Pokémon column pinned. The search box uses 16 px text so iOS doesn't
+  zoom, and every button and suggestion is at least 44 px tall for touch.
+- Keyboard: type to search, ↑/↓ to move through suggestions, Enter to guess, Esc to close a dialog.
+- Animations are turned off for players who set "reduce motion".
 
 ## Dataset
 
