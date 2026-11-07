@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { SHARE_URL_FALLBACK } from '../config/uiConfig'
 import type { GuessFeedback } from '../lib/compare'
 import type { GameMode } from '../lib/game'
-import { spriteUrl } from '../lib/pokedex'
+import { iconUrl, spriteUrl } from '../lib/pokedex'
 import { buildShareText, shareResult, shareRow, type ShareOutcome } from '../lib/share'
 import type { Pokemon } from '../types/pokemon'
 import { Modal } from './Modal'
@@ -55,12 +55,17 @@ export function ResultModal({ mode, target, feedback, puzzleNumber, onClose, onN
   return (
     <Modal title="Gotcha!" onClose={onClose}>
       <div className="flex flex-col items-center gap-4 text-center text-[10px] leading-5">
+        {/* The game's own pixel sprite, scaled up crisply; official artwork if a form has none. */}
         <img
-          src={spriteUrl(target.id)}
+          src={iconUrl(target.id)}
           alt={target.name}
-          width={160}
-          height={160}
-          className="h-36 w-36 drop-shadow-[0_4px_0_rgb(0_0_0/0.15)] sm:h-40 sm:w-40"
+          width={192}
+          height={192}
+          onError={(e) => {
+            const img = e.currentTarget
+            if (img.src !== spriteUrl(target.id)) img.src = spriteUrl(target.id)
+          }}
+          className="h-40 w-40 drop-shadow-[0_4px_0_rgb(0_0_0/0.15)] [image-rendering:pixelated] sm:h-48 sm:w-48"
         />
         <p className="text-xs leading-6">
           You caught <strong>{target.name}</strong> in {feedback.length} {feedback.length === 1 ? 'guess' : 'guesses'}!

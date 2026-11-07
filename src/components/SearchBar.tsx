@@ -128,7 +128,7 @@ export function SearchBar({ pokedex, guessedIds, onGuess, disabled }: SearchBarP
               aria-selected={i === active}
               onMouseEnter={() => setActive(i)}
               onClick={() => choose(p)}
-              className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-2 text-[10px] sm:text-xs ${
+              className={`flex min-h-11 cursor-pointer items-center gap-3 px-notch px-2 text-[10px] sm:text-xs ${
                 i === active ? 'bg-ds-sky-bottom' : ''
               }`}
             >
