@@ -20,11 +20,8 @@ interface FeedbackRowProps {
 
 type Result = MatchFeedback | NumberFeedback
 
-/*
- * Dark pixel outline (inset, so the stepped px-notch corners still cut it
- * like a dialog-box border) plus the darker bottom bevel on every tile.
- */
-const TILE_EDGE = 'shadow-[inset_0_0_0_2px_var(--color-ds-frame),inset_0_-3px_0_rgb(0_0_0/0.2)]'
+/* Beveled DS-menu block: see .tile-bevel in index.css (light top edge, dark bottom edge). */
+const TILE_EDGE = 'tile-bevel'
 
 const BG: Record<Result, string> = {
   match: 'bg-fb-match',

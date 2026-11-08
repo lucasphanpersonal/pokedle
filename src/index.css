@@ -127,6 +127,32 @@
     );
   }
 
+  /*
+   * Platinum battle-menu style block: flat colour with a light top edge, a dark
+   * bottom edge, slightly shaded sides and a dark pixel outline. The colour
+   * comes from data-result so the same class works for every feedback state.
+   */
+  .tile-bevel {
+    --tile: var(--color-fb-mismatch);
+    --hi: color-mix(in srgb, var(--tile), white 48%);
+    --lo: color-mix(in srgb, var(--tile), black 40%);
+    --side: color-mix(in srgb, var(--tile), black 14%);
+    box-shadow:
+      inset 0 0 0 2px var(--color-ds-frame),
+      inset 0 6px 0 0 var(--hi),
+      inset 0 -6px 0 0 var(--lo),
+      inset 4px 0 0 0 var(--side),
+      inset -4px 0 0 0 var(--side);
+    text-shadow: 1px 1px 0 rgb(0 0 0 / 0.4);
+  }
+  .tile-bevel[data-result='match'] {
+    --tile: var(--color-fb-match);
+  }
+  .tile-bevel[data-result='partial'] {
+    --tile: var(--color-fb-partial);
+    text-shadow: none;
+  }
+
   /* DS-style menu button: pixel outline, shaded bottom edge, pressed on tap. */
   .ds-button {
     --px: 3px;
