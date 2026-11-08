@@ -58,13 +58,13 @@ function Tile({
   return (
     <td className="p-0">
       <div
-        className={`${BG[result]} ${animate ? 'tile-flip' : ''} flex h-16 flex-col items-center justify-center px-notch px-1 text-center text-[9px] leading-[1.35] text-white ${TILE_EDGE} sm:h-[72px] sm:text-[10px]`}
+        className={`${BG[result]} ${animate ? 'tile-flip' : ''} relative flex h-16 flex-col items-center justify-center px-notch px-1 pb-1 text-center text-[9px] leading-[1.35] text-white ${TILE_EDGE} sm:h-[72px] sm:text-[10px]`}
         style={style}
         data-result={result}
       >
-        <span className="break-words">{children}</span>
+        <span className="break-words [&:not(:only-child)]:-mt-px">{children}</span>
         {ARROW[result] && (
-          <span aria-hidden className="mt-1 text-xs">
+          <span aria-hidden className="absolute bottom-[7px] left-0 right-0 text-[9px] leading-none">
             {ARROW[result]}
           </span>
         )}
