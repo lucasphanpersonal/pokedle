@@ -43,8 +43,9 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   sets how the *next* game starts. Each game records its own `hard` flag when its first guess is made, so the mode
   can't change mid-game: the switch is disabled while the current game is in progress and unlocks once it is solved.
   Hard games show "Hard mode" under the guess count, a **★ Hard mode** line on the result screen and a **★ Hard** tag
-  in History (streaks still count them). Their analytics events carry `config.hard_mode = true` and the Daily result
-  screen skips the public stats for them (see [Public daily stats](#public-daily-stats)).
+  in History (streaks still count them). Their analytics events carry `config.hard_mode = true`, and a Hard Daily
+  gets its own **Today's stats (Hard)** panel, compared only with other Hard players (see
+  [Public daily stats](#public-daily-stats)).
 - **Pokédex numbers**: every guess shows its National Dex number (`#025`) beside the name as a display-only label,
   never a clue. Forms use their species' number (Alolan Raichu is `#026`).
 - **Results**: after the last tile flips, a dialog shows the answer's artwork, how many guesses it took and a
@@ -180,9 +181,11 @@ The client derives the URL from `VITE_TRACK_URL` (`/track` becomes `/stats`), sk
 opted out (or send GPC / Do Not Track), and shows nothing if the request fails or the player is offline.
 
 
-Hard mode games (`config.hard_mode = true` on their events) are excluded from these totals by
-`public_daily_stats()` (migration `20261108220000_public_stats_exclude_hard.sql`), so the numbers compare like with like,
-and the result screen shows a note instead of the panel for a Hard game.
+Normal and Hard mode games have separate stats. `public_daily_stats(date, hard)` (migration
+`20261108230000_public_stats_hard_split.sql`) counts only games whose events carry `config.hard_mode = true` when
+`hard` is true, and only the others when it is false; each side has its own 5-game threshold, so the Hard panel often
+stays hidden. The function takes `?hard=1` for the Hard stats and echoes `hard` in its response; the game ignores an
+answer that doesn't match what it asked for, so an older deployed function can never show normal stats as Hard.
 
 The player's own result is sent just before, so the fetch waits 1.5 s to usually include it. Deploy the function
 (with the same `ALLOWED_ORIGINS` secret as `track`) before the site update goes live; until then the panel simply doesn't appear.

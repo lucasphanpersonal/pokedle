@@ -24,6 +24,18 @@ describe('parseDailyStats', () => {
   })
 })
 
+describe('parseDailyStats and Hard mode', () => {
+  it('only accepts a response that matches the stats asked for', () => {
+    const body = { hard: true, histogram: { '4': 6 } }
+    expect(parseDailyStats(body, true)).toEqual({ histogram: { 4: 6 } })
+    expect(parseDailyStats(body, false)).toBeNull()
+    expect(parseDailyStats({ hard: false, histogram: { '4': 6 } }, true)).toBeNull()
+    // An older server without the echo only serves normal stats.
+    expect(parseDailyStats({ histogram: { '4': 6 } }, true)).toBeNull()
+    expect(parseDailyStats({ histogram: { '4': 6 } }, false)).toEqual({ histogram: { 4: 6 } })
+  })
+})
+
 describe('summarize', () => {
   const stats = { histogram: { 2: 2, 4: 6, 12: 2 } }
 

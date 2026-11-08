@@ -65,11 +65,11 @@ select * from daily_totals order by day desc;                -- rolled-up histor
 Use the editor's **Save** to keep them as saved queries. The views are not readable with the anon key.
 `target_id` and `guess_id` are National Dex numbers.
 
-The `stats` function (`GET /functions/v1/stats?date=YYYY-MM-DD`, same `ALLOWED_ORIGINS` as `track`) serves this
+The `stats` function (`GET /functions/v1/stats?date=YYYY-MM-DD[&hard=1]`, same `ALLOWED_ORIGINS` as `track`) serves this
 to the game with a 60 s cache. `select public_daily_stats(current_date);` is the only thing the anon role may call: aggregates
 for one daily puzzle (games finished, solve rate, guess histogram), never the target or per-player data.
-Games with `config.hard_mode = true` (Hard mode, no Gen column) are excluded from these aggregates; the raw events and the
-private views still include them (filter on `config->>'hard_mode'`).
+`public_daily_stats(date, hard)` serves normal games by default, or only Hard mode games (`config.hard_mode = true`, no Gen column)
+with `?hard=1`; each has its own 5-game threshold. The raw events and the private views include both (filter on `config->>'hard_mode'`).
 It returns nulls and an empty histogram when fewer than 5 games finished, and errors for dates older
 than 400 days or more than 1 day ahead.
 

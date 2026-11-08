@@ -32,8 +32,11 @@ export function statsUrl(trackUrl: unknown = import.meta.env.VITE_TRACK_URL): st
 }
 
 /** Reads the response body, ignoring anything unexpected. Returns null if there is nothing to show. */
-export function parseDailyStats(body: unknown): DailyStats | null {
+export function parseDailyStats(body: unknown, hard = false): DailyStats | null {
   if (typeof body !== 'object' || body === null) return null
+  // The server echoes which stats it served. An older server without the echo only
+  // serves normal ones, so it must never be shown as the Hard stats.
+  if (((body as { hard?: unknown }).hard === true) !== hard) return null
   const raw = (body as { histogram?: unknown }).histogram
   if (typeof raw !== 'object' || raw === null) return null
   const histogram: Record<number, number> = {}
@@ -71,13 +74,13 @@ export function summarize(stats: DailyStats, yourGuesses: number): DailyStatsSum
 }
 
 /** Fetches stats for one daily puzzle date (YYYY-MM-DD). Resolves to null on any failure. */
-export async function fetchDailyStats(date: string, signal?: AbortSignal): Promise<DailyStats | null> {
+export async function fetchDailyStats(date: string, hard = false, signal?: AbortSignal): Promise<DailyStats | null> {
   try {
     const base = statsUrl()
     if (!base || !isTrackingEnabled()) return null
-    const res = await fetch(`${base}?date=${encodeURIComponent(date)}`, { signal })
+    const res = await fetch(`${base}?date=${encodeURIComponent(date)}${hard ? '&hard=1' : ''}`, { signal })
     if (!res.ok) return null
-    return parseDailyStats(await res.json())
+    return parseDailyStats(await res.json(), hard)
   } catch {
     return null
   }

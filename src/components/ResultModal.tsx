@@ -77,12 +77,7 @@ export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestSt
           </p>
         )}
 
-        {mode === 'daily' && !hard && <DailyStats date={puzzleDate} guesses={feedback.length} />}
-        {mode === 'daily' && hard && (
-          <p className="text-[9px] text-ds-frame">
-            Hard mode games aren&apos;t counted in today&apos;s stats, so they stay fair for everyone.
-          </p>
-        )}
+        {mode === 'daily' && <DailyStats date={puzzleDate} guesses={feedback.length} hard={hard} />}
 
         {mode === 'daily' && (
           <p className="text-[9px] text-ds-frame">
