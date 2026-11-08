@@ -58,7 +58,7 @@ function Tile({
   return (
     <td className="p-0">
       <div
-        className={`${BG[result]} ${animate ? 'tile-flip' : ''} relative flex h-16 flex-col items-center justify-center px-notch px-1 pb-1 text-center text-[9px] leading-[1.35] text-white ${TILE_EDGE} sm:h-[72px] sm:text-[10px]`}
+        className={`${BG[result]} ${animate ? 'tile-flip' : ''} relative flex h-16 flex-col items-center justify-center px-notch px-2 pb-1 text-center text-[9px] leading-[1.35] text-white ${TILE_EDGE} sm:h-[72px] sm:text-[10px]`}
         style={style}
         data-result={result}
       >
