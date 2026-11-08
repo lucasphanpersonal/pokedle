@@ -1,5 +1,6 @@
 import { useId, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import type { GuessResult } from '../lib/game'
+import { formatDex } from '../lib/dexEntry'
 import { iconUrl, searchPokemon } from '../lib/pokedex'
 import { playSound } from '../lib/sound'
 import type { Pokemon } from '../types/pokemon'
@@ -141,7 +142,7 @@ export function SearchBar({ pokedex, guessedIds, onGuess, disabled }: SearchBarP
             >
               <img src={iconUrl(p.id)} alt="" width={40} height={40} loading="lazy" className="h-10 w-10 [image-rendering:pixelated]" />
               <span className="flex-1 leading-4">{p.name}</span>
-              <span className="text-[8px] text-ds-frame">#{String(p.dexNumber).padStart(4, '0')}</span>
+              <span className="text-[8px] text-ds-frame">{formatDex(p.dexNumber)}</span>
             </li>
           ))}
         </ul>

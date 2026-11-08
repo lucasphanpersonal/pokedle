@@ -43,7 +43,7 @@ export function DexEntryCard({ target }: { target: Pokemon }) {
         {state.status === 'loading' && <span className="text-ds-frame">Loading entry…</span>}
         {state.status === 'ready' && (state.entry.text || 'No entry text available.')}
         {state.status === 'error' && (
-          <span className="text-ds-frame">The full entry couldn't be loaded. Check your connection and reopen this screen.</span>
+          <span className="text-ds-frame">The full entry couldn't be loaded (you may be offline). Reopen this screen to try again.</span>
         )}
       </p>
     </section>
