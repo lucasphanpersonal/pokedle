@@ -1,4 +1,4 @@
-import type { Pokemon } from '../types/pokemon'
+import type { FormCategory, Pokemon } from '../types/pokemon'
 
 /** Feedback for text attributes (types, colour). */
 export type MatchFeedback = 'match' | 'partial' | 'mismatch'
@@ -19,6 +19,7 @@ export interface GuessFeedback {
   weight: NumberFeedback
   color: 'match' | 'mismatch'
   evolutionStage: NumberFeedback
+  form: 'match' | 'mismatch'
   ability: AbilityFeedback
 }
 
@@ -86,6 +87,25 @@ export function abilityCellText(guess: Pokemon, feedback: AbilityFeedback): stri
   return guess.abilities.length > 0 ? guess.abilities.join(', ') : 'Unknown'
 }
 
+/** Form: green if both are the same kind of form (Base, Mega, Regional, ...), red otherwise. */
+export function compareForm(guess: Pokemon, target: Pokemon): 'match' | 'mismatch' {
+  return guess.formCategory === target.formCategory ? 'match' : 'mismatch'
+}
+
+const FORM_LABEL: Record<FormCategory, string> = {
+  base: 'Base',
+  regional: 'Regional',
+  mega: 'Mega',
+  gmax: 'Gigantamax',
+  cosmetic: 'Cosmetic',
+  other: 'Other',
+}
+
+/** What the Form cell shows: the guess's own form category. */
+export function formCellText(guess: Pokemon): string {
+  return FORM_LABEL[guess.formCategory]
+}
+
 export function compareGuess(guess: Pokemon, target: Pokemon): GuessFeedback {
   return {
     pokemon: guess.id === target.id ? 'match' : 'mismatch',
@@ -95,6 +115,7 @@ export function compareGuess(guess: Pokemon, target: Pokemon): GuessFeedback {
     weight: compareWeight(guess.weight, target.weight),
     color: guess.color === target.color ? 'match' : 'mismatch',
     evolutionStage: compareNumber(guess.evolutionStage, target.evolutionStage),
+    form: compareForm(guess, target),
     ability: compareAbilities(guess, target),
   }
 }

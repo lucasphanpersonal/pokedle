@@ -15,7 +15,7 @@ interface GuessGridProps {
  * remounts the grid) appears instantly.
  *
  * Phones show one compact card per guess (no sideways scrolling); tablets
- * and desktops show the full nine-column table.
+ * and desktops show the full ten-column table.
  */
 export function GuessGrid({ guesses, feedback }: GuessGridProps) {
   // Captured once at mount: how many guesses were restored rather than made now.
@@ -35,7 +35,7 @@ export function GuessGrid({ guesses, feedback }: GuessGridProps) {
         <p aria-hidden className="mb-2 text-center text-[8px] leading-3 text-ds-frame">
           Top: Type 1 · Type 2 · Gen · Height
           <br />
-          Then: Weight · Color · Evolution
+          Then: Weight · Color · Evolution · Form
           <br />
           Bottom: Shared Ability
         </p>

@@ -23,6 +23,7 @@ export function shareRow(f: GuessFeedback): string {
     f.weight,
     f.color,
     f.evolutionStage,
+    f.form,
     f.ability.result,
   ]
     .map((r) => EMOJI[r])

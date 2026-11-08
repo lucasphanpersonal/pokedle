@@ -113,8 +113,8 @@ export function HelpModal({ onClose }: HelpModalProps) {
         </p>
         <p>Start typing a name and pick from the list. Each guess shows how close it is:</p>
         <p className="sm:hidden">
-          On a phone each guess is a card: Type 1, Type 2, Gen and Height on top, then Weight, Color and Evolution, with
-          Shared Ability along the bottom. Tablets and computers show a table instead.
+          On a phone each guess is a card: Type 1, Type 2, Gen and Height on top, then Weight, Color, Evolution and Form,
+          with Shared Ability along the bottom. Tablets and computers show a table instead.
         </p>
         <ul className="space-y-2">
           <li className="flex items-center gap-2">
@@ -137,6 +137,10 @@ export function HelpModal({ onClose }: HelpModalProps) {
           <div>
             <dt className="inline">Gen, Height, Weight, Evolution: </dt>
             <dd className="inline">arrows point toward the answer. Evolution is the stage in its line (Pichu 1, Pikachu 2, Raichu 3).</dd>
+          </div>
+          <div>
+            <dt className="inline">Form: </dt>
+            <dd className="inline">green if the guess and the answer are the same kind of form (Base, Mega, Regional, Gigantamax and so on), otherwise red. The tile names the guess's own form.</dd>
           </div>
           <div>
             <dt className="inline">Shared Ability: </dt>
