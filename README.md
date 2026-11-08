@@ -52,8 +52,8 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   streak, Dailies solved, average and fewest guesses, and a list of past Dailies (puzzle number, date, answer, guesses).
   The Daily result screen shows the streak too.
 - A streak counts consecutive days with a solved Daily. It stays alive while today's Daily is still open, and resets
-  when a day goes by unsolved. Endless games are not recorded. A Daily solved before this feature existed is added
-  the next time the page loads.
+  when a day goes by unsolved. Endless games are not recorded. Today's Daily, if solved before this feature existed, is added
+  the next time the page loads; earlier ones can't be recovered.
 
 ### Look and feel
 

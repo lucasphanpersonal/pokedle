@@ -8,11 +8,11 @@ interface HistoryModalProps {
   onClose: () => void
 }
 
-function Stat({ label, value }: { label: string; value: string | number }) {
+function Stat({ label, value, wide }: { label: string; value: string | number; wide?: boolean }) {
   return (
-    <div className="border-2 border-ds-frame bg-ds-paper px-1 py-2 text-center">
+    <div className={`${wide ? 'col-span-3' : 'col-span-2'} border-2 border-ds-frame bg-ds-paper px-1 py-2 text-center`}>
       <div className="text-sm leading-5">{value}</div>
-      <div className="text-[8px] leading-4 text-ds-frame">{label}</div>
+      <div className="text-[9px] leading-4 text-ds-frame">{label}</div>
     </div>
   )
 }
@@ -23,12 +23,12 @@ export function HistoryModal({ history, onClose }: HistoryModalProps) {
   return (
     <Modal title="History" onClose={onClose}>
       <div className="space-y-4 text-[10px] leading-5">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-6 gap-2">
           <Stat label="Streak" value={stats.currentStreak} />
           <Stat label="Best streak" value={stats.bestStreak} />
           <Stat label="Solved" value={stats.solved} />
-          <Stat label="Avg guesses" value={stats.averageGuesses === null ? '-' : stats.averageGuesses.toFixed(1)} />
-          <Stat label="Fewest" value={stats.fewestGuesses ?? '-'} />
+          <Stat wide label="Avg guesses" value={stats.averageGuesses === null ? '-' : stats.averageGuesses.toFixed(1)} />
+          <Stat wide label="Fewest" value={stats.fewestGuesses ?? '-'} />
         </div>
 
         {history.length === 0 ? (
