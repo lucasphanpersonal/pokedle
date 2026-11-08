@@ -14,7 +14,7 @@ export function localDateKey(date: Date = new Date()): string {
   return `${y}-${m}-${d}`
 }
 
-const dayNumber = (key: string) => {
+export const dayNumber = (key: string) => {
   const [y, m, d] = key.split('-').map(Number)
   return Math.round(Date.UTC(y, m - 1, d) / 86_400_000)
 }

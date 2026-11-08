@@ -15,6 +15,7 @@ import {
   type GuessResult,
   type SavedGame,
 } from '../lib/game'
+import { parseHistory, recordSolve, type HistoryEntry } from '../lib/history'
 import { POKEDEX, POKEDEX_BY_ID } from '../lib/pokedex'
 import { loadJson, saveJson, storageKey } from '../lib/storage'
 import type { Pokemon } from '../types/pokemon'
@@ -45,6 +46,18 @@ function rollOver(games: Games): Games {
   return rollOverGames(games, localDateKey(), POKEDEX)
 }
 
+/**
+ * Reads the saved history and adds the Daily if it is solved (once per date),
+ * saving the result. Also picks up a Daily solved before history existed.
+ */
+function syncHistory(daily: SavedGame): HistoryEntry[] {
+  const stored = parseHistory(loadJson('history'))
+  if (statusOf(daily) !== 'won') return stored
+  const next = recordSolve(stored, { date: daily.key, targetId: daily.targetId, guesses: daily.guessIds.length })
+  if (next !== stored) saveJson('history', next)
+  return next
+}
+
 const lookup = (id: number) => POKEDEX_BY_ID.get(id) as Pokemon
 
 const msUntilLocalMidnight = () => {
@@ -63,11 +76,13 @@ export function usePokemondle(mode: GameMode) {
   // The latest state, updated synchronously so back-to-back guesses (before a
   // re-render) are each validated against the result of the one before.
   const gamesRef = useRef(games)
+  const [history, setHistory] = useState<HistoryEntry[]>(() => syncHistory(games.daily))
 
   const commit = useCallback((next: Games) => {
     if (next === gamesRef.current) return
     gamesRef.current = next
     setGamesState(next)
+    setHistory(syncHistory(next.daily))
   }, [])
 
   useEffect(() => saveJson('daily', games.daily), [games.daily])
@@ -78,6 +93,7 @@ export function usePokemondle(mode: GameMode) {
     // Another tab saved progress: pick it up instead of overwriting it later.
     const onStorage = (e: StorageEvent) => {
       if (e.key === storageKey('daily') || e.key === storageKey('endless')) commit(rollOver(loadGames()))
+      if (e.key === storageKey('history')) setHistory(parseHistory(loadJson('history')))
     }
     window.addEventListener('focus', check)
     document.addEventListener('visibilitychange', check)
@@ -145,6 +161,8 @@ export function usePokemondle(mode: GameMode) {
     guesses,
     feedback,
     gameStatus,
+    /** Solved Dailies on this device, newest first. */
+    history,
     /** Daily puzzle number (#1 = launch day); null in Endless mode. */
     puzzleNumber: mode === 'daily' ? puzzleNumber(game.key) : null,
     submitGuess,
