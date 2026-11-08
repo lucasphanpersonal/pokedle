@@ -57,7 +57,8 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
 
 - **Pixel art style**: dialog boxes use a pixel-art frame (`.ds-box`, an inline SVG border image with stepped
   corners), buttons and tiles have stepped "pixel" corners (`.ds-button`, `.px-notch`) and a dark frame-colored
-  outline (an inset shadow in `FeedbackRow.tsx`, also on the Help swatches), the sky is drawn in flat
+  outline. Guess tiles and the Help swatches are beveled like Platinum's battle-menu blocks (`.tile-bevel` in
+  `src/index.css`: light top edge, dark bottom edge, shaded sides, colour taken from `data-result`), the sky is drawn in flat
   bands, and every image is scaled with `image-rendering: pixelated`. The results screen shows the Pokémon's
   in-game pixel sprite, scaled up crisply (falling back to the official artwork if a form has no sprite).
 - **CRT screen effect**: scanlines, a faint RGB phosphor mask, a vignette and a slow flicker drawn over the page

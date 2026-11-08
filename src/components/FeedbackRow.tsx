@@ -20,11 +20,8 @@ interface FeedbackRowProps {
 
 type Result = MatchFeedback | NumberFeedback
 
-/*
- * Dark pixel outline (inset, so the stepped px-notch corners still cut it
- * like a dialog-box border) plus the darker bottom bevel on every tile.
- */
-const TILE_EDGE = 'shadow-[inset_0_0_0_2px_var(--color-ds-frame),inset_0_-3px_0_rgb(0_0_0/0.2)]'
+/* Beveled DS-menu block: see .tile-bevel in index.css (light top edge, dark bottom edge). */
+const TILE_EDGE = 'tile-bevel'
 
 const BG: Record<Result, string> = {
   match: 'bg-fb-match',
@@ -61,13 +58,13 @@ function Tile({
   return (
     <td className="p-0">
       <div
-        className={`${BG[result]} ${animate ? 'tile-flip' : ''} flex h-16 flex-col items-center justify-center px-notch px-1 text-center text-[9px] leading-[1.35] text-white ${TILE_EDGE} sm:h-[72px] sm:text-[10px]`}
+        className={`${BG[result]} ${animate ? 'tile-flip' : ''} relative flex h-16 flex-col items-center justify-center px-notch px-1 pb-1 text-center text-[9px] leading-[1.35] text-white ${TILE_EDGE} sm:h-[72px] sm:text-[10px]`}
         style={style}
         data-result={result}
       >
         <span className="break-words">{children}</span>
         {ARROW[result] && (
-          <span aria-hidden className="mt-1 text-xs">
+          <span aria-hidden className="absolute bottom-[7px] left-0 right-0 text-[9px] leading-none">
             {ARROW[result]}
           </span>
         )}

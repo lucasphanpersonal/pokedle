@@ -10,7 +10,7 @@ interface HelpModalProps {
 
 function Swatch({ className, children }: { className: string; children: string }) {
   return (
-    <span className={`${className} inline-flex h-6 min-w-6 items-center justify-center px-notch [--px:2px] px-1 text-[9px] text-white shadow-[inset_0_0_0_2px_var(--color-ds-frame)]`}>
+    <span className={`${className} inline-flex h-6 min-w-6 items-center justify-center px-notch [--px:2px] px-1 text-[9px] text-white tile-bevel`}>
       {children}
     </span>
   )
