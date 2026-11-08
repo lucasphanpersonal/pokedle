@@ -14,7 +14,17 @@ const COLUMN_WIDTHS = [12, 11, 11, 6, 7, 8, 9, 8, 12, 16]
 interface GuessGridProps {
   guesses: Pokemon[]
   feedback: GuessFeedback[]
+  /** Hard mode: the Gen column is hidden. */
+  hard?: boolean
 }
+
+/** Column widths with Gen removed (index 3), scaled back up to 100. */
+const HARD_COLUMNS = GRID_COLUMNS.filter((c) => c !== 'Gen')
+const HARD_WIDTHS = (() => {
+  const rest = COLUMN_WIDTHS.filter((_, i) => GRID_COLUMNS[i] !== 'Gen')
+  const total = rest.reduce((a, b) => a + b, 0)
+  return rest.map((w) => (w * 100) / total)
+})()
 
 /**
  * The guess table. Newest guess on top. Only guesses made after the grid
@@ -24,7 +34,9 @@ interface GuessGridProps {
  * Phones and tablets under 1024 px show one compact card per guess (no sideways
  * scrolling); larger tablets and desktops show the full ten-column table.
  */
-export function GuessGrid({ guesses, feedback }: GuessGridProps) {
+export function GuessGrid({ guesses, feedback, hard = false }: GuessGridProps) {
+  const columns = hard ? HARD_COLUMNS : GRID_COLUMNS
+  const widths = hard ? HARD_WIDTHS : COLUMN_WIDTHS
   // Captured once at mount: how many guesses were restored rather than made now.
   const [restoredCount] = useState(guesses.length)
 
@@ -40,7 +52,7 @@ export function GuessGrid({ guesses, feedback }: GuessGridProps) {
     <div className="ds-box p-2 sm:p-3">
       <div className="lg:hidden">
         <p aria-hidden className="mb-2 text-center text-[8px] leading-3 text-ds-frame">
-          Top: Type 1 · Type 2 · Gen · Height
+          {hard ? 'Top: Type 1 · Type 2 · Height' : 'Top: Type 1 · Type 2 · Gen · Height'}
           <br />
           Then: Weight · Color · Evolution · Form
           <br />
@@ -51,20 +63,20 @@ export function GuessGrid({ guesses, feedback }: GuessGridProps) {
             .map((g, i) => ({ g, f: feedback[i], i }))
             .reverse()
             .map(({ g, f, i }) => (
-              <GuessCard key={g.id} guess={g} feedback={f} animate={i >= restoredCount} />
+              <GuessCard key={g.id} guess={g} feedback={f} hard={hard} animate={i >= restoredCount} />
             ))}
         </ul>
       </div>
       <div className="hidden lg:block">
         <table className="w-full table-fixed border-separate border-spacing-1">
           <colgroup>
-            {COLUMN_WIDTHS.map((w, i) => (
-              <col key={GRID_COLUMNS[i]} style={{ width: `${w}%` }} />
+            {widths.map((w, i) => (
+              <col key={columns[i]} style={{ width: `${w}%` }} />
             ))}
           </colgroup>
           <thead>
             <tr>
-              {GRID_COLUMNS.map((col) => (
+              {columns.map((col) => (
                 <th key={col} scope="col" className="p-1 text-center text-[9px] leading-3 font-normal">
                   {col}
                 </th>
@@ -76,7 +88,7 @@ export function GuessGrid({ guesses, feedback }: GuessGridProps) {
               .map((g, i) => ({ g, f: feedback[i], i }))
               .reverse()
               .map(({ g, f, i }) => (
-                <FeedbackRow key={g.id} guess={g} feedback={f} animate={i >= restoredCount} />
+                <FeedbackRow key={g.id} guess={g} feedback={f} hard={hard} animate={i >= restoredCount} />
               ))}
           </tbody>
         </table>

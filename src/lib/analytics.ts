@@ -123,8 +123,10 @@ function appVersion(): string | undefined {
   return /^[A-Za-z0-9._+-]{1,32}$/.test(v) ? v : undefined
 }
 
-function config(): Record<string, boolean | number> {
+function config(hard: boolean): Record<string, boolean | number> {
   const cfg: Record<string, boolean | number> = {}
+  // Hard mode games (no Gen column) are kept out of the public daily stats.
+  cfg.hard_mode = hard
   for (const [category, enabled] of Object.entries(ENABLED_FORM_CATEGORIES)) cfg[`form_${category}`] = enabled
   return cfg
 }
@@ -185,6 +187,8 @@ export interface GameRef {
   /** SavedGame.key: Daily date key, or the Endless start time. */
   gameKey: string
   targetId: number
+  /** Played in Hard mode (no Gen column). Defaults to false. */
+  hard?: boolean
 }
 
 function baseEvent(event: string, id: string, g: GameRef): Json {
@@ -194,7 +198,7 @@ function baseEvent(event: string, id: string, g: GameRef): Json {
     mode: g.mode,
     target_id: g.targetId,
     device: deviceType(),
-    config: config(),
+    config: config(g.hard === true),
   }
   if (g.mode === 'daily') e.puzzle_date = g.gameKey
   const version = appVersion()

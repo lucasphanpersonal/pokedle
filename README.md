@@ -38,6 +38,13 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   Form is green when the guess and the answer share a form category (Base, Mega, Regional, Gigantamax, Cosmetic, Other), red otherwise; the tile shows the guess's own category.
   Shared Ability lists every ability the two share (hidden abilities count). With no match it is red and lists all of
   the guess's own abilities instead, or "Unknown" for the few new Megas with no ability data yet.
+- **Hard mode**: an optional switch under **Help → Difficulty** that hides the Gen column (table and phone cards).
+  It is a per-device preference (`localStorage['pokemondle:hard-mode']`, off by default, `src/lib/hardMode.ts`) that
+  sets how the *next* game starts. Each game records its own `hard` flag when its first guess is made, so the mode
+  can't change mid-game: the switch is disabled while the current game is in progress and unlocks once it is solved.
+  Hard games show "Hard mode" under the guess count, a **★ Hard mode** line on the result screen and a **★ Hard** tag
+  in History (streaks still count them). Their analytics events carry `config.hard_mode = true` and the Daily result
+  screen skips the public stats for them (see [Public daily stats](#public-daily-stats)).
 - **Pokédex numbers**: every guess shows its National Dex number (`#025`) beside the name as a display-only label,
   never a clue. Forms use their species' number (Alolan Raichu is `#026`).
 - **Results**: after the last tile flips, a dialog shows the answer's artwork, how many guesses it took and a
@@ -57,7 +64,7 @@ Older plain saves are still read. The search box shows "You got it!" once a game
 ### History and streaks
 
 - Every solved Daily is saved on the player's own device in `localStorage['pokemondle:history']` (date, answer id,
-  guess count). No account or server is involved, so it doesn't carry over between devices or browsers.
+  guess count, and `hard: true` if it was a Hard mode game). No account or server is involved, so it doesn't carry over between devices or browsers.
 - The **History** button under the puzzle title shows the current streak, and opens a screen with current and best
   streak, Dailies solved, average and fewest guesses, and a list of past Dailies (puzzle number, date, answer, guesses).
   The Daily result screen shows the streak too.
@@ -168,5 +175,7 @@ The Daily result screen reads totals from the `stats` Edge Function
 Below 5 finished games it returns an empty histogram, and the panel stays hidden. Responses are cached for 60 s.
 The client derives the URL from `VITE_TRACK_URL` (`/track` becomes `/stats`), skips the request for players who
 opted out (or send GPC / Do Not Track), and shows nothing if the request fails or the player is offline.
-The player's own result is sent just before, so the fetch waits 1.5 s to usually include it. Deploy the function
+Hard mode games (`config.hard_mode = true` on their events) are excluded from these totals by
+`public_daily_stats()` (migration `20261108220000_public_stats_exclude_hard.sql`), so the numbers compare like with like,
+and the result screen shows a note instead of the panel for a Hard game. The player's own result is sent just before, so the fetch waits 1.5 s to usually include it. Deploy the function
 (with the same `ALLOWED_ORIGINS` secret as `track`) before the site update goes live; until then the panel simply doesn't appear.

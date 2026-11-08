@@ -1,0 +1,18 @@
+import { describe, expect, it } from 'vitest'
+import { effectiveHard, hardLocked } from './hardMode'
+
+describe('hard mode rules', () => {
+  it('a fresh game follows the preference', () => {
+    expect(effectiveHard({ guessIds: [] }, true)).toBe(true)
+    expect(effectiveHard({ guessIds: [] }, false)).toBe(false)
+  })
+  it('a game with guesses keeps the mode it started in', () => {
+    expect(effectiveHard({ guessIds: [3], hard: true }, false)).toBe(true)
+    expect(effectiveHard({ guessIds: [3] }, true)).toBe(false)
+  })
+  it('locks only while a game is in progress', () => {
+    expect(hardLocked({ guessIds: [], targetId: 1 })).toBe(false)
+    expect(hardLocked({ guessIds: [2], targetId: 1 })).toBe(true)
+    expect(hardLocked({ guessIds: [2, 1], targetId: 1 })).toBe(false)
+  })
+})

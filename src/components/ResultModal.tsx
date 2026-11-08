@@ -16,6 +16,8 @@ interface ResultModalProps {
   /** Current and best Daily streaks on this device. */
   streak: number
   bestStreak: number
+  /** Solved in Hard mode (no Gen column). */
+  hard: boolean
   onClose: () => void
   onNewGame?: () => void
 }
@@ -38,7 +40,7 @@ function Countdown() {
 }
 
 /** End-of-game screen: the answer's artwork, guess count, streak, daily stats and New Pokémon. */
-export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestStreak, onClose, onNewGame }: ResultModalProps) {
+export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestStreak, hard, onClose, onNewGame }: ResultModalProps) {
   return (
     <Modal title="Gotcha!" onClose={onClose}>
       <div className="flex flex-col items-center gap-4 text-center text-[10px] leading-5">
@@ -57,6 +59,9 @@ export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestSt
         <p className="text-xs leading-6">
           You caught <strong>{target.name}</strong> in {feedback.length} {feedback.length === 1 ? 'guess' : 'guesses'}!
         </p>
+        {hard && (
+          <p className="border-2 border-ds-frame bg-ds-paper px-2 py-1 text-[9px]">★ Hard mode: no Gen column</p>
+        )}
 
         <DexEntryCard key={target.id} target={target} />
 
@@ -72,7 +77,12 @@ export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestSt
           </p>
         )}
 
-        {mode === 'daily' && <DailyStats date={puzzleDate} guesses={feedback.length} />}
+        {mode === 'daily' && !hard && <DailyStats date={puzzleDate} guesses={feedback.length} />}
+        {mode === 'daily' && hard && (
+          <p className="text-[9px] text-ds-frame">
+            Hard mode games aren&apos;t counted in today&apos;s stats, so they stay fair for everyone.
+          </p>
+        )}
 
         {mode === 'daily' && (
           <p className="text-[9px] text-ds-frame">
