@@ -9,6 +9,7 @@ interface GameView {
   targetPokemon: Pokemon
   guesses: Pokemon[]
   gameStatus: GameStatus
+  hard: boolean
   submitGuessDetailed: (pokemon: Pokemon) => { result: GuessResult; applied: AppliedGuess | null }
 }
 
@@ -39,7 +40,7 @@ export function finishedTransition(last: SeenGame | null, current: SeenGame): 'w
  * per-game stored flag also dedupes across StrictMode and tabs).
  */
 export function useAnalytics(game: GameView): (pokemon: Pokemon) => GuessResult {
-  const { mode, gameKey, targetPokemon, guesses, gameStatus, submitGuessDetailed } = game
+  const { mode, gameKey, targetPokemon, guesses, gameStatus, hard, submitGuessDetailed } = game
   useEffect(() => startAnalytics(), [])
 
   // Tagged with the game the guess was actually applied to (not the rendered
@@ -48,7 +49,7 @@ export function useAnalytics(game: GameView): (pokemon: Pokemon) => GuessResult 
     (pokemon: Pokemon): GuessResult => {
       const { result, applied } = submitGuessDetailed(pokemon)
       if (result === 'ok' && applied) {
-        const ref = { mode: applied.mode, gameKey: applied.gameKey, targetId: applied.targetId }
+        const ref = { mode: applied.mode, gameKey: applied.gameKey, targetId: applied.targetId, hard: applied.hard }
         trackGuess(ref, {
           guessId: pokemon.id,
           guessNumber: applied.guessNumber,
@@ -69,8 +70,8 @@ export function useAnalytics(game: GameView): (pokemon: Pokemon) => GuessResult 
     const current = { id: `${mode}:${gameKey}`, status: gameStatus }
     const finished = finishedTransition(prev.current, current)
     prev.current = current
-    if (finished) trackFinish({ mode, gameKey, targetId: targetPokemon.id }, finished, guesses.length)
-  }, [mode, gameKey, gameStatus, targetPokemon.id, guesses.length])
+    if (finished) trackFinish({ mode, gameKey, targetId: targetPokemon.id, hard }, finished, guesses.length)
+  }, [mode, gameKey, gameStatus, targetPokemon.id, guesses.length, hard])
 
   return wrapped
 }

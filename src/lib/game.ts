@@ -19,6 +19,8 @@ export interface SavedGame {
   key: string
   targetId: number
   guessIds: number[]
+  /** Set when the first guess is made, if Hard mode (no Gen column) was on. Absent = normal. */
+  hard?: true
 }
 
 export function newDailyGame(dateKey: string, pool: Pokemon[]): SavedGame {
@@ -47,10 +49,17 @@ export function gameStatus(game: SavedGame): GameStatus {
 export type GuessResult = 'ok' | 'duplicate' | 'game-over'
 
 /** Returns the updated game, or the reason the guess was rejected. */
-export function applyGuess(game: SavedGame, guessId: number): { game: SavedGame; result: GuessResult } {
+export function applyGuess(
+  game: SavedGame,
+  guessId: number,
+  hard = false,
+): { game: SavedGame; result: GuessResult } {
   if (gameStatus(game) !== 'playing') return { game, result: 'game-over' }
   if (game.guessIds.includes(guessId)) return { game, result: 'duplicate' }
-  return { game: { ...game, guessIds: [...game.guessIds, guessId] }, result: 'ok' }
+  // The mode is fixed by the first guess; after that the switch can't change it.
+  const next: SavedGame = { ...game, guessIds: [...game.guessIds, guessId] }
+  if (game.guessIds.length === 0 && hard) next.hard = true
+  return { game: next, result: 'ok' }
 }
 
 export type Games = Record<GameMode, SavedGame>
@@ -69,6 +78,8 @@ export interface AppliedGuess {
   guessNumber: number
   /** Status of that game after the guess. */
   status: GameStatus
+  /** True if that game is played in Hard mode. */
+  hard: boolean
 }
 
 /**
@@ -82,15 +93,21 @@ export function applyGuessToGames(
   guessId: number,
   today: string,
   pool: Pokemon[],
+  hard = false,
 ): { games: Games; result: GuessResult; applied: AppliedGuess | null } {
   const current = rollOverGames(games, today, pool)
-  const { game, result } = applyGuess(current[mode], guessId)
+  const { game, result } = applyGuess(current[mode], guessId, hard)
   if (result !== 'ok') return { games: current, result, applied: null }
   return {
     games: { ...current, [mode]: game },
     result,
-    applied: { mode, gameKey: game.key, targetId: game.targetId, guessNumber: game.guessIds.length,
+    applied: {
+      mode,
+      gameKey: game.key,
+      targetId: game.targetId,
+      guessNumber: game.guessIds.length,
       status: gameStatus(game),
+      hard: game.hard === true,
     },
   }
 }
@@ -111,6 +128,7 @@ export function isValidSave(game: unknown, byId: Map<number, Pokemon>): game is 
     new Set(ids).size === ids.length &&
     // Nothing may be recorded after the winning guess.
     (winAt === -1 || winAt === ids.length - 1) &&
+    (g.hard === undefined || g.hard === true) &&
     ids.every((id) => Number.isInteger(id) && byId.has(id))
   )
 }
@@ -124,6 +142,7 @@ export interface StoredGame {
   v: typeof SAVE_VERSION
   mode: GameMode
   key: string
+  hard?: true
   /** Scrambled answer id. */
   t: string
   guessIds: number[]

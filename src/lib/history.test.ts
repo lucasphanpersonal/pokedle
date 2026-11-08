@@ -50,3 +50,12 @@ describe('computeStats', () => {
     expect(s.fewestGuesses).toBe(4)
   })
 })
+
+describe('hard mode in history', () => {
+  it('keeps the hard marker, drops invalid ones, and counts hard solves in streaks', () => {
+    const out = parseHistory([{ ...e('2026-11-08'), hard: true }, { ...e('2026-11-07'), hard: 'yes' }])
+    expect(out[0].hard).toBe(true)
+    expect(out[1].hard).toBeUndefined()
+    expect(computeStats(out, '2026-11-08').currentStreak).toBe(2)
+  })
+})

@@ -48,7 +48,10 @@ export function HistoryModal({ history, onClose }: HistoryModalProps) {
                     className="h-10 w-10 shrink-0 [image-rendering:pixelated]"
                   />
                   <div className="min-w-0 flex-1">
-                    <div className="truncate">{name}</div>
+                    <div className="truncate">
+                      {name}
+                      {h.hard && <span className="ml-2 text-[9px] text-ds-frame">★ Hard</span>}
+                    </div>
                     <div className="text-[9px] text-ds-frame">
                       #{puzzleNumber(h.date)} · {h.date}
                     </div>

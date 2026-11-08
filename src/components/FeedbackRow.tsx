@@ -15,6 +15,8 @@ import type { Pokemon } from '../types/pokemon'
 interface FeedbackRowProps {
   guess: Pokemon
   feedback: GuessFeedback
+  /** Hard mode: the Gen tile is left out. */
+  hard?: boolean
   /** Flip the tiles in one by one (only for a guess made just now). */
   animate: boolean
 }
@@ -78,18 +80,27 @@ function Tile({
   )
 }
 
-function buildTiles(guess: Pokemon, feedback: GuessFeedback): [Result, ReactNode][] {
-  return [
-    [feedback.type1, guess.type1],
-    [feedback.type2, guess.type2 ?? 'None'],
-    [feedback.generation, `Gen ${guess.generation}`],
-    [feedback.height, `${guess.height} m`],
-    [feedback.weight, guess.weight > 0 ? `${guess.weight} kg` : '???'],
-    [feedback.color, guess.color],
-    [feedback.evolutionStage, `Stage ${guess.evolutionStage}`],
-    [feedback.form, formCellText(guess)],
-    [feedback.ability.result, abilityCellText(guess, feedback.ability)],
+interface TileData {
+  /** Column header, also used for screen readers. */
+  label: (typeof GRID_COLUMNS)[number]
+  result: Result
+  content: ReactNode
+}
+
+/** The attribute tiles in column order (after the name), without Gen in Hard mode. */
+function buildTiles(guess: Pokemon, feedback: GuessFeedback, hard: boolean): TileData[] {
+  const tiles: TileData[] = [
+    { label: 'Type 1', result: feedback.type1, content: guess.type1 },
+    { label: 'Type 2', result: feedback.type2, content: guess.type2 ?? 'None' },
+    { label: 'Gen', result: feedback.generation, content: `Gen ${guess.generation}` },
+    { label: 'Height', result: feedback.height, content: `${guess.height} m` },
+    { label: 'Weight', result: feedback.weight, content: guess.weight > 0 ? `${guess.weight} kg` : '???' },
+    { label: 'Color', result: feedback.color, content: guess.color },
+    { label: 'Evolution', result: feedback.evolutionStage, content: `Stage ${guess.evolutionStage}` },
+    { label: 'Form', result: feedback.form, content: formCellText(guess) },
+    { label: 'Shared Ability', result: feedback.ability.result, content: abilityCellText(guess, feedback.ability) },
   ]
+  return hard ? tiles.filter((t) => t.label !== 'Gen') : tiles
 }
 
 /**
@@ -97,13 +108,15 @@ function buildTiles(guess: Pokemon, feedback: GuessFeedback): [Result, ReactNode
  * tiles, then a full-width Shared Ability strip) so nothing scrolls sideways.
  * Tablets and desktops use the table row below.
  */
-export function GuessCard({ guess, feedback, animate }: FeedbackRowProps) {
-  const tiles = buildTiles(guess, feedback)
-  const ability = tiles[8]
+export function GuessCard({ guess, feedback, animate, hard = false }: FeedbackRowProps) {
+  const tiles = buildTiles(guess, feedback, hard)
+  const ability = tiles[tiles.length - 1]
+  // Two rows of four tiles; Hard mode has seven, so the top row is three wider ones.
+  const topCount = hard ? 3 : 4
   const delay = (i: number): CSSProperties | undefined =>
     animate ? { animationDelay: `${i * TILE_FLIP_STAGGER_MS}ms` } : undefined
   const tile = (i: number, span: string) => {
-    const [result, content] = tiles[i]
+    const { label, result, content } = tiles[i]
     return (
       <div
         key={i}
@@ -111,7 +124,7 @@ export function GuessCard({ guess, feedback, animate }: FeedbackRowProps) {
         style={delay(i + 1)}
         data-result={result}
       >
-        <span className="sr-only">{GRID_COLUMNS[i + 1]}: </span>
+        <span className="sr-only">{label}: </span>
         <span className="[overflow-wrap:anywhere]">
           {content}
           {ARROW[result] && (
@@ -135,22 +148,22 @@ export function GuessCard({ guess, feedback, animate }: FeedbackRowProps) {
         <span className="ml-auto shrink-0 text-[8px] opacity-80">{formatDex(guess.dexNumber)}</span>
         <span className="sr-only">, {LABEL[feedback.pokemon]}</span>
       </div>
-      {[0, 1, 2, 3].map((i) => tile(i, 'col-span-3'))}
-      {[4, 5, 6, 7].map((i) => tile(i, 'col-span-3'))}
+      {tiles.slice(0, topCount).map((_, i) => tile(i, hard ? 'col-span-4' : 'col-span-3'))}
+      {tiles.slice(topCount, -1).map((_, i) => tile(topCount + i, 'col-span-3'))}
       <div
-        className={`${BG[ability[0]]} ${animate ? 'tile-flip' : ''} px-notch col-span-12 flex min-h-9 items-center justify-center px-2 py-1.5 text-center text-[8px] leading-[1.6] text-white ${TILE_EDGE}`}
-        style={delay(9)}
-        data-result={ability[0]}
+        className={`${BG[ability.result]} ${animate ? 'tile-flip' : ''} px-notch col-span-12 flex min-h-9 items-center justify-center px-2 py-1.5 text-center text-[8px] leading-[1.6] text-white ${TILE_EDGE}`}
+        style={delay(tiles.length)}
+        data-result={ability.result}
       >
-        <span className="[overflow-wrap:anywhere]">Ability: {ability[1]}</span>
-        <span className="sr-only">, {LABEL[ability[0]]}</span>
+        <span className="[overflow-wrap:anywhere]">Ability: {ability.content}</span>
+        <span className="sr-only">, {LABEL[ability.result]}</span>
       </div>
     </li>
   )
 }
 
-export function FeedbackRow({ guess, feedback, animate }: FeedbackRowProps) {
-  const tiles = buildTiles(guess, feedback)
+export function FeedbackRow({ guess, feedback, animate, hard = false }: FeedbackRowProps) {
+  const tiles = buildTiles(guess, feedback, hard)
   return (
     <tr>
             <th scope="row" className="p-0 pr-1 font-normal">
@@ -163,8 +176,8 @@ export function FeedbackRow({ guess, feedback, animate }: FeedbackRowProps) {
           <span className="absolute right-2 top-1.5 text-[7px] leading-none opacity-80">{formatDex(guess.dexNumber)}</span>
         </div>
       </th>
-      {tiles.map(([result, content], i) => (
-        <Tile key={i} result={result} index={i + 1} animate={animate} compact={i >= 7}>
+      {tiles.map(({ label, result, content }, i) => (
+        <Tile key={label} result={result} index={i + 1} animate={animate} compact={label === 'Form' || label === 'Shared Ability'}>
           {content}
         </Tile>
       ))}

@@ -16,8 +16,9 @@ import { playSound } from './lib/sound'
 import { loadJson, saveJson } from './lib/storage'
 import type { Pokemon } from './types/pokemon'
 
-/** Time for a whole new row to finish flipping. */
-const ROW_REVEAL_MS = (GRID_COLUMNS.length - 1) * TILE_FLIP_STAGGER_MS + TILE_FLIP_DURATION_MS
+/** Time for a whole new row to finish flipping (Hard mode has one less tile). */
+const rowRevealMs = (hard: boolean) =>
+  (GRID_COLUMNS.length - (hard ? 2 : 1)) * TILE_FLIP_STAGGER_MS + TILE_FLIP_DURATION_MS
 
 /** Length of the win fanfare (ms); the cry waits for it to finish. */
 const WIN_FANFARE_MS = 1500
@@ -35,6 +36,7 @@ export default function App() {
   const submitGuess = useAnalytics(game)
   const gameId = `${mode}:${game.gameKey}`
   const targetId = game.targetPokemon.id
+  const hard = game.hard
 
   // Hold the result screen until the newest row has flipped in. Started from
   // the guess itself; keyed by game so switching modes never leaves it stuck.
@@ -63,20 +65,20 @@ export default function App() {
         } else {
           const token = ++revealToken.current
           setReveal({ gameId, token })
-          later(() => setReveal((cur) => (cur?.token === token ? null : cur)), ROW_REVEAL_MS)
+          later(() => setReveal((cur) => (cur?.token === token ? null : cur)), rowRevealMs(hard))
           // One tick per tile, as it turns over, climbing in pitch across the row.
-          for (let i = 0; i < GRID_COLUMNS.length; i++) {
+          for (let i = 0; i < GRID_COLUMNS.length - (hard ? 1 : 0); i++) {
             later(() => playSound('tick', i), i * TILE_FLIP_STAGGER_MS + TILE_FLIP_DURATION_MS / 2)
           }
           if (won) {
-            later(() => playSound('win'), ROW_REVEAL_MS + 100)
-            later(() => playCry(pokemon), ROW_REVEAL_MS + 100 + WIN_FANFARE_MS)
+            later(() => playSound('win'), rowRevealMs(hard) + 100)
+            later(() => playCry(pokemon), rowRevealMs(hard) + 100 + WIN_FANFARE_MS)
           }
         }
       }
       return result
     },
-    [submitGuess, gameId, targetId],
+    [submitGuess, gameId, targetId, hard],
   )
   const revealing = reveal?.gameId === gameId
 
@@ -99,6 +101,7 @@ export default function App() {
           </p>
           <p className="text-[9px] text-ds-frame">
             {game.guesses.length} {game.guesses.length === 1 ? 'guess' : 'guesses'}
+            {hard && ' · Hard mode'}
           </p>
           <button
             type="button"
@@ -136,7 +139,7 @@ export default function App() {
         )}
 
         {/* Remount per game so only guesses made now animate. */}
-        <GuessGrid key={gameId} guesses={game.guesses} feedback={game.feedback} />
+        <GuessGrid key={gameId} guesses={game.guesses} feedback={game.feedback} hard={hard} />
       </main>
 
       {showResult && (
@@ -147,12 +150,13 @@ export default function App() {
           puzzleDate={game.gameKey}
           streak={stats.currentStreak}
           bestStreak={stats.bestStreak}
+          hard={hard}
           onClose={() => setDismissedResult(gameId)}
           onNewGame={mode === 'endless' ? game.startNewEndlessGame : undefined}
         />
       )}
       {showHistory && <HistoryModal history={game.history} onClose={() => setShowHistory(false)} />}
-      {showHelp && <HelpModal onClose={closeHelp} />}
+      {showHelp && <HelpModal onClose={closeHelp} hardLocked={game.hardSwitchLocked} gameHard={hard} />}
     </div>
   )
 }

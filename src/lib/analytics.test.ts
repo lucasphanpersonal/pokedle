@@ -46,6 +46,25 @@ const today = localDateKey()
 const daily = { mode: 'daily' as const, gameKey: today, targetId: 25 }
 const endless = { mode: 'endless' as const, gameKey: '2026-11-07T10:00:00.000Z', targetId: 6 }
 
+describe('hard mode flag', () => {
+  it('tags every event with config.hard_mode and the server accepts it', async () => {
+    const hardDaily = { ...daily, hard: true }
+    trackGuess(hardDaily, { guessId: 25, guessNumber: 1, isCorrect: true })
+    trackFinish(hardDaily, 'won', 1)
+    const [body] = await bodies()
+    expect(validateBatch(body).ok).toBe(true)
+    const events = (body as { events: { config: Record<string, unknown> }[] }).events
+    expect(events.every((e) => e.config.hard_mode === true)).toBe(true)
+  })
+  it('is false for normal games', async () => {
+    trackGuess(daily, { guessId: 25, guessNumber: 1, isCorrect: true })
+    trackFinish(daily, 'won', 1)
+    const [body] = await bodies()
+    const events = (body as { events: { config: Record<string, unknown> }[] }).events
+    expect(events.every((e) => e.config.hard_mode === false)).toBe(true)
+  })
+})
+
 describe('payload', () => {
   it('sends a full daily win that the server accepts', async () => {
     trackGuess(daily, { guessId: 1, guessNumber: 1, isCorrect: false })

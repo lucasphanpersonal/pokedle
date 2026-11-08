@@ -71,13 +71,13 @@ describe('applyGuessToGames', () => {
     const g = games('2026-11-08')
     const { applied, result } = applyGuessToGames(g, 'endless', 2, '2026-11-08', pool)
     expect(result).toBe('ok')
-    expect(applied).toEqual({ mode: 'endless', gameKey: 'e', targetId: 1, guessNumber: 1, status: 'playing' })
+    expect(applied).toEqual({ mode: 'endless', gameKey: 'e', targetId: 1, guessNumber: 1, status: 'playing', hard: false })
   })
   it('tags a guess after midnight with the new day, not the stale cached one', () => {
     const stale = games('2026-11-08')
     const fresh = newDailyGame('2026-11-09', pool)
     const out = applyGuessToGames(stale, 'daily', 5, '2026-11-09', pool)
-    expect(out.applied).toEqual({ mode: 'daily', gameKey: '2026-11-09', targetId: fresh.targetId, guessNumber: 1, status: 'playing' })
+    expect(out.applied).toEqual({ mode: 'daily', gameKey: '2026-11-09', targetId: fresh.targetId, guessNumber: 1, status: 'playing', hard: false })
     expect(out.games.daily.key).toBe('2026-11-09')
     expect(out.games.daily.guessIds).toEqual([5])
   })
@@ -105,5 +105,28 @@ describe('save scrambling', () => {
     expect(decodeSave(old)).toEqual(old)
     expect(decodeSave(null)).toBeNull()
     expect(decodeSave({ v: 1, mode: 'daily', key: 'k', t: '!!', guessIds: [] })).toBeNull()
+  })
+})
+
+describe('hard mode flag', () => {
+  const fresh = (): SavedGame => ({ v: 1, mode: 'endless', key: 'x', targetId: 1, guessIds: [] })
+  it('is recorded on the first guess only', () => {
+    const first = applyGuess(fresh(), 2, true).game
+    expect(first.hard).toBe(true)
+    // Turning the preference off mid-game doesn't change the game.
+    expect(applyGuess(first, 3, false).game.hard).toBe(true)
+    // And turning it on mid-game doesn't make a normal game hard.
+    const normal = applyGuess(fresh(), 2, false).game
+    expect(applyGuess(normal, 3, true).game.hard).toBeUndefined()
+  })
+  it('is reported for the game a guess landed in, and survives save and load', () => {
+    const games = { daily: newDailyGame('2026-11-08', pool), endless: fresh() }
+    const { games: next, applied } = applyGuessToGames(games, 'endless', 2, '2026-11-08', pool, true)
+    expect(applied?.hard).toBe(true)
+    expect(isValidSave(decodeSave(encodeSave(next.endless)), byId)).toBe(true)
+    expect((decodeSave(encodeSave(next.endless)) as SavedGame).hard).toBe(true)
+  })
+  it('rejects a corrupt hard flag', () => {
+    expect(isValidSave({ ...fresh(), targetId: 1, hard: 'yes' }, byId)).toBe(false)
   })
 })

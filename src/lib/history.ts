@@ -12,6 +12,8 @@ export interface HistoryEntry {
   targetId: number
   /** How many guesses it took. */
   guesses: number
+  /** True if it was solved in Hard mode (no Gen column). Absent = normal. */
+  hard?: true
 }
 
 export interface HistoryStats {
@@ -43,7 +45,9 @@ export function parseHistory(raw: unknown): HistoryEntry[] {
   const byDate = new Map<string, HistoryEntry>()
   for (const item of raw) {
     if (isEntry(item) && !byDate.has(item.date)) {
-      byDate.set(item.date, { date: item.date, targetId: item.targetId, guesses: item.guesses })
+      const entry: HistoryEntry = { date: item.date, targetId: item.targetId, guesses: item.guesses }
+      if (item.hard === true) entry.hard = true
+      byDate.set(item.date, entry)
     }
   }
   return [...byDate.values()].sort((a, b) => (a.date < b.date ? 1 : -1))

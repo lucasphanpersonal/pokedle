@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { compareGuess, type GuessFeedback } from '../lib/compare'
 import { localDateKey, puzzleNumber } from '../lib/daily'
 import {
@@ -17,6 +17,7 @@ import {
   type GuessResult,
   type SavedGame,
 } from '../lib/game'
+import { effectiveHard, hardLocked, isHardPref, reloadHardPref, subscribeHardPref } from '../lib/hardMode'
 import { parseHistory, recordSolve, type HistoryEntry } from '../lib/history'
 import { POKEDEX, POKEDEX_BY_ID } from '../lib/pokedex'
 import { loadJson, saveJson, storageKey } from '../lib/storage'
@@ -55,7 +56,12 @@ function rollOver(games: Games): Games {
 function syncHistory(daily: SavedGame): HistoryEntry[] {
   const stored = parseHistory(loadJson('history'))
   if (statusOf(daily) !== 'won') return stored
-  const next = recordSolve(stored, { date: daily.key, targetId: daily.targetId, guesses: daily.guessIds.length })
+  const next = recordSolve(stored, {
+    date: daily.key,
+    targetId: daily.targetId,
+    guesses: daily.guessIds.length,
+    ...(daily.hard ? { hard: true as const } : {}),
+  })
   if (next !== stored) saveJson('history', next)
   return next
 }
@@ -95,6 +101,7 @@ export function usePokemondle(mode: GameMode) {
     // Another tab saved progress: pick it up instead of overwriting it later.
     const onStorage = (e: StorageEvent) => {
       if (e.key === storageKey('daily') || e.key === storageKey('endless')) commit(rollOver(loadGames()))
+      if (e.key === storageKey('hard-mode')) reloadHardPref()
       if (e.key === storageKey('history')) setHistory(parseHistory(loadJson('history')))
     }
     window.addEventListener('focus', check)
@@ -125,6 +132,9 @@ export function usePokemondle(mode: GameMode) {
     [guesses, targetPokemon],
   )
   const gameStatus = statusOf(game)
+  const hardPref = useSyncExternalStore(subscribeHardPref, isHardPref, () => false)
+  const hard = effectiveHard(game, hardPref)
+  const hardSwitchLocked = hardLocked(game)
 
   /**
    * Records a guess in the current mode. `result` is 'ok' if it was accepted,
@@ -141,6 +151,7 @@ export function usePokemondle(mode: GameMode) {
         pokemon.id,
         localDateKey(),
         POKEDEX,
+        isHardPref(),
       )
       commit(next)
       return { result, applied }
@@ -163,6 +174,10 @@ export function usePokemondle(mode: GameMode) {
     guesses,
     feedback,
     gameStatus,
+    /** True if this game is played in Hard mode (no Gen column). */
+    hard,
+    /** True while the Hard switch can't be changed (this game is in progress). */
+    hardSwitchLocked,
     /** Solved Dailies on this device, newest first. */
     history,
     /** Daily puzzle number (#1 = launch day); null in Endless mode. */
