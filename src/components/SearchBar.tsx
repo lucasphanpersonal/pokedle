@@ -1,6 +1,7 @@
 import { useId, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import type { GuessResult } from '../lib/game'
 import { iconUrl, searchPokemon } from '../lib/pokedex'
+import { playSound } from '../lib/sound'
 import type { Pokemon } from '../types/pokemon'
 
 interface SearchBarProps {
@@ -36,9 +37,11 @@ export function SearchBar({ pokedex, guessedIds, onGuess, disabled }: SearchBarP
   const choose = (pokemon: Pokemon) => {
     const result = onGuess(pokemon)
     if (result === 'duplicate') {
+      playSound('error')
       setMessage(`You already guessed ${pokemon.name}.`)
       return
     }
+    if (result === 'ok') playSound('select')
     setMessage(null)
     setQuery('')
     setOpen(false)
@@ -50,13 +53,16 @@ export function SearchBar({ pokedex, guessedIds, onGuess, disabled }: SearchBarP
     if (e.key === 'ArrowDown' && suggestions.length) {
       e.preventDefault()
       setOpen(true)
+      playSound('move')
       setActive((i) => (i + 1) % suggestions.length)
     } else if (e.key === 'ArrowUp' && suggestions.length) {
       e.preventDefault()
       setOpen(true)
+      playSound('move')
       setActive((i) => (i - 1 + suggestions.length) % suggestions.length)
     } else if (e.key === 'Enter') {
       e.preventDefault()
+      if (!query.trim() || !suggestions.length) playSound('error')
       if (!query.trim()) return setMessage('Type a Pokémon name to guess.')
       if (!suggestions.length) return setMessage('No Pokémon by that name.')
       // If the list was closed (Esc), Enter reopens it rather than guessing blind.
@@ -88,6 +94,7 @@ export function SearchBar({ pokedex, guessedIds, onGuess, disabled }: SearchBarP
           disabled={disabled}
           placeholder={disabled ? 'Game over' : "Who's that Pokémon?"}
           onChange={(e) => {
+            playSound('type', Math.floor(Math.random() * 3))
             setQuery(e.target.value)
             setOpen(true)
             setActive(0)
