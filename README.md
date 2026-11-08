@@ -85,12 +85,15 @@ Older plain saves are still read. The search box shows "You got it!" once a game
   (saved per device in `localStorage['pokemondle:crt']`). The flicker stops for "reduce motion".
 
 - **Sound effects**: original 8-bit style blips synthesised in the browser with the Web Audio API
-  (`src/lib/sound.ts`; square/triangle oscillators, no audio files and nothing copied from the games): a blip as
+  (`src/lib/sound.ts`; square/triangle oscillators, no audio files and nothing copied from the games; the win cry below is the only audio, and it is streamed, not bundled): a blip as
   you type, a tick as you move through suggestions, a two-note chime on a guess, a rising tick as each tile flips
   (timed from `App.tsx` to match the flip animation), a low buzz for a bad or duplicate guess and a fanfare when
-  you win. On by default; mute with the speaker button in the header or **Help → Display & sound** (saved per
+  you win, then the answer's cry after the fanfare. On by default; mute with the speaker button in the header or **Help → Display & sound** (saved per
   device in `localStorage['pokemondle:sound']`). The audio context is created on the first tap or keypress, as
   browsers (including iOS Safari) require. Typing and menu blips still play with "reduce motion"; only the tile ticks are skipped.
+- **Win cry**: on a win the answer's cry plays after the fanfare (`src/lib/cry.ts`). Cries are streamed from the PokéAPI
+  cries repo (`raw.githubusercontent.com/PokeAPI/cries`, `latest/{id}.ogg`), only on a win, never during play. Forms without
+  their own cry use their species' cry. A missing or offline cry is skipped silently, and muting stops it at once.
 
 ### Layout on different devices
 

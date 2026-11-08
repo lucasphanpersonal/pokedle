@@ -101,7 +101,7 @@ function DisplaySettings() {
           setSoundOn(!sound)
         }}
       />
-      <p className="mt-1 text-[9px] text-ds-frame">Retro 8-bit blips as you type and as tiles flip, plus a jingle when you win. Also on the speaker button in the header.</p>
+      <p className="mt-1 text-[9px] text-ds-frame">Retro 8-bit blips as you type and as tiles flip, a jingle when you win, then the answer's cry. Also on the speaker button in the header.</p>
     </section>
   )
 }

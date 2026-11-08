@@ -10,6 +10,7 @@ import { TILE_FLIP_DURATION_MS, TILE_FLIP_STAGGER_MS } from './config/uiConfig'
 import { useAnalytics } from './hooks/useAnalytics'
 import { usePokemondle, type GameMode } from './hooks/usePokemondle'
 import { computeStats } from './lib/history'
+import { playCry, stopCry } from './lib/cry'
 import { POKEDEX } from './lib/pokedex'
 import { playSound } from './lib/sound'
 import { loadJson, saveJson } from './lib/storage'
@@ -18,6 +19,9 @@ import type { Pokemon } from './types/pokemon'
 /** Time for a whole new row to finish flipping (Hard mode has one less tile). */
 const rowRevealMs = (hard: boolean) =>
   (GRID_COLUMNS.length - (hard ? 2 : 1)) * TILE_FLIP_STAGGER_MS + TILE_FLIP_DURATION_MS
+
+/** Length of the win fanfare (ms); the cry waits for it to finish. */
+const WIN_FANFARE_MS = 1500
 
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true
@@ -42,6 +46,7 @@ export default function App() {
   const clearSoundTimers = () => {
     soundTimers.current.forEach((id) => window.clearTimeout(id))
     soundTimers.current = []
+    stopCry()
   }
   // A mode switch or new game must not play the old game's pending ticks or fanfare.
   useEffect(() => clearSoundTimers, [gameId])
@@ -53,7 +58,10 @@ export default function App() {
         const won = pokemon.id === targetId
         const later = (fn: () => void, ms: number) => soundTimers.current.push(window.setTimeout(fn, ms))
         if (prefersReducedMotion()) {
-          if (won) playSound('win')
+          if (won) {
+            playSound('win')
+            later(() => playCry(pokemon), WIN_FANFARE_MS)
+          }
         } else {
           const token = ++revealToken.current
           setReveal({ gameId, token })
@@ -62,7 +70,10 @@ export default function App() {
           for (let i = 0; i < GRID_COLUMNS.length - (hard ? 1 : 0); i++) {
             later(() => playSound('tick', i), i * TILE_FLIP_STAGGER_MS + TILE_FLIP_DURATION_MS / 2)
           }
-          if (won) later(() => playSound('win'), rowRevealMs(hard) + 100)
+          if (won) {
+            later(() => playSound('win'), rowRevealMs(hard) + 100)
+            later(() => playCry(pokemon), rowRevealMs(hard) + 100 + WIN_FANFARE_MS)
+          }
         }
       }
       return result
