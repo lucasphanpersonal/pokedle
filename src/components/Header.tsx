@@ -37,9 +37,9 @@ export function Header({ mode, onModeChange, onHelp }: HeaderProps) {
             }}
             aria-label="Sound effects"
             aria-pressed={sound}
-            className="ds-button min-h-11 min-w-11 bg-ds-paper text-ds-ink"
+            className="ds-button flex min-h-11 min-w-11 items-center justify-center bg-ds-paper text-ds-ink"
           >
-            <svg viewBox="0 0 16 16" width="18" height="18" shapeRendering="crispEdges" fill="currentColor" aria-hidden="true">
+            <svg viewBox="1.5 1 14 14" width="18" height="18" shapeRendering="crispEdges" fill="currentColor" aria-hidden="true">
               <path d="M2 6h3l4-3v10l-4-3H2z" />
               {sound ? (
                 <path d="M10 6h1v4h-1zM12 4h1v8h-1zM14 2h1v12h-1z" />
