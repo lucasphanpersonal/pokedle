@@ -47,18 +47,21 @@ function Tile({
   result,
   index,
   animate,
+  compact,
   children,
 }: {
   result: Result
   index: number
   animate: boolean
+  /** Smaller text and padding for the long-text columns (Form, Shared Ability). */
+  compact?: boolean
   children: ReactNode
 }) {
   const style: CSSProperties | undefined = animate ? { animationDelay: `${index * TILE_FLIP_STAGGER_MS}ms` } : undefined
   return (
     <td className="p-0">
       <div
-        className={`${BG[result]} ${animate ? 'tile-flip' : ''} relative flex h-16 flex-col items-center justify-center px-notch px-2 pb-1 text-center text-[9px] leading-[1.35] text-white ${TILE_EDGE} sm:h-[72px] sm:text-[10px]`}
+        className={`${BG[result]} ${animate ? 'tile-flip' : ''} relative flex h-16 flex-col items-center justify-center px-notch ${compact ? 'px-1' : 'px-2'} pb-1 text-center text-[9px] leading-[1.35] text-white ${TILE_EDGE} sm:h-[72px] ${compact ? 'sm:text-[9px]' : 'sm:text-[10px]'}`}
         style={style}
         data-result={result}
       >
@@ -150,7 +153,7 @@ export function FeedbackRow({ guess, feedback, animate }: FeedbackRowProps) {
     <tr>
             <th scope="row" className="p-0 pr-1 font-normal">
         <div
-          className={`${BG[feedback.pokemon]} ${animate ? 'tile-flip' : ''} flex h-16 w-[96px] flex-col items-center justify-center px-notch text-[7px] leading-[10px] text-white ${TILE_EDGE} sm:h-[72px] sm:w-28 sm:text-[8px]`}
+          className={`${BG[feedback.pokemon]} ${animate ? 'tile-flip' : ''} flex h-16 w-[96px] flex-col items-center justify-center px-notch text-[7px] leading-[10px] text-white ${TILE_EDGE} sm:h-[72px] sm:w-[104px] sm:text-[8px]`}
           data-result={feedback.pokemon}
         >
           <img src={iconUrl(guess.id)} alt="" width={40} height={40} className="-my-1 h-10 w-10 [image-rendering:pixelated]" />
@@ -158,7 +161,7 @@ export function FeedbackRow({ guess, feedback, animate }: FeedbackRowProps) {
         </div>
       </th>
       {tiles.map(([result, content], i) => (
-        <Tile key={i} result={result} index={i + 1} animate={animate}>
+        <Tile key={i} result={result} index={i + 1} animate={animate} compact={i >= 7}>
           {content}
         </Tile>
       ))}
