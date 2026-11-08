@@ -21,7 +21,7 @@ src/components/               Header, SearchBar, GuessGrid, FeedbackRow, ResultM
 src/hooks/usePokemondle.ts    game state (target, guesses, status), saved to localStorage (answer id scrambled, see below)
 src/lib/history.ts            solved-Daily history and streak maths (pure, tested)
 src/hooks/useAnalytics.ts     wraps guesses with anonymous analytics
-src/lib/                      dataset + search, comparison, daily seed, game rules, sound, storage
+src/lib/                      dataset + search, Pokédex entry fetch (dexEntry.ts), comparison, daily seed, game rules, sound, storage
 src/config/gameConfig.ts      game settings, including which form categories are enabled
 src/config/uiConfig.ts        tile animation timing
 src/data/pokemon.json         generated dataset (committed, so the app needs no API at runtime)
@@ -38,7 +38,12 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   Form is green when the guess and the answer share a form category (Base, Mega, Regional, Gigantamax, Cosmetic, Other), red otherwise; the tile shows the guess's own category.
   Shared Ability lists every ability the two share (hidden abilities count). With no match it is red and lists all of
   the guess's own abilities instead, or "Unknown" for the few new Megas with no ability data yet.
-- **Results**: after the last tile flips, a dialog shows the answer's artwork and how many guesses it took. On the
+- **Pokédex numbers**: every guess shows its National Dex number (`#025`) beside the name as a display-only label,
+  never a clue. Forms use their species' number (Alolan Raichu is `#026`).
+- **Results**: after the last tile flips, a dialog shows the answer's artwork, how many guesses it took and a
+  **Pokédex entry card** (number, category such as "Mouse Pokémon", height, weight and English flavor text). Number,
+  height and weight come from the local dataset; category and text are fetched from PokéAPI's `pokemon-species`
+  endpoint only on a win (cached per session), with a graceful message if offline (`src/lib/dexEntry.ts`). On the
   Daily it also shows **Today's stats**: players who solved it, the average guesses, how you rank and a small guesses
   histogram (see [Public daily stats](#public-daily-stats)). Endless shows a **New Pokémon** button instead.
 

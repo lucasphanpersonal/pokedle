@@ -162,6 +162,11 @@ export function HelpModal({ onClose }: HelpModalProps) {
           </div>
         </dl>
         <p>
+          The small <strong>#025</strong> next to each name is its Pokédex number. It is only a label and not a clue
+          (forms use their species' number, so Alolan Raichu is #026). When you catch the answer you also get its full
+          Pokédex entry.
+        </p>
+        <p>
           <strong>Daily</strong> is the same Pokémon for everyone, new each day at midnight. <strong>Endless</strong> gives you a
           fresh Pokémon whenever you like. Your progress is saved on this device.
         </p>

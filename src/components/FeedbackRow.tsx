@@ -8,6 +8,7 @@ import {
   type MatchFeedback,
   type NumberFeedback,
 } from '../lib/compare'
+import { formatDex } from '../lib/dexEntry'
 import { iconUrl } from '../lib/pokedex'
 import type { Pokemon } from '../types/pokemon'
 
@@ -131,6 +132,7 @@ export function GuessCard({ guess, feedback, animate }: FeedbackRowProps) {
       >
         <img src={iconUrl(guess.id)} alt="" width={40} height={40} className="-my-1 h-10 w-10 shrink-0 [image-rendering:pixelated]" />
         <span className="min-w-0 [overflow-wrap:anywhere]">{guess.name}</span>
+        <span className="ml-auto shrink-0 text-[8px] opacity-80">{formatDex(guess.dexNumber)}</span>
         <span className="sr-only">, {LABEL[feedback.pokemon]}</span>
       </div>
       {[0, 1, 2, 3].map((i) => tile(i, 'col-span-3'))}
@@ -153,11 +155,12 @@ export function FeedbackRow({ guess, feedback, animate }: FeedbackRowProps) {
     <tr>
             <th scope="row" className="p-0 pr-1 font-normal">
         <div
-          className={`${BG[feedback.pokemon]} ${animate ? 'tile-flip' : ''} flex h-16 w-[96px] flex-col items-center justify-center px-notch text-[7px] leading-[10px] text-white ${TILE_EDGE} sm:h-[72px] sm:w-[104px] sm:text-[8px]`}
+          className={`${BG[feedback.pokemon]} ${animate ? 'tile-flip' : ''} relative flex h-16 w-[96px] flex-col items-center justify-center px-notch text-[7px] leading-[10px] text-white ${TILE_EDGE} sm:h-[72px] sm:w-[104px] sm:text-[8px]`}
           data-result={feedback.pokemon}
         >
           <img src={iconUrl(guess.id)} alt="" width={40} height={40} className="-my-1 h-10 w-10 [image-rendering:pixelated]" />
           <span className="line-clamp-2 px-1 text-center [overflow-wrap:anywhere]">{guess.name}</span>
+          <span className="absolute right-2 top-1.5 text-[7px] leading-none opacity-80">{formatDex(guess.dexNumber)}</span>
         </div>
       </th>
       {tiles.map(([result, content], i) => (
