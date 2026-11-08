@@ -14,7 +14,7 @@ interface GuessGridProps {
  * mounted flip in, so a game restored on reload (or a mode switch, which
  * remounts the grid) appears instantly.
  *
- * Phones show one compact card per guess (no sideways scrolling); tablets
+ * Phones and small tablets (below 768 px) show one compact card per guess (no sideways scrolling); larger tablets
  * and desktops show the full ten-column table.
  */
 export function GuessGrid({ guesses, feedback }: GuessGridProps) {
@@ -31,7 +31,7 @@ export function GuessGrid({ guesses, feedback }: GuessGridProps) {
 
   return (
     <div className="ds-box p-2 sm:p-3">
-      <div className="sm:hidden">
+      <div className="md:hidden">
         <p aria-hidden className="mb-2 text-center text-[8px] leading-3 text-ds-frame">
           Top: Type 1 · Type 2 · Gen · Height
           <br />
@@ -48,7 +48,7 @@ export function GuessGrid({ guesses, feedback }: GuessGridProps) {
             ))}
         </ul>
       </div>
-      <div className="hidden sm:block">
+      <div className="hidden md:block">
         <table className="w-full border-separate border-spacing-1">
           <thead>
             <tr>
