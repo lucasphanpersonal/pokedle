@@ -184,7 +184,9 @@ opted out (or send GPC / Do Not Track), and shows nothing if the request fails o
 Normal and Hard mode games have separate stats. `public_daily_stats(date, hard)` (migration
 `20261108230000_public_stats_hard_split.sql`) counts only games whose events carry `config.hard_mode = true` when
 `hard` is true, and only the others when it is false; each side has its own 5-game threshold, so the Hard panel often
-stays hidden. The function takes `?hard=1` for the Hard stats and echoes `hard` in its response; the game ignores an
+stays hidden. Apply the migration (`supabase db push`) before deploying the `stats` function: the function calls the
+two-argument `public_daily_stats`, so deploying it first makes the panel disappear for everyone until the migration lands.
+The function takes `?hard=1` for the Hard stats and echoes `hard` in its response; the game ignores an
 answer that doesn't match what it asked for, so an older deployed function can never show normal stats as Hard.
 
 The player's own result is sent just before, so the fetch waits 1.5 s to usually include it. Deploy the function
