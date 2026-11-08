@@ -4,6 +4,7 @@ import type { GameMode } from '../lib/game'
 import { iconUrl, spriteUrl } from '../lib/pokedex'
 import type { Pokemon } from '../types/pokemon'
 import { DailyStats } from './DailyStats'
+import { DexEntryCard } from './DexEntryCard'
 import { Modal } from './Modal'
 
 interface ResultModalProps {
@@ -56,6 +57,8 @@ export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestSt
         <p className="text-xs leading-6">
           You caught <strong>{target.name}</strong> in {feedback.length} {feedback.length === 1 ? 'guess' : 'guesses'}!
         </p>
+
+        <DexEntryCard key={target.id} target={target} />
 
         {onNewGame && (
           <button type="button" onClick={onNewGame} className="ds-button px-4 text-[10px] bg-ds-paper">
