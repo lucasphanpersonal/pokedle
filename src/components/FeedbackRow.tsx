@@ -62,7 +62,7 @@ function Tile({
         style={style}
         data-result={result}
       >
-        <span className="break-words [&:not(:only-child)]:-mt-px">{children}</span>
+        <span className="break-words">{children}</span>
         {ARROW[result] && (
           <span aria-hidden className="absolute bottom-[7px] left-0 right-0 text-[9px] leading-none">
             {ARROW[result]}
