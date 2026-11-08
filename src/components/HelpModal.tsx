@@ -165,6 +165,10 @@ export function HelpModal({ onClose }: HelpModalProps) {
           <strong>Daily</strong> is the same Pokémon for everyone, new each day at midnight. <strong>Endless</strong> gives you a
           fresh Pokémon whenever you like. Your progress is saved on this device.
         </p>
+        <p>
+          Solve the Daily each day to build a <strong>streak</strong>; missing a day resets it. The History button lists every
+          Daily you've solved, with your streaks and totals. It is saved on this device only and doesn't carry over to other devices.
+        </p>
         <p className="hidden lg:block">Keyboard: type to search, ↑/↓ to pick, Enter to guess, Esc to close.</p>
       </div>
       <DisplaySettings />

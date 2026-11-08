@@ -17,8 +17,9 @@ npm run fetch-data # rebuild src/data/pokemon.json from PokéAPI
 
 ```
 scripts/fetchPokemonData.ts   builds the local Pokémon dataset from PokéAPI
-src/components/               Header, SearchBar, GuessGrid, FeedbackRow, ResultModal, HelpModal, Modal
+src/components/               Header, SearchBar, GuessGrid, FeedbackRow, ResultModal, HistoryModal, HelpModal, Modal
 src/hooks/usePokemondle.ts    game state (target, guesses, status), saved to localStorage
+src/lib/history.ts            solved-Daily history and streak maths (pure, tested)
 src/hooks/useAnalytics.ts     wraps guesses with anonymous analytics
 src/lib/                      dataset + search, comparison, daily seed, game rules, share text, sound, storage
 src/config/gameConfig.ts      game settings, including which form categories are enabled
@@ -42,6 +43,17 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   **Today's stats**: players who solved it, the average guesses, how you rank and a small guesses histogram (see
   [Public daily stats](#public-daily-stats)). **Share** opens the system share sheet on
   phones and tablets and copies to the clipboard on desktop.
+
+### History and streaks
+
+- Every solved Daily is saved on the player's own device in `localStorage['pokemondle:history']` (date, answer id,
+  guess count). No account or server is involved, so it doesn't carry over between devices or browsers.
+- The **History** button under the puzzle title shows the current streak, and opens a screen with current and best
+  streak, Dailies solved, average and fewest guesses, and a list of past Dailies (puzzle number, date, answer, guesses).
+  The Daily result screen shows the streak too.
+- A streak counts consecutive days with a solved Daily. It stays alive while today's Daily is still open, and resets
+  when a day goes by unsolved. Endless games are not recorded. A Daily solved before this feature existed is added
+  the next time the page loads.
 
 ### Look and feel
 

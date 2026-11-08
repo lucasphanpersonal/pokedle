@@ -15,6 +15,9 @@ interface ResultModalProps {
   puzzleNumber: number | null
   /** Daily puzzle date (YYYY-MM-DD), for the global stats; ignored in Endless. */
   puzzleDate: string
+  /** Current and best Daily streaks on this device. */
+  streak: number
+  bestStreak: number
   onClose: () => void
   onNewGame?: () => void
 }
@@ -51,7 +54,7 @@ const OUTCOME_TEXT: Record<ShareOutcome, string> = {
 }
 
 /** End-of-game screen: the answer's artwork, score, emoji grid and Share. */
-export function ResultModal({ mode, target, feedback, puzzleNumber, puzzleDate, onClose, onNewGame }: ResultModalProps) {
+export function ResultModal({ mode, target, feedback, puzzleNumber, puzzleDate, streak, bestStreak, onClose, onNewGame }: ResultModalProps) {
   const [outcome, setOutcome] = useState<ShareOutcome | null>(null)
   const text = buildShareText({ mode, puzzleNumber, feedback, url: shareUrl() })
 
@@ -95,6 +98,12 @@ export function ResultModal({ mode, target, feedback, puzzleNumber, puzzleDate, 
         <p role="status" className="min-h-5 text-[9px] text-ds-frame">
           {outcome && OUTCOME_TEXT[outcome]}
         </p>
+
+        {mode === 'daily' && (
+          <p className="text-[10px]">
+            Streak: <strong>{streak}</strong> {streak === 1 ? 'day' : 'days'} · Best: <strong>{bestStreak}</strong>
+          </p>
+        )}
 
         {mode === 'daily' && <DailyStats date={puzzleDate} guesses={feedback.length} />}
 
