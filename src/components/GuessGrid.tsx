@@ -4,6 +4,13 @@ import type { GuessFeedback } from '../lib/compare'
 import type { Pokemon } from '../types/pokemon'
 import { FeedbackRow, GuessCard } from './FeedbackRow'
 
+/**
+ * Share of the table width for each column (sums to 100). Fixed widths stop the
+ * Shared Ability text from taking over the table and squeezing the others.
+ * Each is wide enough for its longest single word ("Gigantamax", "Psychic").
+ */
+const COLUMN_WIDTHS = [13, 9, 10, 6, 8, 9, 8, 10, 12, 15]
+
 interface GuessGridProps {
   guesses: Pokemon[]
   feedback: GuessFeedback[]
@@ -14,8 +21,8 @@ interface GuessGridProps {
  * mounted flip in, so a game restored on reload (or a mode switch, which
  * remounts the grid) appears instantly.
  *
- * Phones and small tablets (below 768 px) show one compact card per guess (no sideways scrolling); larger tablets
- * and desktops show the full ten-column table.
+ * Phones and tablets under 1024 px show one compact card per guess (no sideways
+ * scrolling); larger tablets and desktops show the full ten-column table.
  */
 export function GuessGrid({ guesses, feedback }: GuessGridProps) {
   // Captured once at mount: how many guesses were restored rather than made now.
@@ -31,7 +38,7 @@ export function GuessGrid({ guesses, feedback }: GuessGridProps) {
 
   return (
     <div className="ds-box p-2 sm:p-3">
-      <div className="md:hidden">
+      <div className="lg:hidden">
         <p aria-hidden className="mb-2 text-center text-[8px] leading-3 text-ds-frame">
           Top: Type 1 · Type 2 · Gen · Height
           <br />
@@ -48,8 +55,13 @@ export function GuessGrid({ guesses, feedback }: GuessGridProps) {
             ))}
         </ul>
       </div>
-      <div className="hidden md:block">
-        <table className="w-full border-separate border-spacing-1">
+      <div className="hidden lg:block">
+        <table className="w-full table-fixed border-separate border-spacing-1">
+          <colgroup>
+            {COLUMN_WIDTHS.map((w, i) => (
+              <col key={GRID_COLUMNS[i]} style={{ width: `${w}%` }} />
+            ))}
+          </colgroup>
           <thead>
             <tr>
               {GRID_COLUMNS.map((col) => (
