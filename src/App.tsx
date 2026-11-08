@@ -133,7 +133,6 @@ export default function App() {
           mode={mode}
           target={game.targetPokemon}
           feedback={game.feedback}
-          puzzleNumber={game.puzzleNumber}
           puzzleDate={game.gameKey}
           streak={stats.currentStreak}
           bestStreak={stats.bestStreak}
