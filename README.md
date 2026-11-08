@@ -58,7 +58,7 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   (timed from `App.tsx` to match the flip animation), a low buzz for a bad or duplicate guess and a fanfare when
   you win. On by default; mute with the speaker button in the header or **Help → Display & sound** (saved per
   device in `localStorage['pokemondle:sound']`). The audio context is created on the first tap or keypress, as
-  browsers (including iOS Safari) require. Typing and menu blips still play with "reduce motion"; only the tile ticks are skipped. With "reduce motion" the tile ticks are skipped.
+  browsers (including iOS Safari) require. Typing and menu blips still play with "reduce motion"; only the tile ticks are skipped.
 
 ### Layout on different devices
 

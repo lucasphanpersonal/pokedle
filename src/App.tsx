@@ -37,7 +37,6 @@ export default function App() {
     soundTimers.current.forEach((id) => window.clearTimeout(id))
     soundTimers.current = []
   }
-  useEffect(() => clearSoundTimers, [])
   // A mode switch or new game must not play the old game's pending ticks or fanfare.
   useEffect(() => clearSoundTimers, [gameId])
   const onGuess = useCallback(
