@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
-import { SHARE_URL_FALLBACK } from '../config/uiConfig'
 import type { GuessFeedback } from '../lib/compare'
 import type { GameMode } from '../lib/game'
 import { iconUrl, spriteUrl } from '../lib/pokedex'
-import { buildShareText, shareResult, shareRow, type ShareOutcome } from '../lib/share'
 import type { Pokemon } from '../types/pokemon'
 import { DailyStats } from './DailyStats'
 import { Modal } from './Modal'
@@ -12,18 +10,10 @@ interface ResultModalProps {
   mode: GameMode
   target: Pokemon
   feedback: GuessFeedback[]
-  puzzleNumber: number | null
   /** Daily puzzle date (YYYY-MM-DD), for the global stats; ignored in Endless. */
   puzzleDate: string
   onClose: () => void
   onNewGame?: () => void
-}
-
-function shareUrl(): string {
-  if (typeof window === 'undefined' || !window.location.protocol.startsWith('http')) return SHARE_URL_FALLBACK
-  const { origin, pathname } = window.location
-  if (origin.includes('localhost') || origin.includes('127.0.0.1')) return SHARE_URL_FALLBACK
-  return `${origin}${pathname}`
 }
 
 function untilLocalMidnight(): string {
@@ -43,18 +33,8 @@ function Countdown() {
   return <span className="tabular-nums">{text}</span>
 }
 
-const OUTCOME_TEXT: Record<ShareOutcome, string> = {
-  shared: 'Shared!',
-  copied: 'Copied to clipboard!',
-  cancelled: '',
-  failed: "Couldn't share. Try again.",
-}
-
-/** End-of-game screen: the answer's artwork, score, emoji grid and Share. */
-export function ResultModal({ mode, target, feedback, puzzleNumber, puzzleDate, onClose, onNewGame }: ResultModalProps) {
-  const [outcome, setOutcome] = useState<ShareOutcome | null>(null)
-  const text = buildShareText({ mode, puzzleNumber, feedback, url: shareUrl() })
-
+/** End-of-game screen: the answer's artwork, guess count, daily stats and New Pokémon. */
+export function ResultModal({ mode, target, feedback, puzzleDate, onClose, onNewGame }: ResultModalProps) {
   return (
     <Modal title="Gotcha!" onClose={onClose}>
       <div className="flex flex-col items-center gap-4 text-center text-[10px] leading-5">
@@ -74,27 +54,11 @@ export function ResultModal({ mode, target, feedback, puzzleNumber, puzzleDate, 
           You caught <strong>{target.name}</strong> in {feedback.length} {feedback.length === 1 ? 'guess' : 'guesses'}!
         </p>
 
-        <pre aria-label="Your result grid" className="font-sans text-base leading-5 tracking-tight">
-          {feedback.map(shareRow).join('\n')}
-        </pre>
-
-        <div className="flex w-full flex-col gap-2 sm:flex-row">
-          <button
-            type="button"
-            onClick={async () => setOutcome(await shareResult(text))}
-            className="ds-button flex-1 bg-fb-match px-4 text-[10px] text-white"
-          >
-            Share
+        {onNewGame && (
+          <button type="button" onClick={onNewGame} className="ds-button px-4 text-[10px] bg-ds-paper">
+            New Pokémon
           </button>
-          {onNewGame && (
-            <button type="button" onClick={onNewGame} className="ds-button flex-1 bg-ds-paper px-4 text-[10px]">
-              New Pokémon
-            </button>
-          )}
-        </div>
-        <p role="status" className="min-h-5 text-[9px] text-ds-frame">
-          {outcome && OUTCOME_TEXT[outcome]}
-        </p>
+        )}
 
         {mode === 'daily' && <DailyStats date={puzzleDate} guesses={feedback.length} />}
 

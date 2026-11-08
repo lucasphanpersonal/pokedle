@@ -20,9 +20,9 @@ scripts/fetchPokemonData.ts   builds the local Pokémon dataset from PokéAPI
 src/components/               Header, SearchBar, GuessGrid, FeedbackRow, ResultModal, HelpModal, Modal
 src/hooks/usePokemondle.ts    game state (target, guesses, status), saved to localStorage
 src/hooks/useAnalytics.ts     wraps guesses with anonymous analytics
-src/lib/                      dataset + search, comparison, daily seed, game rules, share text, sound, storage
+src/lib/                      dataset + search, comparison, daily seed, game rules, sound, storage
 src/config/gameConfig.ts      game settings, including which form categories are enabled
-src/config/uiConfig.ts        animation timing and the share-link fallback
+src/config/uiConfig.ts        tile animation timing
 src/data/pokemon.json         generated dataset (committed, so the app needs no API at runtime)
 ```
 
@@ -37,11 +37,9 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   Form is green when the guess and the answer share a form category (Base, Mega, Regional, Gigantamax, Cosmetic, Other), red otherwise; the tile shows the guess's own category.
   Shared Ability lists every ability the two share (hidden abilities count). With no match it is red and lists all of
   the guess's own abilities instead, or "Unknown" for the few new Megas with no ability data yet.
-- **Results**: after the last tile flips, a dialog shows the answer's artwork, the score and a spoiler-free emoji
-  grid (9 attribute columns per guess, Form included; the Pokémon column is left out). On the Daily it also shows
-  **Today's stats**: players who solved it, the average guesses, how you rank and a small guesses histogram (see
-  [Public daily stats](#public-daily-stats)). **Share** opens the system share sheet on
-  phones and tablets and copies to the clipboard on desktop.
+- **Results**: after the last tile flips, a dialog shows the answer's artwork and how many guesses it took. On the
+  Daily it also shows **Today's stats**: players who solved it, the average guesses, how you rank and a small guesses
+  histogram (see [Public daily stats](#public-daily-stats)). Endless shows a **New Pokémon** button instead.
 
 ### Look and feel
 
