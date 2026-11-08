@@ -54,8 +54,8 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
 
 ### Layout on different devices
 
-- Desktop and tablet (≥ 768 px): all ten columns fit on screen.
-- Phones and small tablets (< 768 px): no sideways scrolling. Each guess is a compact card: sprite and name on top, then the
+- Desktop and large tablet (≥ 1024 px): all ten columns fit on screen.
+- Phones and tablets under 1024 px: no sideways scrolling. Each guess is a compact card: sprite and name on top, then the
   comparison tiles in two rows of four (Type 1, Type 2, Gen, Height / Weight, Color, Evolution, Form) and a full-width Shared Ability strip,
   with a small key above the list. The search box uses 16 px text so iOS doesn't
   zoom, and every button and suggestion is at least 44 px tall for touch.
