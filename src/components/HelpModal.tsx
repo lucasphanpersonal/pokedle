@@ -97,6 +97,10 @@ function StatsToggle() {
         The game records anonymous game events (guesses, results, device type) with no cookies, accounts or personal
         data. Browsers that send Do Not Track or Global Privacy Control are never tracked.
       </p>
+      <p className="mt-2">
+        After you solve the Daily, the result screen shows anonymous totals for that puzzle (players who solved it, average
+        guesses and how you compare). It is only shown while sharing is on.
+      </p>
       <PixelSwitch
         label="Share anonymous stats"
         on={on}
