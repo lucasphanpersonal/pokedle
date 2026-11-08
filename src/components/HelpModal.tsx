@@ -112,9 +112,9 @@ export function HelpModal({ onClose }: HelpModalProps) {
           is in, including regional forms, Megas and Gigantamax.
         </p>
         <p>Start typing a name and pick from the list. Each guess shows how close it is:</p>
-        <p className="sm:hidden">
+        <p className="md:hidden">
           On a phone each guess is a card: Type 1, Type 2, Gen and Height on top, then Weight, Color, Evolution and Form,
-          with Shared Ability along the bottom. Tablets and computers show a table instead.
+          with Shared Ability along the bottom. Tablets from 768 px wide and computers show a table instead.
         </p>
         <ul className="space-y-2">
           <li className="flex items-center gap-2">
@@ -151,7 +151,7 @@ export function HelpModal({ onClose }: HelpModalProps) {
           <strong>Daily</strong> is the same Pokémon for everyone, new each day at midnight. <strong>Endless</strong> gives you a
           fresh Pokémon whenever you like. Your progress is saved on this device.
         </p>
-        <p className="hidden sm:block">Keyboard: type to search, ↑/↓ to pick, Enter to guess, Esc to close.</p>
+        <p className="hidden md:block">Keyboard: type to search, ↑/↓ to pick, Enter to guess, Esc to close.</p>
       </div>
       <DisplaySettings />
       <StatsToggle />

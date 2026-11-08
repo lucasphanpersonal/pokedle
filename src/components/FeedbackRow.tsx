@@ -65,7 +65,7 @@ function Tile({
         style={style}
         data-result={result}
       >
-        <span className="break-words">{children}</span>
+        <span className="[overflow-wrap:anywhere]">{children}</span>
         {ARROW[result] && (
           <span aria-hidden className="mt-1 text-xs">
             {ARROW[result]}
