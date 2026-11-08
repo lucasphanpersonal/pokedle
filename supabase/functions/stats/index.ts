@@ -1,9 +1,9 @@
 // Supabase Edge Function: GET /functions/v1/stats?date=YYYY-MM-DD
 // Public, read-only aggregates for one daily puzzle (players who finished, solve rate,
-// guesses-to-win histogram). It only calls public_daily_stats(), which never returns the
+// guesses-to-win histogram), for normal games or, with ?hard=1, for Hard mode games only. It only calls public_daily_stats(), which never returns the
 // answer or anything per-player, and returns nothing at all until 5 games have finished.
 import { createClient } from 'npm:@supabase/supabase-js@2.119.0'
-import { parseDate } from './params.ts'
+import { parseDate, parseHard } from './params.ts'
 
 const allowedOrigins = (Deno.env.get('ALLOWED_ORIGINS') ?? '')
   .split(',')
@@ -42,7 +42,8 @@ Deno.serve(async (req) => {
   const date = parseDate(new URL(req.url).searchParams.get('date'))
   if (!date) return respond(400, origin, { error: 'invalid_date' })
 
-  const { data, error } = await supabase.rpc('public_daily_stats', { p_date: date })
+  const hard = parseHard(new URL(req.url).searchParams.get('hard'))
+  const { data, error } = await supabase.rpc('public_daily_stats', { p_date: date, p_hard: hard })
   if (error) {
     // 22023 = the date is outside the range the database serves.
     if (error.code === '22023') return respond(400, origin, { error: 'date_out_of_range' })
@@ -52,6 +53,8 @@ Deno.serve(async (req) => {
   const row = Array.isArray(data) ? data[0] : data
   if (!row) return respond(500, origin, { error: 'server_error' })
   return respond(200, origin, {
+    // Echoed so the game can tell an answer for the Hard stats from an older function that ignores ?hard=1.
+    hard,
     games_finished: Number(row.games_finished),
     wins: row.wins === null ? null : Number(row.wins),
     solve_rate: row.solve_rate === null ? null : Number(row.solve_rate),

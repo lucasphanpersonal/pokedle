@@ -8,23 +8,25 @@ interface DailyStatsProps {
   /** Daily puzzle date, YYYY-MM-DD. */
   date: string
   guesses: number
+  /** Show the Hard mode stats (only other Hard players) instead of the normal ones. */
+  hard?: boolean
 }
 
 /** "Today's stats" panel on the Daily result screen. Renders nothing if stats can't be loaded. */
-export function DailyStats({ date, guesses }: DailyStatsProps) {
+export function DailyStats({ date, guesses, hard = false }: DailyStatsProps) {
   const [summary, setSummary] = useState<DailyStatsSummary | null>(null)
 
   useEffect(() => {
     const controller = new AbortController()
     const timer = window.setTimeout(async () => {
-      const stats = await fetchDailyStats(date, controller.signal)
+      const stats = await fetchDailyStats(date, hard, controller.signal)
       if (stats && !controller.signal.aborted) setSummary(summarize(stats, guesses))
     }, FETCH_DELAY_MS)
     return () => {
       window.clearTimeout(timer)
       controller.abort()
     }
-  }, [date, guesses])
+  }, [date, guesses, hard])
 
   if (!summary) return null
   const max = Math.max(...summary.bars.map((b) => b.count), 1)
@@ -34,8 +36,8 @@ export function DailyStats({ date, guesses }: DailyStatsProps) {
       : `${summary.samePercent}% of players needed ${guesses === 1 ? '1 guess' : `${guesses} guesses`} too.`
 
   return (
-    <section aria-label="Today's stats" className="w-full border-t-2 border-ds-frame-light pt-3 text-[10px] leading-5">
-      <h3 className="mb-1 text-[11px]">Today&apos;s stats</h3>
+    <section aria-label={hard ? "Today's stats (Hard)" : "Today's stats"} className="w-full border-t-2 border-ds-frame-light pt-3 text-[10px] leading-5">
+      <h3 className="mb-1 text-[11px]">Today&apos;s stats{hard ? ' (Hard)' : ''}</h3>
       <p>
         {summary.players} {summary.players === 1 ? 'player has' : 'players have'} solved it, in{' '}
         {summary.average.toFixed(1)} guesses on average.
@@ -58,7 +60,7 @@ export function DailyStats({ date, guesses }: DailyStatsProps) {
           </span>
         ))}
       </div>
-      <p className="mt-1 text-[8px] text-ds-frame">Guesses to solve. Anonymous totals from players sharing stats.</p>
+      <p className="mt-1 text-[8px] text-ds-frame">Guesses to solve. {hard ? 'Anonymous totals from Hard mode players sharing stats.' : 'Anonymous totals from players sharing stats.'}</p>
     </section>
   )
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseDate } from './params.ts'
+import { parseDate, parseHard } from './params.ts'
 
 describe('parseDate', () => {
   it('accepts a real calendar date', () => {
@@ -11,5 +11,12 @@ describe('parseDate', () => {
     for (const bad of [null, '', '2026-1-7', '20261107', '2026-02-30', '2027-02-29', '2026-13-01', '2026-11-07T00:00', 'today']) {
       expect(parseDate(bad)).toBeNull()
     }
+  })
+})
+
+describe('parseHard', () => {
+  it('is true only for hard=1', () => {
+    expect(parseHard('1')).toBe(true)
+    for (const other of [null, '', '0', 'true', 'yes']) expect(parseHard(other)).toBe(false)
   })
 })

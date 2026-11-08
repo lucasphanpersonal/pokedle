@@ -73,7 +73,7 @@ function HardModeSetting({ locked, gameHard }: { locked: boolean; gameHard: bool
       <p id={noteId} className="mt-1 text-[9px] text-ds-frame">
         Hides the Gen column, so you can't narrow it down by generation. It is fixed once you make a game's first
         guess{locked ? `: this game is in ${gameHard ? 'Hard' : 'normal'} mode, and the switch unlocks when you solve it.` : ', and applies to the next game you start.'} Hard games
-        are marked in History and left out of the Daily's public stats.
+        are marked in History and get their own Daily stats, compared only with other Hard players.
       </p>
     </section>
   )
