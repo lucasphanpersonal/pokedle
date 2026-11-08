@@ -3,6 +3,8 @@ import { compareGuess, type GuessFeedback } from '../lib/compare'
 import { localDateKey, puzzleNumber } from '../lib/daily'
 import {
   applyGuessToGames,
+  decodeSave,
+  encodeSave,
   rollOverGames,
   gameStatus as statusOf,
   isValidSave,
@@ -23,7 +25,7 @@ import type { Pokemon } from '../types/pokemon'
 export type { GameMode, GameStatus, GuessResult }
 
 function loadDaily(dateKey: string): SavedGame {
-  const saved = loadJson('daily')
+  const saved = decodeSave(loadJson('daily'))
   const fresh = newDailyGame(dateKey, POKEDEX)
   // Keep today's save only if it is for the same puzzle. A save from an
   // earlier day, or a corrupt one, starts fresh.
@@ -34,7 +36,7 @@ function loadDaily(dateKey: string): SavedGame {
 }
 
 function loadEndless(): SavedGame {
-  const saved = loadJson('endless')
+  const saved = decodeSave(loadJson('endless'))
   if (isValidSave(saved, POKEDEX_BY_ID) && saved.mode === 'endless') return saved
   return newEndlessGame(POKEDEX)
 }
@@ -85,8 +87,8 @@ export function usePokemondle(mode: GameMode) {
     setHistory(syncHistory(next.daily))
   }, [])
 
-  useEffect(() => saveJson('daily', games.daily), [games.daily])
-  useEffect(() => saveJson('endless', games.endless), [games.endless])
+  useEffect(() => saveJson('daily', encodeSave(games.daily)), [games.daily])
+  useEffect(() => saveJson('endless', encodeSave(games.endless)), [games.endless])
 
   useEffect(() => {
     const check = () => commit(rollOver(gamesRef.current))

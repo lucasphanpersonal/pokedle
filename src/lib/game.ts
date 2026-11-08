@@ -1,5 +1,5 @@
 import type { Pokemon } from '../types/pokemon'
-import { dailyPick } from './daily'
+import { dailyPick, hashString } from './daily'
 
 export type GameMode = 'daily' | 'endless'
 /** A game ends only when the player guesses the answer. There is no guess limit. */
@@ -113,4 +113,37 @@ export function isValidSave(game: unknown, byId: Map<number, Pokemon>): game is 
     (winAt === -1 || winAt === ids.length - 1) &&
     ids.every((id) => Number.isInteger(id) && byId.has(id))
   )
+}
+
+/**
+ * What goes into localStorage: the answer is scrambled (not plain `targetId`),
+ * so it can't be read at a glance from the browser's storage panel. This is
+ * only a deterrent; the game runs entirely in the browser, so it isn't secret.
+ */
+export interface StoredGame {
+  v: typeof SAVE_VERSION
+  mode: GameMode
+  key: string
+  /** Scrambled answer id. */
+  t: string
+  guessIds: number[]
+}
+
+const mask = (key: string) => hashString(`mask:${key}`) & 0xffff
+
+export function encodeSave(game: SavedGame): StoredGame {
+  const { targetId, ...rest } = game
+  return { ...rest, t: ((targetId ^ mask(game.key)) + 7919).toString(36) }
+}
+
+/** Reads a stored game. Also accepts the older plain `targetId` format. Returns null if unreadable. */
+export function decodeSave(raw: unknown): unknown {
+  if (!raw || typeof raw !== 'object') return null
+  const r = raw as Partial<StoredGame> & { targetId?: unknown }
+  if (typeof r.targetId === 'number') return raw
+  if (typeof r.t !== 'string' || typeof r.key !== 'string') return null
+  const n = parseInt(r.t, 36)
+  if (!Number.isInteger(n)) return null
+  const { t: _t, ...rest } = r
+  return { ...rest, targetId: (n - 7919) ^ mask(r.key) }
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Pokemon } from '../types/pokemon'
-import { applyGuess, applyGuessToGames, gameStatus, isValidSave, newDailyGame, newEndlessGame, type SavedGame } from './game'
+import { decodeSave, encodeSave, applyGuess, applyGuessToGames, gameStatus, isValidSave, newDailyGame, newEndlessGame, type SavedGame } from './game'
 
 const pool = [1, 2, 3, 4, 5].map((id) => ({ id }) as Pokemon)
 const byId = new Map(pool.map((p) => [p.id, p]))
@@ -90,5 +90,20 @@ describe('applyGuessToGames', () => {
     const g = games('2026-11-08')
     const first = applyGuessToGames(g, 'daily', 5, '2026-11-08', pool)
     expect(applyGuessToGames(first.games, 'daily', 5, '2026-11-08', pool)).toMatchObject({ result: 'duplicate', applied: null })
+  })
+})
+
+describe('save scrambling', () => {
+  it('round-trips and hides the plain answer id', () => {
+    const game: SavedGame = { v: 1, mode: 'daily', key: '2026-11-08', targetId: 438, guessIds: [1, 2] }
+    const stored = encodeSave(game)
+    expect(stored).not.toHaveProperty('targetId')
+    expect(decodeSave(JSON.parse(JSON.stringify(stored)))).toEqual(game)
+  })
+  it('still reads the old plain format and rejects junk', () => {
+    const old = { v: 1, mode: 'endless', key: 'k', targetId: 3, guessIds: [] }
+    expect(decodeSave(old)).toEqual(old)
+    expect(decodeSave(null)).toBeNull()
+    expect(decodeSave({ v: 1, mode: 'daily', key: 'k', t: '!!', guessIds: [] })).toBeNull()
   })
 })
