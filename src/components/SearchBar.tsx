@@ -41,7 +41,7 @@ export function SearchBar({ pokedex, guessedIds, onGuess, disabled }: SearchBarP
       setMessage(`You already guessed ${pokemon.name}.`)
       return
     }
-    playSound('select')
+    if (result === 'ok') playSound('select')
     setMessage(null)
     setQuery('')
     setOpen(false)

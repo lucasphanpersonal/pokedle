@@ -23,6 +23,17 @@ describe('sound', () => {
     expect(b.isSoundOn()).toBe(false)
   })
 
+  it('notifies subscribers so every mute button stays in sync', async () => {
+    const s = await import('./sound')
+    const seen = vi.fn()
+    const off = s.subscribeSound(seen)
+    s.setSoundOn(false)
+    expect(seen).toHaveBeenCalledTimes(1)
+    off()
+    s.setSoundOn(true)
+    expect(seen).toHaveBeenCalledTimes(1)
+  })
+
   it('does not throw when Web Audio is unavailable', async () => {
     const s = await import('./sound')
     expect(() => s.playSound('win')).not.toThrow()

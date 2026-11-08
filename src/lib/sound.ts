@@ -71,9 +71,23 @@ export function isSoundOn(): boolean {
   return enabled
 }
 
+const listeners = new Set<() => void>()
+
+/** For useSyncExternalStore: lets every mute button follow the same state. */
+export function subscribeSound(listener: () => void): () => void {
+  listeners.add(listener)
+  return () => void listeners.delete(listener)
+}
+
 export function setSoundOn(on: boolean): void {
   enabled = on
   saveJson(KEY, on)
+  if (!on && ctx) {
+    // Closing the context also cuts off any notes already queued.
+    void ctx.close().catch(() => {})
+    ctx = null
+  }
+  listeners.forEach((l) => l())
   if (on) playSound('toggle')
 }
 
@@ -91,13 +105,36 @@ function getContext(): AudioContext | null {
   return ctx
 }
 
+/**
+ * Browsers (iOS Safari especially) only start audio from a real gesture, so
+ * the first tap or keypress anywhere creates and resumes the context.
+ */
+function unlockOnGesture(): void {
+  if (typeof document === 'undefined') return
+  const events = ['pointerdown', 'touchend', 'keydown'] as const
+  const unlock = () => {
+    if (isSoundOn()) {
+      const audio = getContext()
+      if (audio && audio.state !== 'running') void audio.resume().catch(() => {})
+    }
+    events.forEach((e) => document.removeEventListener(e, unlock, true))
+  }
+  events.forEach((e) => document.addEventListener(e, unlock, true))
+}
+unlockOnGesture()
+
 /** Play an effect. Silent when muted, unsupported, or never throws. */
 export function playSound(name: SoundName, pitch = 0): void {
   if (!isSoundOn()) return
   const audio = getContext()
   if (!audio) return
   try {
-    if (audio.state === 'suspended') void audio.resume().catch(() => {})
+    if (audio.state !== 'running') {
+      // Suspended or 'interrupted' (iOS after a call or tab switch): wake it and
+      // drop this sound rather than queueing notes that would all play at once.
+      void audio.resume().catch(() => {})
+      return
+    }
     const t0 = audio.currentTime + 0.01
     for (const note of notesFor(name, pitch)) {
       const osc = audio.createOscillator()

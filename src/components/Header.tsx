@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useSyncExternalStore } from 'react'
 import type { GameMode } from '../lib/game'
-import { isSoundOn, setSoundOn } from '../lib/sound'
+import { isSoundOn, setSoundOn, subscribeSound } from '../lib/sound'
 
 interface HeaderProps {
   mode: GameMode
@@ -9,7 +9,7 @@ interface HeaderProps {
 }
 
 export function Header({ mode, onModeChange, onHelp }: HeaderProps) {
-  const [sound, setSound] = useState(isSoundOn)
+  const sound = useSyncExternalStore(subscribeSound, isSoundOn, () => true)
   return (
     <header className="ds-titlebar px-3 py-2 sm:px-5 sm:py-3">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-2">
@@ -34,12 +34,10 @@ export function Header({ mode, onModeChange, onHelp }: HeaderProps) {
             type="button"
             onClick={() => {
               setSoundOn(!sound)
-              setSound(!sound)
             }}
             aria-label="Sound effects"
             aria-pressed={sound}
-            title={sound ? 'Sound on' : 'Sound off'}
-            className="ds-button min-w-11 bg-ds-paper text-ds-ink"
+            className="ds-button min-h-11 min-w-11 bg-ds-paper text-ds-ink"
           >
             <svg viewBox="0 0 16 16" width="18" height="18" shapeRendering="crispEdges" fill="currentColor" aria-hidden="true">
               <path d="M2 6h3l4-3v10l-4-3H2z" />

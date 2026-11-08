@@ -1,7 +1,7 @@
-import { useId, useState } from 'react'
+import { useId, useState, useSyncExternalStore } from 'react'
 import { isBrowserDoNotTrack, isOptedOutByPlayer, setTrackingOptOut } from '../lib/analytics'
 import { isCrtOn, setCrt } from '../lib/display'
-import { isSoundOn, setSoundOn } from '../lib/sound'
+import { isSoundOn, setSoundOn, subscribeSound } from '../lib/sound'
 import { Modal } from './Modal'
 
 interface HelpModalProps {
@@ -51,7 +51,7 @@ function PixelSwitch({ label, on, disabled, describedBy, onToggle }: {
 
 function DisplaySettings() {
   const [crt, setCrtState] = useState(isCrtOn)
-  const [sound, setSoundState] = useState(isSoundOn)
+  const sound = useSyncExternalStore(subscribeSound, isSoundOn, () => true)
   return (
     <section className="mt-5 border-t-2 border-ds-frame-light pt-4 text-[10px] leading-5">
       <h3 className="mb-2 text-[11px]">Display &amp; sound</h3>
@@ -69,7 +69,6 @@ function DisplaySettings() {
         on={sound}
         onToggle={() => {
           setSoundOn(!sound)
-          setSoundState(!sound)
         }}
       />
       <p className="mt-1 text-[9px] text-ds-frame">Retro 8-bit blips as you type and as tiles flip, plus a jingle when you win. Also on the speaker button in the header.</p>
