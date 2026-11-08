@@ -18,7 +18,7 @@ npm run fetch-data # rebuild src/data/pokemon.json from PokéAPI
 ```
 scripts/fetchPokemonData.ts   builds the local Pokémon dataset from PokéAPI
 src/components/               Header, SearchBar, GuessGrid, FeedbackRow, ResultModal, HistoryModal, HelpModal, Modal
-src/hooks/usePokemondle.ts    game state (target, guesses, status), saved to localStorage
+src/hooks/usePokemondle.ts    game state (target, guesses, status), saved to localStorage (answer id scrambled, see below)
 src/lib/history.ts            solved-Daily history and streak maths (pure, tested)
 src/hooks/useAnalytics.ts     wraps guesses with anonymous analytics
 src/lib/                      dataset + search, comparison, daily seed, game rules, sound, storage
@@ -41,6 +41,13 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
 - **Results**: after the last tile flips, a dialog shows the answer's artwork and how many guesses it took. On the
   Daily it also shows **Today's stats**: players who solved it, the average guesses, how you rank and a small guesses
   histogram (see [Public daily stats](#public-daily-stats)). Endless shows a **New Pokémon** button instead.
+
+### Saved games
+
+Each mode's game is saved in `localStorage` (`pokemondle:daily`, `pokemondle:endless`). The answer is stored scrambled
+(`t`, see `encodeSave` in `src/lib/game.ts`) rather than as a plain id, so it can't be read at a glance in the browser's
+storage panel. This is only a deterrent: the game is fully client-side, so a determined player can still work it out.
+Older plain saves are still read. The search box shows "You got it!" once a game is solved.
 
 ### History and streaks
 

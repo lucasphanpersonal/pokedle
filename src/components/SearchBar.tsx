@@ -92,7 +92,7 @@ export function SearchBar({ pokedex, guessedIds, onGuess, disabled }: SearchBarP
           enterKeyHint="go"
           value={query}
           disabled={disabled}
-          placeholder={disabled ? 'Game over' : "Who's that Pokémon?"}
+          placeholder={disabled ? 'You got it!' : "Who's that Pokémon?"}
           onChange={(e) => {
             playSound('type', Math.floor(Math.random() * 3))
             setQuery(e.target.value)

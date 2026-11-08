@@ -136,7 +136,7 @@ export function GuessCard({ guess, feedback, animate }: FeedbackRowProps) {
       {[0, 1, 2, 3].map((i) => tile(i, 'col-span-3'))}
       {[4, 5, 6, 7].map((i) => tile(i, 'col-span-3'))}
       <div
-        className={`${BG[ability[0]]} ${animate ? 'tile-flip' : ''} px-notch col-span-12 flex min-h-8 items-center justify-center px-2 py-1 text-center text-[8px] leading-[1.3] text-white ${TILE_EDGE}`}
+        className={`${BG[ability[0]]} ${animate ? 'tile-flip' : ''} px-notch col-span-12 flex min-h-9 items-center justify-center px-2 py-1.5 text-center text-[8px] leading-[1.6] text-white ${TILE_EDGE}`}
         style={delay(9)}
         data-result={ability[0]}
       >
