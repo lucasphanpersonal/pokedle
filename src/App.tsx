@@ -102,6 +102,7 @@ export default function App() {
           target={game.targetPokemon}
           feedback={game.feedback}
           puzzleNumber={game.puzzleNumber}
+          puzzleDate={game.gameKey}
           onClose={() => setDismissedResult(gameId)}
           onNewGame={mode === 'endless' ? game.startNewEndlessGame : undefined}
         />

@@ -38,7 +38,9 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   Shared Ability lists every ability the two share (hidden abilities count). With no match it is red and lists all of
   the guess's own abilities instead, or "Unknown" for the few new Megas with no ability data yet.
 - **Results**: after the last tile flips, a dialog shows the answer's artwork, the score and a spoiler-free emoji
-  grid (9 attribute columns per guess, Form included; the Pokémon column is left out). **Share** opens the system share sheet on
+  grid (9 attribute columns per guess, Form included; the Pokémon column is left out). On the Daily it also shows
+  **Today's stats**: players who solved it, the average guesses, how you rank and a small guesses histogram (see
+  [Public daily stats](#public-daily-stats)). **Share** opens the system share sheet on
   phones and tablets and copies to the clipboard on desktop.
 
 ### Look and feel
@@ -104,6 +106,7 @@ npx supabase link --project-ref <project-ref>   # connect this repo to your Supa
 npx supabase db push --remote --yes            # create the tables, views and daily roll-up job
 npx supabase secrets set ALLOWED_ORIGINS="https://lucasphanpersonal.github.io,http://localhost:5173"   # sites allowed to send events (set BEFORE deploying)
 npx supabase functions deploy track --no-verify-jwt --yes   # deploy the event-collecting function
+npx supabase functions deploy stats --no-verify-jwt --yes   # deploy the public daily-stats function
 ```
 
 Secrets take effect on the function's next start; redeploy after changing them.
@@ -125,3 +128,14 @@ or Do Not Track, or if `localStorage['pokemondle:analytics-opt-out']` is `'true'
 `src/lib/analytics.ts` sets it, and the Help switch calls it; the choice is also held in memory for the session if
 storage is unavailable). When the browser sends GPC or Do Not Track, the
 switch is shown off and disabled.
+
+### Public daily stats
+
+The Daily result screen reads totals from the `stats` Edge Function
+(`GET /functions/v1/stats?date=YYYY-MM-DD`), which calls `public_daily_stats()` and returns only
+`games_finished`, `wins`, `solve_rate` and a guesses histogram. Nothing per-player and never the answer.
+Below 5 finished games it returns an empty histogram, and the panel stays hidden. Responses are cached for 60 s.
+The client derives the URL from `VITE_TRACK_URL` (`/track` becomes `/stats`), skips the request for players who
+opted out (or send GPC / Do Not Track), and shows nothing if the request fails or the player is offline.
+The player's own result is sent just before, so the fetch waits 1.5 s to usually include it. Deploy the function
+(with the same `ALLOWED_ORIGINS` secret as `track`) before the site update goes live; until then the panel simply doesn't appear.

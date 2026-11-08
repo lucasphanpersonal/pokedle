@@ -5,6 +5,7 @@ import type { GameMode } from '../lib/game'
 import { iconUrl, spriteUrl } from '../lib/pokedex'
 import { buildShareText, shareResult, shareRow, type ShareOutcome } from '../lib/share'
 import type { Pokemon } from '../types/pokemon'
+import { DailyStats } from './DailyStats'
 import { Modal } from './Modal'
 
 interface ResultModalProps {
@@ -12,6 +13,8 @@ interface ResultModalProps {
   target: Pokemon
   feedback: GuessFeedback[]
   puzzleNumber: number | null
+  /** Daily puzzle date (YYYY-MM-DD), for the global stats; ignored in Endless. */
+  puzzleDate: string
   onClose: () => void
   onNewGame?: () => void
 }
@@ -48,7 +51,7 @@ const OUTCOME_TEXT: Record<ShareOutcome, string> = {
 }
 
 /** End-of-game screen: the answer's artwork, score, emoji grid and Share. */
-export function ResultModal({ mode, target, feedback, puzzleNumber, onClose, onNewGame }: ResultModalProps) {
+export function ResultModal({ mode, target, feedback, puzzleNumber, puzzleDate, onClose, onNewGame }: ResultModalProps) {
   const [outcome, setOutcome] = useState<ShareOutcome | null>(null)
   const text = buildShareText({ mode, puzzleNumber, feedback, url: shareUrl() })
 
@@ -92,6 +95,8 @@ export function ResultModal({ mode, target, feedback, puzzleNumber, onClose, onN
         <p role="status" className="min-h-5 text-[9px] text-ds-frame">
           {outcome && OUTCOME_TEXT[outcome]}
         </p>
+
+        {mode === 'daily' && <DailyStats date={puzzleDate} guesses={feedback.length} />}
 
         {mode === 'daily' && (
           <p className="text-[9px] text-ds-frame">

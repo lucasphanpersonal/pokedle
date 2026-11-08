@@ -19,6 +19,7 @@ returns anything about the answer. Raw events are rolled up into `daily_totals` 
    # Later migrations (e.g. 20261107120000_widen_guess_caps.sql) are applied by the same command.
    npx supabase secrets set ALLOWED_ORIGINS="https://lucasphanpersonal.github.io,http://localhost:5173"
    npx supabase functions deploy track --no-verify-jwt --yes
+   npx supabase functions deploy stats --no-verify-jwt --yes   # public daily stats for the result screen
    ```
    Set `ALLOWED_ORIGINS` **before** deploying. Secrets take effect on the function's next start, so
    if you change them later, redeploy the function.
@@ -64,7 +65,8 @@ select * from daily_totals order by day desc;                -- rolled-up histor
 Use the editor's **Save** to keep them as saved queries. The views are not readable with the anon key.
 `target_id` and `guess_id` are National Dex numbers.
 
-`select public_daily_stats(current_date);` is the only thing the anon role may call: aggregates
+The `stats` function (`GET /functions/v1/stats?date=YYYY-MM-DD`, same `ALLOWED_ORIGINS` as `track`) serves this
+to the game with a 60 s cache. `select public_daily_stats(current_date);` is the only thing the anon role may call: aggregates
 for one daily puzzle (games finished, solve rate, guess histogram), never the target or per-player data.
 It returns nulls and an empty histogram when fewer than 5 games finished, and errors for dates older
 than 400 days or more than 1 day ahead.

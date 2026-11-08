@@ -16,5 +16,5 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true
   },
-  "include": ["supabase/functions/track/validate.ts", "supabase/functions/track/validate.test.ts"]
+  "include": ["supabase/functions/track/validate.ts", "supabase/functions/track/validate.test.ts", "supabase/functions/stats/params.ts", "supabase/functions/stats/params.test.ts"]
 }
