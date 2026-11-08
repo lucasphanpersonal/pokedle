@@ -2,12 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { GuessGrid } from './components/GuessGrid'
 import { Header } from './components/Header'
 import { HelpModal } from './components/HelpModal'
+import { HistoryModal } from './components/HistoryModal'
 import { ResultModal } from './components/ResultModal'
 import { SearchBar } from './components/SearchBar'
 import { GRID_COLUMNS } from './config/gameConfig'
 import { TILE_FLIP_DURATION_MS, TILE_FLIP_STAGGER_MS } from './config/uiConfig'
 import { useAnalytics } from './hooks/useAnalytics'
 import { usePokemondle, type GameMode } from './hooks/usePokemondle'
+import { computeStats } from './lib/history'
 import { POKEDEX } from './lib/pokedex'
 import { playSound } from './lib/sound'
 import { loadJson, saveJson } from './lib/storage'
@@ -23,7 +25,9 @@ export default function App() {
   const [mode, setMode] = useState<GameMode>('daily')
   // Show the rules automatically on a player's first visit.
   const [showHelp, setShowHelp] = useState(() => loadJson('seen-help') !== true)
+  const [showHistory, setShowHistory] = useState(false)
   const game = usePokemondle(mode)
+  const stats = computeStats(game.history)
   const submitGuess = useAnalytics(game)
   const gameId = `${mode}:${game.gameKey}`
   const targetId = game.targetPokemon.id
@@ -85,6 +89,13 @@ export default function App() {
           <p className="text-[9px] text-ds-frame">
             {game.guesses.length} {game.guesses.length === 1 ? 'guess' : 'guesses'}
           </p>
+          <button
+            type="button"
+            onClick={() => setShowHistory(true)}
+            className="ds-button min-h-11 bg-ds-paper px-3 text-[9px]"
+          >
+            History · Streak {stats.currentStreak}
+          </button>
         </div>
 
         <div className="mx-auto w-full max-w-xl">
@@ -123,10 +134,13 @@ export default function App() {
           target={game.targetPokemon}
           feedback={game.feedback}
           puzzleDate={game.gameKey}
+          streak={stats.currentStreak}
+          bestStreak={stats.bestStreak}
           onClose={() => setDismissedResult(gameId)}
           onNewGame={mode === 'endless' ? game.startNewEndlessGame : undefined}
         />
       )}
+      {showHistory && <HistoryModal history={game.history} onClose={() => setShowHistory(false)} />}
       {showHelp && <HelpModal onClose={closeHelp} />}
     </div>
   )

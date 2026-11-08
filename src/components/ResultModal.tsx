@@ -12,6 +12,9 @@ interface ResultModalProps {
   feedback: GuessFeedback[]
   /** Daily puzzle date (YYYY-MM-DD), for the global stats; ignored in Endless. */
   puzzleDate: string
+  /** Current and best Daily streaks on this device. */
+  streak: number
+  bestStreak: number
   onClose: () => void
   onNewGame?: () => void
 }
@@ -34,7 +37,7 @@ function Countdown() {
 }
 
 /** End-of-game screen: the answer's artwork, guess count, daily stats and New Pokémon. */
-export function ResultModal({ mode, target, feedback, puzzleDate, onClose, onNewGame }: ResultModalProps) {
+export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestStreak, onClose, onNewGame }: ResultModalProps) {
   return (
     <Modal title="Gotcha!" onClose={onClose}>
       <div className="flex flex-col items-center gap-4 text-center text-[10px] leading-5">
@@ -58,6 +61,12 @@ export function ResultModal({ mode, target, feedback, puzzleDate, onClose, onNew
           <button type="button" onClick={onNewGame} className="ds-button px-4 text-[10px] bg-ds-paper">
             New Pokémon
           </button>
+        )}
+
+        {mode === 'daily' && (
+          <p className="text-[10px]">
+            Streak: <strong>{streak}</strong> {streak === 1 ? 'day' : 'days'} · Best: <strong>{bestStreak}</strong>
+          </p>
         )}
 
         {mode === 'daily' && <DailyStats date={puzzleDate} guesses={feedback.length} />}
