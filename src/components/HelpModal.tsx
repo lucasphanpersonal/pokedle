@@ -9,6 +9,8 @@ interface HelpModalProps {
   onClose: () => void
   /** The current game is in progress, so Hard mode can't be switched until it is solved. */
   hardLocked: boolean
+  /** The current game's own mode, shown while the switch is locked. */
+  gameHard: boolean
 }
 
 function Swatch({ className, children }: { className: string; children: string }) {
@@ -35,9 +37,9 @@ function PixelSwitch({ label, on, disabled, describedBy, onToggle }: {
       aria-checked={on}
       aria-labelledby={labelId}
       aria-describedby={describedBy}
-      disabled={disabled}
-      onClick={onToggle}
-      className="ds-focus mt-2 flex min-h-11 w-full items-center justify-between gap-3 text-left disabled:opacity-60"
+      aria-disabled={disabled || undefined}
+      onClick={disabled ? undefined : onToggle}
+      className={`ds-focus mt-2 flex min-h-11 w-full items-center justify-between gap-3 text-left ${disabled ? 'cursor-not-allowed opacity-75' : ''}`}
     >
       <span id={labelId}>{label}</span>
       <span className="flex items-center gap-2" aria-hidden="true">
@@ -53,9 +55,11 @@ function PixelSwitch({ label, on, disabled, describedBy, onToggle }: {
 }
 
 /** Hard mode switch: hides the Gen column. Fixed per game once its first guess is made. */
-function HardModeSetting({ locked }: { locked: boolean }) {
+function HardModeSetting({ locked, gameHard }: { locked: boolean; gameHard: boolean }) {
   const noteId = useId()
-  const hard = useSyncExternalStore(subscribeHardPref, isHardPref, () => false)
+  const pref = useSyncExternalStore(subscribeHardPref, isHardPref, () => false)
+  // While locked, show the mode this game is actually in, not the preference for the next one.
+  const hard = locked ? gameHard : pref
   return (
     <section className="mt-5 border-t-2 border-ds-frame-light pt-4 text-[10px] leading-5">
       <h3 className="mb-2 text-[11px]">Difficulty</h3>
@@ -68,7 +72,7 @@ function HardModeSetting({ locked }: { locked: boolean }) {
       />
       <p id={noteId} className="mt-1 text-[9px] text-ds-frame">
         Hides the Gen column, so you can't narrow it down by generation. It is fixed once you make a game's first
-        guess{locked ? ': locked until you solve this game.' : ', and applies to the next game you start.'} Hard games
+        guess{locked ? `: this game is in ${gameHard ? 'Hard' : 'normal'} mode, and the switch unlocks when you solve it.` : ', and applies to the next game you start.'} Hard games
         are marked in History and left out of the Daily's public stats.
       </p>
     </section>
@@ -120,7 +124,7 @@ function StatsToggle() {
     <section className="mt-5 border-t-2 border-ds-frame-light pt-4 text-[10px] leading-5">
       <h3 className="mb-2 text-[11px]">Privacy</h3>
       <p>
-        The game records anonymous game events (guesses, results, device type) with no cookies, accounts or personal
+        The game records anonymous game events (guesses, results, device type, and whether Hard mode was on) with no cookies, accounts or personal
         data. Browsers that send Do Not Track or Global Privacy Control are never tracked.
       </p>
       <p className="mt-2">
@@ -143,7 +147,7 @@ function StatsToggle() {
   )
 }
 
-export function HelpModal({ onClose, hardLocked }: HelpModalProps) {
+export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
   return (
     <Modal title="How to play" onClose={onClose}>
       <div className="space-y-4 text-[10px] leading-5">
@@ -202,7 +206,7 @@ export function HelpModal({ onClose, hardLocked }: HelpModalProps) {
         </p>
         <p className="hidden lg:block">Keyboard: type to search, ↑/↓ to pick, Enter to guess, Esc to close.</p>
       </div>
-      <HardModeSetting locked={hardLocked} />
+      <HardModeSetting locked={hardLocked} gameHard={gameHard} />
       <DisplaySettings />
       <StatsToggle />
     </Modal>

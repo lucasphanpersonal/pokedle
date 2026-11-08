@@ -69,7 +69,8 @@ The `stats` function (`GET /functions/v1/stats?date=YYYY-MM-DD`, same `ALLOWED_O
 to the game with a 60 s cache. `select public_daily_stats(current_date);` is the only thing the anon role may call: aggregates
 for one daily puzzle (games finished, solve rate, guess histogram), never the target or per-player data.
 Games with `config.hard_mode = true` (Hard mode, no Gen column) are excluded from these aggregates; the raw events and the
-private views still include them (filter on `config->>'hard_mode'`). It returns nulls and an empty histogram when fewer than 5 games finished, and errors for dates older
+private views still include them (filter on `config->>'hard_mode'`).
+It returns nulls and an empty histogram when fewer than 5 games finished, and errors for dates older
 than 400 days or more than 1 day ahead.
 
 ## Maintenance

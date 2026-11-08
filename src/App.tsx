@@ -145,7 +145,7 @@ export default function App() {
         />
       )}
       {showHistory && <HistoryModal history={game.history} onClose={() => setShowHistory(false)} />}
-      {showHelp && <HelpModal onClose={closeHelp} hardLocked={game.hardSwitchLocked} />}
+      {showHelp && <HelpModal onClose={closeHelp} hardLocked={game.hardSwitchLocked} gameHard={hard} />}
     </div>
   )
 }

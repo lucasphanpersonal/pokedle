@@ -56,7 +56,7 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
 
 ### Saved games
 
-Each mode's game is saved in `localStorage` (`pokemondle:daily`, `pokemondle:endless`). The answer is stored scrambled
+Each mode's game is saved in `localStorage` (`pokemondle:daily`, `pokemondle:endless`). Hard mode games add `hard: true` to the save (set at the first guess, so it can't change mid-game); older saves without it load as normal games and any other value makes the save invalid. The answer is stored scrambled
 (`t`, see `encodeSave` in `src/lib/game.ts`) rather than as a plain id, so it can't be read at a glance in the browser's
 storage panel. This is only a deterrent: the game is fully client-side, so a determined player can still work it out.
 Older plain saves are still read. The search box shows "You got it!" once a game is solved.
@@ -96,7 +96,7 @@ Older plain saves are still read. The search box shows "You got it!" once a game
 
 - Desktop and large tablet (≥ 1024 px): all ten columns fit on screen.
 - Phones and tablets under 1024 px: no sideways scrolling. Each guess is a compact card: sprite and name on top, then the
-  comparison tiles in two rows of four (Type 1, Type 2, Gen, Height / Weight, Color, Evolution, Form) and a full-width Shared Ability strip,
+  comparison tiles in two rows of four (Type 1, Type 2, Gen, Height / Weight, Color, Evolution, Form; in Hard mode the top row is three wider tiles without Gen) and a full-width Shared Ability strip,
   with a small key above the list. The search box uses 16 px text so iOS doesn't
   zoom, and every button and suggestion is at least 44 px tall for touch.
 - Keyboard: type to search, ↑/↓ to move through suggestions, Enter to guess, Esc to close a dialog.
@@ -161,7 +161,7 @@ The game sends events to the `track` function only when `VITE_TRACK_URL` is set.
 `.env.local`. Events are batched per game and sent when a game ends or the page is hidden or closed.
 
 Players can switch off "Share anonymous stats" in the Help screen (the "?" button), which also explains that only
-anonymous game events (guesses, results, device type) are recorded. Players are opted out automatically if their browser sends Global Privacy Control (`navigator.globalPrivacyControl`)
+anonymous game events (guesses, results, device type, and whether Hard mode was on) are recorded. Players are opted out automatically if their browser sends Global Privacy Control (`navigator.globalPrivacyControl`)
 or Do Not Track, or if `localStorage['pokemondle:analytics-opt-out']` is `'true'` (`setTrackingOptOut()` in
 `src/lib/analytics.ts` sets it, and the Help switch calls it; the choice is also held in memory for the session if
 storage is unavailable). When the browser sends GPC or Do Not Track, the
@@ -175,7 +175,11 @@ The Daily result screen reads totals from the `stats` Edge Function
 Below 5 finished games it returns an empty histogram, and the panel stays hidden. Responses are cached for 60 s.
 The client derives the URL from `VITE_TRACK_URL` (`/track` becomes `/stats`), skips the request for players who
 opted out (or send GPC / Do Not Track), and shows nothing if the request fails or the player is offline.
+
+
 Hard mode games (`config.hard_mode = true` on their events) are excluded from these totals by
 `public_daily_stats()` (migration `20261108220000_public_stats_exclude_hard.sql`), so the numbers compare like with like,
-and the result screen shows a note instead of the panel for a Hard game. The player's own result is sent just before, so the fetch waits 1.5 s to usually include it. Deploy the function
+and the result screen shows a note instead of the panel for a Hard game.
+
+The player's own result is sent just before, so the fetch waits 1.5 s to usually include it. Deploy the function
 (with the same `ALLOWED_ORIGINS` secret as `track`) before the site update goes live; until then the panel simply doesn't appear.
