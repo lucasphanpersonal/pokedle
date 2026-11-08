@@ -20,6 +20,12 @@ interface FeedbackRowProps {
 
 type Result = MatchFeedback | NumberFeedback
 
+/*
+ * Dark pixel outline (inset, so the stepped px-notch corners still cut it
+ * like a dialog-box border) plus the darker bottom bevel on every tile.
+ */
+const TILE_EDGE = 'shadow-[inset_0_0_0_2px_var(--color-ds-frame),inset_0_-3px_0_rgb(0_0_0/0.2)]'
+
 const BG: Record<Result, string> = {
   match: 'bg-fb-match',
   partial: 'bg-fb-partial text-ds-ink',
@@ -55,7 +61,7 @@ function Tile({
   return (
     <td className="p-0">
       <div
-        className={`${BG[result]} ${animate ? 'tile-flip' : ''} flex h-16 flex-col items-center justify-center px-notch px-1 text-center text-[9px] leading-[1.35] text-white shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)] sm:h-[72px] sm:text-[10px]`}
+        className={`${BG[result]} ${animate ? 'tile-flip' : ''} flex h-16 flex-col items-center justify-center px-notch px-1 text-center text-[9px] leading-[1.35] text-white ${TILE_EDGE} sm:h-[72px] sm:text-[10px]`}
         style={style}
         data-result={result}
       >
@@ -100,7 +106,7 @@ export function GuessCard({ guess, feedback, animate }: FeedbackRowProps) {
     return (
       <div
         key={i}
-        className={`${BG[result]} ${animate ? 'tile-flip' : ''} ${span} px-notch flex min-h-11 flex-col items-center justify-center px-0.5 text-center text-[8px] leading-[1.3] text-white shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)]`}
+        className={`${BG[result]} ${animate ? 'tile-flip' : ''} ${span} px-notch flex min-h-11 flex-col items-center justify-center px-0.5 text-center text-[8px] leading-[1.3] text-white ${TILE_EDGE}`}
         style={delay(i + 1)}
         data-result={result}
       >
@@ -120,7 +126,7 @@ export function GuessCard({ guess, feedback, animate }: FeedbackRowProps) {
   return (
     <li className="grid grid-cols-12 gap-1 border-t-2 border-dashed border-ds-frame/30 py-2 first:border-t-0 first:pt-0 last:pb-0">
       <div
-        className={`${BG[feedback.pokemon]} ${animate ? 'tile-flip' : ''} px-notch col-span-12 flex min-h-11 items-center gap-2 px-2 text-[9px] text-white shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)]`}
+        className={`${BG[feedback.pokemon]} ${animate ? 'tile-flip' : ''} px-notch col-span-12 flex min-h-11 items-center gap-2 px-2 text-[9px] text-white ${TILE_EDGE}`}
         data-result={feedback.pokemon}
       >
         <img src={iconUrl(guess.id)} alt="" width={40} height={40} className="-my-1 h-10 w-10 shrink-0 [image-rendering:pixelated]" />
@@ -130,7 +136,7 @@ export function GuessCard({ guess, feedback, animate }: FeedbackRowProps) {
       {[0, 1, 2, 3].map((i) => tile(i, 'col-span-3'))}
       {[4, 5, 6, 7].map((i) => tile(i, 'col-span-3'))}
       <div
-        className={`${BG[ability[0]]} ${animate ? 'tile-flip' : ''} px-notch col-span-12 flex min-h-8 items-center justify-center px-2 py-1 text-center text-[8px] leading-[1.3] text-white shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)]`}
+        className={`${BG[ability[0]]} ${animate ? 'tile-flip' : ''} px-notch col-span-12 flex min-h-8 items-center justify-center px-2 py-1 text-center text-[8px] leading-[1.3] text-white ${TILE_EDGE}`}
         style={delay(9)}
         data-result={ability[0]}
       >
@@ -147,7 +153,7 @@ export function FeedbackRow({ guess, feedback, animate }: FeedbackRowProps) {
     <tr>
             <th scope="row" className="p-0 pr-1 font-normal">
         <div
-          className={`${BG[feedback.pokemon]} ${animate ? 'tile-flip' : ''} flex h-16 w-[96px] flex-col items-center justify-center px-notch text-[7px] leading-[10px] text-white shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)] sm:h-[72px] sm:w-28 sm:text-[8px]`}
+          className={`${BG[feedback.pokemon]} ${animate ? 'tile-flip' : ''} flex h-16 w-[96px] flex-col items-center justify-center px-notch text-[7px] leading-[10px] text-white ${TILE_EDGE} sm:h-[72px] sm:w-28 sm:text-[8px]`}
           data-result={feedback.pokemon}
         >
           <img src={iconUrl(guess.id)} alt="" width={40} height={40} className="-my-1 h-10 w-10 [image-rendering:pixelated]" />
