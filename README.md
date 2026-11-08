@@ -52,6 +52,14 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   (`html.crt body::after` in `src/index.css`). On by default; players can turn it off under **Help → Display**
   (saved per device in `localStorage['pokemondle:crt']`). The flicker stops for "reduce motion".
 
+- **Sound effects**: original 8-bit style blips synthesised in the browser with the Web Audio API
+  (`src/lib/sound.ts`; square/triangle oscillators, no audio files and nothing copied from the games): a blip as
+  you type, a tick as you move through suggestions, a two-note chime on a guess, a rising tick as each tile flips
+  (timed from `App.tsx` to match the flip animation), a low buzz for a bad or duplicate guess and a fanfare when
+  you win. On by default; mute with the speaker button in the header or **Help → Display & sound** (saved per
+  device in `localStorage['pokemondle:sound']`). The audio context is created on the first tap or keypress, as
+  browsers (including iOS Safari) require. With "reduce motion" the tile ticks are skipped.
+
 ### Layout on different devices
 
 - Desktop and large tablet (≥ 1024 px): all ten columns fit on screen.

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { GuessGrid } from './components/GuessGrid'
 import { Header } from './components/Header'
 import { HelpModal } from './components/HelpModal'
@@ -9,6 +9,7 @@ import { TILE_FLIP_DURATION_MS, TILE_FLIP_STAGGER_MS } from './config/uiConfig'
 import { useAnalytics } from './hooks/useAnalytics'
 import { usePokemondle, type GameMode } from './hooks/usePokemondle'
 import { POKEDEX } from './lib/pokedex'
+import { playSound } from './lib/sound'
 import { loadJson, saveJson } from './lib/storage'
 import type { Pokemon } from './types/pokemon'
 
@@ -25,22 +26,41 @@ export default function App() {
   const game = usePokemondle(mode)
   const submitGuess = useAnalytics(game)
   const gameId = `${mode}:${game.gameKey}`
+  const targetId = game.targetPokemon.id
 
   // Hold the result screen until the newest row has flipped in. Started from
   // the guess itself; keyed by game so switching modes never leaves it stuck.
   const [reveal, setReveal] = useState<{ gameId: string; token: number } | null>(null)
   const revealToken = useRef(0)
+  const soundTimers = useRef<number[]>([])
+  const clearSoundTimers = () => {
+    soundTimers.current.forEach((id) => window.clearTimeout(id))
+    soundTimers.current = []
+  }
+  useEffect(() => clearSoundTimers, [])
   const onGuess = useCallback(
     (pokemon: Pokemon) => {
       const result = submitGuess(pokemon)
-      if (result === 'ok' && !prefersReducedMotion()) {
-        const token = ++revealToken.current
-        setReveal({ gameId, token })
-        window.setTimeout(() => setReveal((cur) => (cur?.token === token ? null : cur)), ROW_REVEAL_MS)
+      if (result === 'ok') {
+        clearSoundTimers()
+        const won = pokemon.id === targetId
+        const later = (fn: () => void, ms: number) => soundTimers.current.push(window.setTimeout(fn, ms))
+        if (prefersReducedMotion()) {
+          if (won) playSound('win')
+        } else {
+          const token = ++revealToken.current
+          setReveal({ gameId, token })
+          later(() => setReveal((cur) => (cur?.token === token ? null : cur)), ROW_REVEAL_MS)
+          // One tick per tile, as it turns over, climbing in pitch across the row.
+          for (let i = 0; i < GRID_COLUMNS.length; i++) {
+            later(() => playSound('tick', i), i * TILE_FLIP_STAGGER_MS + TILE_FLIP_DURATION_MS / 2)
+          }
+          if (won) later(() => playSound('win'), ROW_REVEAL_MS + 100)
+        }
       }
       return result
     },
-    [submitGuess, gameId],
+    [submitGuess, gameId, targetId],
   )
   const revealing = reveal?.gameId === gameId
 
