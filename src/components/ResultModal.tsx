@@ -36,7 +36,7 @@ function Countdown() {
   return <span className="tabular-nums">{text}</span>
 }
 
-/** End-of-game screen: the answer's artwork, guess count, daily stats and New Pokémon. */
+/** End-of-game screen: the answer's artwork, guess count, streak, daily stats and New Pokémon. */
 export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestStreak, onClose, onNewGame }: ResultModalProps) {
   return (
     <Modal title="Gotcha!" onClose={onClose}>
