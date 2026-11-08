@@ -7,9 +7,9 @@ import { FeedbackRow, GuessCard } from './FeedbackRow'
 /**
  * Share of the table width for each column (sums to 100). Fixed widths stop the
  * Shared Ability text from taking over the table and squeezing the others.
- * Each leaves room, after the tile padding, for its longest single word ("Gigantamax", "Fighting", "Yellow"); Gen, Height, Weight and Evolution may wrap at spaces; long Shared Ability names may break mid-word.
+ * Each leaves room, after the tile padding, for its longest single word ("Gigantamax", "Fighting", "Yellow"); Gen, Height, Weight and Evolution may wrap at spaces. Form and Shared Ability use smaller text so three long abilities fit on up to three lines.
  */
-const COLUMN_WIDTHS = [13, 11, 11, 6, 7, 9, 9, 8, 14, 12]
+const COLUMN_WIDTHS = [12, 11, 11, 6, 7, 8, 9, 8, 12, 16]
 
 interface GuessGridProps {
   guesses: Pokemon[]
