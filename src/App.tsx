@@ -119,7 +119,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => setShowHistory(true)}
-              className="ds-button min-h-11 bg-ds-paper px-3 text-[9px]"
+              className="ds-button h-11 bg-ds-paper px-3 text-[9px] sm:px-4 sm:text-[10px]"
             >
               History · Streak {stats.currentStreak}
             </button>
