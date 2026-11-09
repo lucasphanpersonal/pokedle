@@ -32,6 +32,8 @@ export function SpeakerButton({ className = '' }: { className?: string }) {
       onClick={toggleMute}
       aria-label="Sound"
       aria-pressed={level > 0}
+      // Makes its own level blip (setVolume), so skip the generic press blip.
+      data-no-sound
       className={`ds-button bevel-paper flex h-11 min-w-11 max-[360px]:min-w-9 items-center justify-center text-ds-ink ${className}`}
     >
       <SpeakerIcon level={level} />

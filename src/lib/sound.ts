@@ -8,7 +8,7 @@ import { loadJson, saveJson } from './storage'
  * created lazily on the first sound request, which always follows a tap or
  * keypress, and resumed if the browser (notably iOS Safari) suspended it.
  */
-export type SoundName = 'type' | 'move' | 'select' | 'tick' | 'error' | 'win' | 'toggle'
+export type SoundName = 'type' | 'move' | 'select' | 'press' | 'tick' | 'error' | 'win' | 'toggle'
 
 interface Note {
   /** Frequency in Hz. */
@@ -39,6 +39,9 @@ export function notesFor(name: SoundName, pitch = 0): Note[] {
       return [n(7, 0, 0.04, 'square', 0.07)]
     case 'select':
       return [n(7, 0, 0.06), n(14, 0.06, 0.1)]
+    case 'press':
+      // The one blip every button makes: short, high, and a little quieter than the menu moves.
+      return [n(9, 0, 0.045, 'square', 0.09)]
     case 'tick':
       return [n(16, 0, 0.05, 'triangle', 0.2)]
     case 'error':
@@ -162,6 +165,25 @@ function unlockOnGesture(): void {
   events.forEach((e) => document.addEventListener(e, unlock, true))
 }
 unlockOnGesture()
+
+/** Elements that make the press blip. Anything with a `button` role is covered automatically. */
+const PRESSABLE = 'button, [role="radio"], [role="switch"]'
+
+/**
+ * One blip for every button press. A single capture-phase click listener on the
+ * document, so new buttons get the sound without any code of their own.
+ * Opt out with `data-no-sound` on a button that already makes its own sound
+ * (the speaker, which plays the level blip, and Guess, which plays its select sound).
+ * Disabled buttons stay silent.
+ */
+function onPressableClick(e: Event): void {
+  const target = e.target
+  if (!(target instanceof Element)) return
+  const button = target.closest(PRESSABLE)
+  if (!button || button.matches('[data-no-sound], [aria-disabled="true"], :disabled')) return
+  playSound('press')
+}
+if (typeof document !== 'undefined') document.addEventListener('click', onPressableClick, true)
 
 /** Play an effect at the current volume. Silent when muted, unsupported, or never throws. */
 export function playSound(name: SoundName, pitch = 0): void {
