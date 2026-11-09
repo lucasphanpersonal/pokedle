@@ -41,7 +41,10 @@ Delete test rows afterwards: `delete from events where game_id = '3fa85b3a-8158-
 - The `Origin` check against `ALLOWED_ORIGINS` is CORS hygiene, **not access control**: any
   non-browser client can forge an `Origin` header.
 - The real defences are strict field validation (allow-list, ranges, max 60 events per batch) and a
-  per-visitor rate limit (~300 events per UTC day, 429 beyond that).
+  per-visitor rate limit (5000 events per UTC day by default, 429 beyond that; see Maintenance).
+- A "visitor" is a hash of IP + user agent, so players sharing one Wi-Fi network and browser count as one
+  visitor: daily player counts undercount them and they share one rate-limit budget (hence the generous default).
+  Fixing that would need a stored device ID, which the project deliberately avoids (no cookies, no consent banner).
 - The rate limit can be bypassed, for example by rotating the User-Agent (it is part of the hash).
   That is acceptable for analytics: the worst case is some noisy rows, and the tables are write-only
   for the function and unreadable by the browser.
@@ -82,5 +85,7 @@ than 400 days or more than 1 day ahead.
   pg_cron was unavailable, enable it under **Database > Extensions** and run
   `select cron.schedule('pokedle-rollup', '15 3 * * *', 'select public.rollup_old_events()');`
 - Logs: **Edge Functions > track > Logs**.
-- Rate limit: ~300 events per visitor per UTC day (HTTP 429 beyond that).
+- Rate limit: 5000 events per visitor per UTC day by default (HTTP 429 beyond that; it was 300, which cut off heavy
+  Endless players). Change it without a code change: `npx supabase secrets set MAX_EVENTS_PER_VISITOR_PER_DAY=<n>`
+  (picked up on the next cold start, or redeploy). Rejections are logged as `rate_limited` in Edge Functions > track > Logs.
 - Tests for the validation logic: `npm test`.

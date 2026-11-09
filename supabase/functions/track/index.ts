@@ -6,7 +6,14 @@ import { createClient } from 'npm:@supabase/supabase-js@2.119.0'
 import { validateBatch } from './validate.ts'
 
 const MAX_BODY_BYTES = 64 * 1024
-const MAX_EVENTS_PER_VISITOR_PER_DAY = 300
+// Abuse backstop only, not a fair-use limit. The visitor hash is IP + user agent, so everyone on one
+// Wi-Fi network (home, school, office) with the same browser shares a single hash and a single budget.
+// A heavy Endless player is ~10 events per game, so 5000 covers ~500 games or a classroom of players.
+// Override with the MAX_EVENTS_PER_VISITOR_PER_DAY function secret without a code change.
+const MAX_EVENTS_PER_VISITOR_PER_DAY = Math.max(
+  1,
+  Number(Deno.env.get('MAX_EVENTS_PER_VISITOR_PER_DAY')) || 5000,
+)
 
 const allowedOrigins = (Deno.env.get('ALLOWED_ORIGINS') ?? '')
   .split(',')
@@ -112,6 +119,8 @@ Deno.serve(async (req) => {
         .gte('received_at', `${day}T00:00:00Z`)
       if (countError) throw countError
       if ((count ?? 0) + result.rows.length > MAX_EVENTS_PER_VISITOR_PER_DAY) {
+        // Not silent: visible in Edge Functions > track > Logs, so a too-low cap shows up quickly.
+        console.warn('rate_limited', { existing: count ?? 0, incoming: result.rows.length })
         return respond(429, origin, 'rate_limited')
       }
     }
