@@ -66,7 +66,7 @@ export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestSt
         <DexEntryCard key={target.id} target={target} />
 
         {onNewGame && (
-          <button type="button" onClick={onNewGame} className="ds-button px-4 text-[10px] bg-ds-paper">
+          <button type="button" onClick={onNewGame} className="ds-button bevel-paper px-4 text-[10px]">
             New Pokémon
           </button>
         )}

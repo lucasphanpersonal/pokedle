@@ -21,7 +21,7 @@ src/components/               Header, SearchBar, GuessGrid, FeedbackRow, ResultM
 src/hooks/usePokemondle.ts    game state (target, guesses, status), saved to localStorage (answer id scrambled, see below)
 src/lib/history.ts            solved-Daily history and streak maths (pure, tested)
 src/hooks/useAnalytics.ts     wraps guesses with anonymous analytics
-src/lib/                      dataset + search, Pokédex entry fetch (dexEntry.ts), comparison, daily seed, game rules, sound, storage
+src/lib/                      dataset + search, Pokédex entry fetch (dexEntry.ts), comparison, daily seed, game rules, sound, storage, tile text fitting (tileText.ts)
 src/config/gameConfig.ts      game settings, including which form categories are enabled
 src/config/uiConfig.ts        tile animation timing
 src/data/pokemon.json         generated dataset (committed, so the app needs no API at runtime)
@@ -79,8 +79,8 @@ Older plain saves are still read. The search box shows "You got it!" once a game
 
 - **Pixel art style**: dialog boxes use a pixel-art frame (`.ds-box`, an inline SVG border image with stepped
   corners), buttons and tiles have stepped "pixel" corners (`.ds-button`, `.px-notch`) and a dark frame-colored
-  outline. Guess tiles and the Help swatches are beveled like Platinum's battle-menu blocks (`.tile-bevel` in
-  `src/index.css`: light top edge, dark bottom edge, shaded sides, colour taken from `data-result`), the sky is drawn in flat
+  outline. Every button and tile shares one bevel, like Platinum's battle-menu blocks (`.bevel` in
+  `src/index.css`: light top edge, dark bottom edge, shaded sides; see [Design rules](#design-rules)), the sky is drawn in flat
   bands, and every image is scaled with `image-rendering: pixelated`. The results screen shows the Pokémon's
   in-game pixel sprite, scaled up crisply (falling back to the official artwork if a form has no sprite).
 - **CRT screen effect**: scanlines, a faint RGB phosphor mask, a vignette and a slow flicker drawn over the page
@@ -108,6 +108,27 @@ Older plain saves are still read. The search box shows "You got it!" once a game
 - Keyboard: type to search, ↑/↓ to move through suggestions, Enter to guess, Esc to close a dialog, ←/→ to switch Daily/Endless when that toggle is focused.
 - **Win confetti**: a ~2 second burst of pixel confetti in the game's colours, with a few Poké Balls and stars, falls over the result dialog when you win (Daily or Endless). It starts after the last tile flips, is pointer-free, and is not shown for players who set "reduce motion" (`src/components/Confetti.tsx`).
 - Animations are turned off for players who set "reduce motion".
+
+## Design rules
+
+The look is Pokémon Platinum / NDS menus. Every pull request is checked against these rules (the code reviewer is
+asked to flag any break), and UI changes are screenshotted and measured at 320, 390, 768, 1024 and 1280 px before merging.
+
+1. **One bevel for everything.** Every button, toggle and guess tile uses the shared `.bevel` style in
+   `src/index.css` (`.ds-button` includes it): 2px dark outline, 6px light top edge, 6px dark bottom edge, 4px shaded
+   sides. Pick the face colour with `.bevel-paper` (white), `.bevel-red`, `.bevel-green`, or `data-result` on tiles.
+   Never hand-roll a `box-shadow` or `border` bevel on a single control.
+2. **Pressed means the inverse bevel.** A selected or "on" control (the chosen Daily/Endless side, Hard when on) adds
+   `.bevel-pressed`: same edges, dark on top and light at the bottom. The edges stay the same size, so labels sit at
+   the same height whether a control is up or down.
+3. **Equal heights and gaps.** Header and menu controls are all 44px tall (also the minimum touch target), top-aligned
+   in one row, with one gap size per row (6px on phones, 8px from 640px up). Nothing may spill past the screen edge
+   at any width from 320px.
+4. **Text stays inside the padding.** Tile and button text keeps at least 10px from the tile edge (the 6px bevel plus
+   4px of air). Guess tiles shrink long words to fit (`.tile-fit`, down to 7px) or wrap them at a soft hyphen
+   (`src/lib/tileText.ts`), e.g. "Undis- / covered", rather than run edge to edge.
+5. **Stepped corners and pixel font.** Boxes and buttons use stepped pixel corners (`.ds-button`, `.px-notch`) and
+   Press Start 2P; images use `image-rendering: pixelated`.
 
 ## Dataset
 

@@ -1,0 +1,50 @@
+/**
+ * Helpers that keep guess-tile text inside the tile's padding (clear of the bevel).
+ *
+ * The pixel font is monospaced (every glyph is 1em wide), so the width a word needs
+ * is just its length in characters times the font size. Each tile is told its
+ * longest word (--chars) and the CSS in index.css (.tile-fit) picks the largest
+ * font, down to 7px, at which that word fits on one line.
+ */
+
+const SHY = '­'
+
+/**
+ * Long words that may still not fit at 7px in the narrowest tiles get a soft hyphen at
+ * a natural break. It only shows (as "-") when the word really has to wrap.
+ */
+const BREAKS: Record<string, string> = {
+  Electric: `Elec${SHY}tric`,
+  Fighting: `Fight${SHY}ing`,
+  Psychic: `Psy${SHY}chic`,
+  Undiscovered: `Undis${SHY}covered`,
+  Amorphous: `Amor${SHY}phous`,
+  Gigantamax: `Gigan${SHY}tamax`,
+  Regional: `Region${SHY}al`,
+  Cosmetic: `Cos${SHY}metic`,
+}
+
+/** Adds soft hyphens to the long game words in a tile's text. */
+export function breakable(text: string): string {
+  return text.replace(/[A-Za-z]+/g, (w) => BREAKS[w] ?? w)
+}
+
+/** Length of the longest word across the given text parts (words split at spaces and commas). */
+export function longestWord(...parts: (string | number)[]): number {
+  let max = 1
+  for (const p of parts) for (const w of String(p).split(/[\s,]+/)) max = Math.max(max, w.replace(/­/g, '').length)
+  return max
+}
+
+/**
+ * Length of the longest piece that can't be split: words cut at soft hyphens and real
+ * hyphens, counting the "-" drawn at the end of the line. With this the CSS can choose a
+ * wrapped 8px word ("Undis- / covered") over squeezing it onto one line at 7px.
+ */
+export function longestPiece(...parts: (string | number)[]): number {
+  let max = 1
+  for (const p of parts)
+    for (const w of breakable(String(p)).split(/[\s,]+/))
+      for (const piece of w.split(/(?<=[-­])/)) max = Math.max(max, piece.length)
+  return max
+}

@@ -13,9 +13,11 @@ interface HelpModalProps {
   gameHard: boolean
 }
 
-function Swatch({ className, children }: { className: string; children: string }) {
+/** A tiny guess tile; data-result gives it the same coloured bevel as the grid. */
+function Swatch({ result, children }: { result: 'match' | 'partial' | 'mismatch'; children: string }) {
+  const color = { match: 'bg-fb-match', partial: 'bg-fb-partial text-ds-ink', mismatch: 'bg-fb-mismatch' }[result]
   return (
-    <span className={`${className} inline-flex h-6 min-w-6 items-center justify-center px-notch [--px:2px] px-1 text-[9px] text-white tile-bevel`}>
+    <span data-result={result} className={`${color} inline-flex h-6 min-w-6 items-center justify-center px-notch [--px:2px] px-1 text-[9px] text-white bevel`}>
       {children}
     </span>
   )
@@ -160,19 +162,19 @@ export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
         </p>
         <ul className="space-y-2">
           <li className="flex items-center gap-2">
-            <Swatch className="bg-fb-match">✓</Swatch> Exact match
+            <Swatch result="match">✓</Swatch> Exact match
           </li>
           <li className="flex items-center gap-2">
-            <Swatch className="bg-fb-partial text-ds-ink">~</Swatch> Partly right (a type in the other slot, or one shared egg group)
+            <Swatch result="partial">~</Swatch> Partly right (a type in the other slot, or one shared egg group)
           </li>
           <li className="flex items-center gap-2">
-            <Swatch className="bg-fb-mismatch">✕</Swatch> No match
+            <Swatch result="mismatch">✕</Swatch> No match
           </li>
           <li className="flex items-center gap-2">
-            <Swatch className="bg-fb-mismatch">▲</Swatch> The answer is higher
+            <Swatch result="mismatch">▲</Swatch> The answer is higher
           </li>
           <li className="flex items-center gap-2">
-            <Swatch className="bg-fb-mismatch">▼</Swatch> The answer is lower
+            <Swatch result="mismatch">▼</Swatch> The answer is lower
           </li>
         </ul>
         <dl className="space-y-2">
