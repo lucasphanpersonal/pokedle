@@ -24,6 +24,7 @@ src/hooks/usePokemondle.ts    game state (target, guesses, status), saved to loc
 src/lib/history.ts            solved-Daily history, streak maths and the Endless tally (pure, tested)
 src/hooks/useAnalytics.ts     wraps guesses with anonymous analytics
 src/hooks/useRevealEffects.ts  flip-reveal hold, tick sounds, win fanfare, cry and confetti timers
+src/hooks/useMediaQuery.ts     live CSS media-query match (GuessGrid picks table or cards with it)
 src/lib/                      dataset + search, Pokédex entry fetch (dexEntry.ts), comparison, daily seed, game rules, sound, storage, tile text fitting (tileText.ts)
 src/config/gameConfig.ts      game settings, including which form categories are enabled
 src/config/uiConfig.ts        tile animation timing
@@ -120,6 +121,8 @@ Older plain saves are still read. The search box shows "You got it!" once a game
   comparison tiles in two rows of four (Type 1, Type 2, Gen, Height / Weight, Color, Evolution, Form; in Hard mode the top row is three wider tiles without Gen) and full-width Egg Group and Shared Ability strips,
   with a small key above the list laid out in the same two rows of four as the tiles. The search box uses 16 px text so iOS doesn't
   zoom, and every button and suggestion is at least 44 px tall for touch.
+- Only one of the two layouts is rendered at a time (`useMediaQuery` in GuessGrid), not both with one hidden by CSS. Rotating
+  an iPad across 1024 px swaps the layout without replaying the tile flips.
 - Keyboard: type to search, ↑/↓ to move through suggestions, Enter to guess, Esc to close a dialog, ←/→ to switch Daily/Endless when that toggle is focused.
 - **Win confetti**: a ~2 second burst of pixel confetti in the game's colours, with a few Poké Balls and stars, falls over the result dialog when you win (Daily or Endless). It starts after the last tile flips, is pointer-free, and is not shown for players who set "reduce motion" (`src/components/Confetti.tsx`).
 - Animations are turned off for players who set "reduce motion".

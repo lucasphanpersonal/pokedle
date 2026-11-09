@@ -2,7 +2,11 @@ import { useState } from 'react'
 import { GRID_COLUMNS } from '../config/gameConfig'
 import type { GuessFeedback } from '../lib/compare'
 import type { Pokemon } from '../types/pokemon'
+import { useMediaQuery } from '../hooks/useMediaQuery'
 import { FeedbackRow, GuessCard } from './FeedbackRow'
+
+/** Tailwind's lg breakpoint (1024 px): the table from here up, cards below. */
+const TABLE_QUERY = '(min-width: 64rem)'
 
 /**
  * Share of the table width for each column (sums to 100). Fixed widths stop the
@@ -40,12 +44,21 @@ const HARD_WIDTHS = (() => {
  *
  * Phones and tablets under 1024 px show one compact card per guess (no sideways
  * scrolling); larger tablets and desktops show the full eleven-column table.
+ * Only the layout that fits is rendered, so each guess's tiles exist once in the DOM.
  */
 export function GuessGrid({ guesses, feedback, hard = false }: GuessGridProps) {
   const columns = hard ? HARD_COLUMNS : GRID_COLUMNS
   const widths = hard ? HARD_WIDTHS : COLUMN_WIDTHS
+  const showTable = useMediaQuery(TABLE_QUERY)
   // Captured once at mount: how many guesses were restored rather than made now.
-  const [restoredCount] = useState(guesses.length)
+  const [restoredCount, setRestoredCount] = useState(guesses.length)
+  // Crossing the breakpoint (rotating an iPad) mounts the other layout's rows;
+  // treat every guess so far as restored so they don't flip in a second time.
+  const [layoutShown, setLayoutShown] = useState(showTable)
+  if (layoutShown !== showTable) {
+    setLayoutShown(showTable)
+    setRestoredCount(guesses.length)
+  }
 
   if (guesses.length === 0) {
     return (
@@ -57,58 +70,61 @@ export function GuessGrid({ guesses, feedback, hard = false }: GuessGridProps) {
 
   return (
     <div className="ds-box p-2 sm:p-3">
-      <div className="lg:hidden">
-        {/*
-          Key laid out like the card's two rows of tiles (Egg Group and Ability strips label themselves).
-          Phrased as a sentence it wrapped unevenly on narrow phones.
-        */}
-        <div aria-hidden className="mb-2 grid grid-cols-12 gap-x-1 text-center text-[8px] leading-3 text-ds-frame max-[360px]:text-[7px] sm:text-[9px] sm:leading-4">
-          {(hard ? HARD_KEY_TOP : KEY_TOP).map((label) => (
-            <span key={label} className={hard ? 'col-span-4' : 'col-span-3'}>
-              {label}
-            </span>
-          ))}
-          {KEY_BOTTOM.map((label) => (
-            <span key={label} className="col-span-3">
-              {label}
-            </span>
-          ))}
-        </div>
-        <ul className="flex flex-col">
-          {guesses
-            .map((g, i) => ({ g, f: feedback[i], i }))
-            .reverse()
-            .map(({ g, f, i }) => (
-              <GuessCard key={g.id} guess={g} feedback={f} hard={hard} animate={i >= restoredCount} />
-            ))}
-        </ul>
-      </div>
-      <div className="hidden lg:block">
-        <table className="w-full table-fixed border-separate border-spacing-1">
-          <colgroup>
-            {widths.map((w, i) => (
-              <col key={columns[i]} style={{ width: `${w}%` }} />
-            ))}
-          </colgroup>
-          <thead>
-            <tr>
-              {columns.map((col) => (
-                <th key={col} scope="col" className="p-1 text-center text-[9px] leading-3 font-normal">
-                  {col}
-                </th>
+      {showTable ? (
+        <div>
+          <table className="w-full table-fixed border-separate border-spacing-1">
+            <colgroup>
+              {widths.map((w, i) => (
+                <col key={columns[i]} style={{ width: `${w}%` }} />
               ))}
-            </tr>
-          </thead>
-          <tbody>
+            </colgroup>
+            <thead>
+              <tr>
+                {columns.map((col) => (
+                  <th key={col} scope="col" className="p-1 text-center text-[9px] leading-3 font-normal">
+                    {col}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {guesses
+                .map((g, i) => ({ g, f: feedback[i], i }))
+                .reverse()
+                .map(({ g, f, i }) => (
+                  <FeedbackRow key={g.id} guess={g} feedback={f} hard={hard} animate={i >= restoredCount} />
+                ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div>
+          {/*
+            Key laid out like the card's two rows of tiles (Egg Group and Ability strips label themselves).
+            Phrased as a sentence it wrapped unevenly on narrow phones.
+          */}
+          <div aria-hidden className="mb-2 grid grid-cols-12 gap-x-1 text-center text-[8px] leading-3 text-ds-frame max-[360px]:text-[7px] sm:text-[9px] sm:leading-4">
+            {(hard ? HARD_KEY_TOP : KEY_TOP).map((label) => (
+              <span key={label} className={hard ? 'col-span-4' : 'col-span-3'}>
+                {label}
+              </span>
+            ))}
+            {KEY_BOTTOM.map((label) => (
+              <span key={label} className="col-span-3">
+                {label}
+              </span>
+            ))}
+        </div>
+          <ul className="flex flex-col">
             {guesses
               .map((g, i) => ({ g, f: feedback[i], i }))
               .reverse()
               .map(({ g, f, i }) => (
-                <FeedbackRow key={g.id} guess={g} feedback={f} hard={hard} animate={i >= restoredCount} />
+                <GuessCard key={g.id} guess={g} feedback={f} hard={hard} animate={i >= restoredCount} />
               ))}
-          </tbody>
-        </table>
-      </div>
+          </ul>
+        </div>
+      )}
     </div>
   )
 }
