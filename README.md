@@ -85,12 +85,12 @@ Older plain saves are still read. The search box shows "You got it!" once a game
   (`html.crt body::after` in `src/index.css`). On by default; players can turn it off under **Help → Display**
   (saved per device in `localStorage['pokemondle:crt']`). The flicker stops for "reduce motion".
 
-- **Sound effects**: original 8-bit style blips synthesised in the browser with the Web Audio API
+- **Sound effects and volume**: original 8-bit style blips synthesised in the browser with the Web Audio API
   (`src/lib/sound.ts`; square/triangle oscillators, no audio files and nothing copied from the games; the win cry below is the only audio, and it is streamed, not bundled): a blip as
   you type, a tick as you move through suggestions, a two-note chime on a guess, a rising tick as each tile flips
   (timed from `App.tsx` to match the flip animation), a low buzz for a bad or duplicate guess and a fanfare when
-  you win, then the answer's cry after the fanfare. On by default; mute with the speaker button in the header or **Help → Display & sound** (saved per
-  device in `localStorage['pokemondle:sound']`). The audio context is created on the first tap or keypress, as
+  you win, then the answer's cry after the fanfare. Volume is a Nintendo-style row of 5 stepped bars (`src/components/VolumeControl.tsx`; 0 bars is muted, default 5): tap a bar or use the arrow keys, Home and End. Bars sit in the header from tablet width up and always in **Help → Display & sound**; the speaker button mutes and restores the last level. The level scales the blips and the win cry (iOS Safari ignores volume on the cry), and is saved per
+  device in `localStorage['pokemondle:volume']` (the old `pokemondle:sound` on/off setting is migrated: off becomes 0). The audio context is created on the first tap or keypress, as
   browsers (including iOS Safari) require. Typing and menu blips still play with "reduce motion"; only the tile ticks are skipped.
 - **Win cry**: on a win the answer's cry plays after the fanfare (`src/lib/cry.ts`). Cries are streamed from the PokéAPI
   cries repo (`raw.githubusercontent.com/PokeAPI/cries`, `latest/{id}.ogg`), only on a win, never during play. Forms without

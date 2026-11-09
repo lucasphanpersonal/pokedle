@@ -23,7 +23,7 @@ describe('sound', () => {
     expect(b.isSoundOn()).toBe(false)
   })
 
-  it('notifies subscribers so every mute button stays in sync', async () => {
+  it('notifies subscribers so every volume control stays in sync', async () => {
     const s = await import('./sound')
     const seen = vi.fn()
     const off = s.subscribeSound(seen)
@@ -32,6 +32,38 @@ describe('sound', () => {
     off()
     s.setSoundOn(true)
     expect(seen).toHaveBeenCalledTimes(1)
+  })
+
+  it('remembers the volume level and clamps it', async () => {
+    const a = await import('./sound')
+    expect(a.getVolume()).toBe(a.MAX_VOLUME)
+    a.setVolume(3)
+    a.setVolume(99)
+    expect(a.getVolume()).toBe(a.MAX_VOLUME)
+    a.setVolume(2)
+    vi.resetModules()
+    expect((await import('./sound')).getVolume()).toBe(2)
+  })
+
+  it('migrates the old on/off setting', async () => {
+    window.localStorage.setItem('pokemondle:sound', 'false')
+    expect((await import('./sound')).getVolume()).toBe(0)
+  })
+
+  it('speaker toggle mutes and restores the last level', async () => {
+    const s = await import('./sound')
+    s.setVolume(3)
+    s.toggleMute()
+    expect(s.getVolume()).toBe(0)
+    s.toggleMute()
+    expect(s.getVolume()).toBe(3)
+  })
+
+  it('each step is louder than the last', async () => {
+    const { volumeGain, MAX_VOLUME } = await import('./sound')
+    expect(volumeGain(0)).toBe(0)
+    for (let i = 1; i <= MAX_VOLUME; i++) expect(volumeGain(i)).toBeGreaterThan(volumeGain(i - 1))
+    expect(volumeGain(MAX_VOLUME)).toBe(1)
   })
 
   it('does not throw when Web Audio is unavailable', async () => {

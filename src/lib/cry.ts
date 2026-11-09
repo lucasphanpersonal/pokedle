@@ -1,5 +1,5 @@
 import type { Pokemon } from '../types/pokemon'
-import { isSoundOn, subscribeSound } from './sound'
+import { getVolume, isSoundOn, subscribeSound, volumeGain } from './sound'
 
 /**
  * Pokémon cries from the PokéAPI cries repository (the same host family as the
@@ -25,9 +25,10 @@ export function stopCry(): void {
   current = null
 }
 
-// Muting mid-cry must cut it off straight away.
+// Muting mid-cry cuts it off straight away; other changes retune it live.
 subscribeSound(() => {
   if (!isSoundOn()) stopCry()
+  else if (current) current.volume = volumeGain(getVolume())
 })
 
 function tryPlay(urls: string[]): void {
@@ -36,6 +37,7 @@ function tryPlay(urls: string[]): void {
   try {
     stopCry()
     const audio = new Audio(url)
+    audio.volume = volumeGain(getVolume())
     // A missing cry (404, offline) moves on to the species cry, then gives up silently.
     audio.onerror = () => tryPlay(rest)
     current = audio

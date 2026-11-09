@@ -2,7 +2,7 @@ import { useId, useState, useSyncExternalStore } from 'react'
 import { isBrowserDoNotTrack, isOptedOutByPlayer, setTrackingOptOut } from '../lib/analytics'
 import { isCrtOn, setCrt } from '../lib/display'
 import { isHardPref, setHardPref, subscribeHardPref } from '../lib/hardMode'
-import { isSoundOn, setSoundOn, subscribeSound } from '../lib/sound'
+import { VolumeBars } from './VolumeControl'
 import { Modal } from './Modal'
 
 interface HelpModalProps {
@@ -82,7 +82,6 @@ function HardModeSetting({ locked, gameHard }: { locked: boolean; gameHard: bool
 
 function DisplaySettings() {
   const [crt, setCrtState] = useState(isCrtOn)
-  const sound = useSyncExternalStore(subscribeSound, isSoundOn, () => true)
   return (
     <section className="mt-5 border-t-2 border-ds-frame-light pt-4 text-[10px] leading-5">
       <h3 className="mb-2 text-[11px]">Display &amp; sound</h3>
@@ -95,14 +94,11 @@ function DisplaySettings() {
         }}
       />
       <p className="mt-1 text-[9px] text-ds-frame">Scanlines and a soft glow, like an old handheld or TV.</p>
-      <PixelSwitch
-        label="Sound effects"
-        on={sound}
-        onToggle={() => {
-          setSoundOn(!sound)
-        }}
-      />
-      <p className="mt-1 text-[9px] text-ds-frame">Retro 8-bit blips as you type and as tiles flip, a jingle when you win, then the answer's cry. Also on the speaker button in the header.</p>
+      <div className="mt-2 flex min-h-11 items-center justify-between gap-3">
+        <span>Volume</span>
+        <VolumeBars />
+      </div>
+      <p className="mt-1 text-[9px] text-ds-frame">Retro 8-bit blips as you type and as tiles flip, a jingle when you win, then the answer's cry. Tap a bar or use the arrow keys to set the volume; no bars lit is muted. The speaker button in the header mutes and unmutes.</p>
     </section>
   )
 }
