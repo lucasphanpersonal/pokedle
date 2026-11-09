@@ -61,34 +61,74 @@ export function notesFor(name: SoundName, pitch = 0): Note[] {
   }
 }
 
-const KEY = 'sound'
-let enabled: boolean | null = null
+const KEY = 'volume'
+const LEGACY_MUTE_KEY = 'sound'
+
+/** Volume steps, like the bars on a Nintendo console: 0 is muted, 5 is full. */
+export const MAX_VOLUME = 5
+export const DEFAULT_VOLUME = MAX_VOLUME
+
+/** Gain multiplier per step; uneven so each bar is an audible change. */
+const STEP_GAIN = [0, 0.1, 0.25, 0.45, 0.7, 1] as const
+
+export const volumeGain = (level: number) => STEP_GAIN[Math.min(Math.max(Math.round(level), 0), MAX_VOLUME)]
+
+let volume: number | null = null
+/** The level the speaker button restores after muting. */
+let lastAudible = DEFAULT_VOLUME
 let ctx: AudioContext | null = null
 
-/** Sound is on by default and the player's choice is remembered per device. */
+/** The saved level, migrating the old on/off switch (off becomes 0, on becomes full). */
+function loadVolume(): number {
+  const saved = loadJson(KEY)
+  if (typeof saved === 'number' && Number.isInteger(saved) && saved >= 0 && saved <= MAX_VOLUME) return saved
+  return loadJson(LEGACY_MUTE_KEY) === false ? 0 : DEFAULT_VOLUME
+}
+
+/** Current volume step, 0 (muted) to MAX_VOLUME. Remembered per device. */
+export function getVolume(): number {
+  if (volume === null) {
+    volume = loadVolume()
+    if (volume > 0) lastAudible = volume
+  }
+  return volume
+}
+
 export function isSoundOn(): boolean {
-  if (enabled === null) enabled = loadJson(KEY) !== false
-  return enabled
+  return getVolume() > 0
 }
 
 const listeners = new Set<() => void>()
 
-/** For useSyncExternalStore: lets every mute button follow the same state. */
+/** For useSyncExternalStore: lets every volume control follow the same state. */
 export function subscribeSound(listener: () => void): () => void {
   listeners.add(listener)
   return () => void listeners.delete(listener)
 }
 
-export function setSoundOn(on: boolean): void {
-  enabled = on
-  saveJson(KEY, on)
-  if (!on && ctx) {
+export function setVolume(level: number): void {
+  const next = Math.min(Math.max(Math.round(level), 0), MAX_VOLUME)
+  if (next === getVolume()) return
+  volume = next
+  if (next > 0) lastAudible = next
+  saveJson(KEY, next)
+  if (next === 0 && ctx) {
     // Closing the context also cuts off any notes already queued.
     void ctx.close().catch(() => {})
     ctx = null
   }
   listeners.forEach((l) => l())
-  if (on) playSound('toggle')
+  // Audible feedback at the new level, like the blip on a console's volume bars.
+  if (next > 0) playSound('toggle')
+}
+
+/** Speaker button: mute, or restore the last level used. */
+export function toggleMute(): void {
+  setVolume(isSoundOn() ? 0 : lastAudible)
+}
+
+export function setSoundOn(on: boolean): void {
+  setVolume(on ? lastAudible : 0)
 }
 
 function getContext(): AudioContext | null {
@@ -123,7 +163,7 @@ function unlockOnGesture(): void {
 }
 unlockOnGesture()
 
-/** Play an effect. Silent when muted, unsupported, or never throws. */
+/** Play an effect at the current volume. Silent when muted, unsupported, or never throws. */
 export function playSound(name: SoundName, pitch = 0): void {
   if (!isSoundOn()) return
   const audio = getContext()
@@ -136,6 +176,7 @@ export function playSound(name: SoundName, pitch = 0): void {
       return
     }
     const t0 = audio.currentTime + 0.01
+    const gainScale = volumeGain(getVolume())
     for (const note of notesFor(name, pitch)) {
       const osc = audio.createOscillator()
       const gain = audio.createGain()
@@ -145,8 +186,8 @@ export function playSound(name: SoundName, pitch = 0): void {
       osc.frequency.value = note.f
       // Tiny attack and release avoid clicks between notes.
       gain.gain.setValueAtTime(0.0001, start)
-      gain.gain.linearRampToValueAtTime(note.vol ?? 0.12, start + 0.005)
-      gain.gain.setValueAtTime(note.vol ?? 0.12, Math.max(start + 0.005, end - 0.02))
+      gain.gain.linearRampToValueAtTime((note.vol ?? 0.12) * gainScale, start + 0.005)
+      gain.gain.setValueAtTime((note.vol ?? 0.12) * gainScale, Math.max(start + 0.005, end - 0.02))
       gain.gain.linearRampToValueAtTime(0.0001, end)
       osc.connect(gain).connect(audio.destination)
       osc.start(start)
