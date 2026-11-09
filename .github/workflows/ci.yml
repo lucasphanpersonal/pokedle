@@ -1,4 +1,4 @@
-# Lint, test and build every pull request.
+# Lint, test and build every pull request, then smoke-test the build in a real browser.
 name: CI
 
 on:
@@ -20,3 +20,11 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
