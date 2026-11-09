@@ -32,6 +32,20 @@ describe('pokemon.json', () => {
       expect([1, 2, 3]).toContain(p.evolutionStage)
     }
   })
+  it('lists egg groups as display names, shared by a species and its forms', () => {
+    const allowed = new Set(['Monster', 'Water 1', 'Bug', 'Flying', 'Ground', 'Fairy', 'Plant', 'Human-Like', 'Water 3', 'Mineral', 'Amorphous', 'Water 2', 'Ditto', 'Dragon', 'Undiscovered'])
+    for (const p of data) {
+      expect(p.eggGroups.length, `${p.name} egg groups`).toBeGreaterThanOrEqual(1)
+      expect(p.eggGroups.length, `${p.name} egg groups`).toBeLessThanOrEqual(2)
+      expect(new Set(p.eggGroups).size).toBe(p.eggGroups.length)
+      for (const g of p.eggGroups) expect(allowed.has(g), `${p.name}: ${g}`).toBe(true)
+    }
+    const eggs = (name: string) => data.find((p) => p.name === name)?.eggGroups
+    expect(eggs('Charizard')).toEqual(['Monster', 'Dragon'])
+    expect(eggs('Mega Charizard X')).toEqual(['Monster', 'Dragon'])
+    expect(eggs('Mewtwo')).toEqual(['Undiscovered'])
+    expect(eggs('Ditto')).toEqual(['Ditto'])
+  })
   it('lists abilities as display names', () => {
     for (const p of data) {
       expect(new Set(p.abilities).size).toBe(p.abilities.length)

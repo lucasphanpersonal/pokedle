@@ -14,6 +14,7 @@ const base: Pokemon = {
   color: 'Green',
   evolutionStage: 3,
   abilities: ['Overgrow'],
+  eggGroups: ['Monster', 'Plant'],
   formCategory: 'base',
 }
 

@@ -33,9 +33,10 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   with each Pokémon's id. **Endless**: a new random Pokémon on demand. Each mode keeps its own saved game.
 - **No guess limit**: a game ends only when you guess the answer. The search box only accepts Pokémon picked from
   its suggestions; already guessed Pokémon are hidden from them. Matching ignores case, accents and punctuation ("flabebe" finds Flabébé).
-- **Columns**: Pokémon, Type 1, Type 2, Gen, Height, Weight, Color, Evolution (stage 1–3), Form, Shared Ability.
-  Green = match, yellow = type in the other slot, red = no match, ▲/▼ = the answer is higher/lower.
+- **Columns**: Pokémon, Type 1, Type 2, Gen, Height, Weight, Color, Evolution (stage 1–3), Form, Egg Group, Shared Ability.
+  Green = match, yellow = type in the other slot (or one shared egg group), red = no match, ▲/▼ = the answer is higher/lower.
   Form is green when the guess and the answer share a form category (Base, Mega, Regional, Gigantamax, Cosmetic, Other), red otherwise; the tile shows the guess's own category.
+  Egg Group (from PokéAPI's species data; forms share their species' groups, legendaries are mostly "Undiscovered") is green when the guess and the answer have exactly the same groups, yellow when they share at least one, red when none; the tile lists the guess's own groups.
   Shared Ability lists every ability the two share (hidden abilities count). With no match it is red and lists all of
   the guess's own abilities instead.
   Guessing the exact answer always turns every tile green. (Forms with no ability data on PokéAPI, like the new Legends Z-A Megas, borrow their base species' abilities in the data script.)
@@ -99,9 +100,9 @@ Older plain saves are still read. The search box shows "You got it!" once a game
 
 ### Layout on different devices
 
-- Desktop and large tablet (≥ 1024 px): all ten columns fit on screen.
+- Desktop and large tablet (≥ 1024 px): all eleven columns fit on screen.
 - Phones and tablets under 1024 px: no sideways scrolling. Each guess is a compact card: sprite and name on top, then the
-  comparison tiles in two rows of four (Type 1, Type 2, Gen, Height / Weight, Color, Evolution, Form; in Hard mode the top row is three wider tiles without Gen) and a full-width Shared Ability strip,
+  comparison tiles in two rows of four (Type 1, Type 2, Gen, Height / Weight, Color, Evolution, Form; in Hard mode the top row is three wider tiles without Gen) and full-width Egg Group and Shared Ability strips,
   with a small key above the list. The search box uses 16 px text so iOS doesn't
   zoom, and every button and suggestion is at least 44 px tall for touch.
 - Keyboard: type to search, ↑/↓ to move through suggestions, Enter to guess, Esc to close a dialog.

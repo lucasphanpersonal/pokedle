@@ -155,14 +155,14 @@ export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
         <p>Start typing a name and pick from the list. Each guess shows how close it is:</p>
         <p className="lg:hidden">
           On a phone each guess is a card: Type 1, Type 2, Gen and Height on top, then Weight, Color, Evolution and Form,
-          with Shared Ability along the bottom (Gen is left out in Hard mode). Tablets from 1024 px wide and computers show a table instead.
+          with Egg Group and Shared Ability along the bottom (Gen is left out in Hard mode). Tablets from 1024 px wide and computers show a table instead.
         </p>
         <ul className="space-y-2">
           <li className="flex items-center gap-2">
             <Swatch className="bg-fb-match">✓</Swatch> Exact match
           </li>
           <li className="flex items-center gap-2">
-            <Swatch className="bg-fb-partial text-ds-ink">~</Swatch> Right type, other slot
+            <Swatch className="bg-fb-partial text-ds-ink">~</Swatch> Partly right (a type in the other slot, or one shared egg group)
           </li>
           <li className="flex items-center gap-2">
             <Swatch className="bg-fb-mismatch">✕</Swatch> No match
@@ -182,6 +182,10 @@ export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
           <div>
             <dt className="inline">Form: </dt>
             <dd className="inline">green if the guess and the answer are the same kind of form (Base, Mega, Regional, Gigantamax and so on), otherwise red. The tile names the guess's own form.</dd>
+          </div>
+          <div>
+            <dt className="inline">Egg Group: </dt>
+            <dd className="inline">green if your guess and the answer have exactly the same egg groups, yellow if they share at least one (say, Monster and Dragon against Dragon alone), red if none. Legendaries and other Pokémon that can't breed are "Undiscovered", and forms share their species' groups.</dd>
           </div>
           <div>
             <dt className="inline">Shared Ability: </dt>

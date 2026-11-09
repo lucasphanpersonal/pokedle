@@ -20,6 +20,7 @@ export interface GuessFeedback {
   color: 'match' | 'mismatch'
   evolutionStage: NumberFeedback
   form: 'match' | 'mismatch'
+  eggGroup: MatchFeedback
   ability: AbilityFeedback
 }
 
@@ -90,6 +91,18 @@ export function abilityCellText(guess: Pokemon, feedback: AbilityFeedback): stri
   return guess.abilities.length > 0 ? guess.abilities.join(', ') : 'Unknown'
 }
 
+/**
+ * Egg Group: green if both have exactly the same groups, yellow if they share at
+ * least one (e.g. Monster + Dragon vs. Dragon alone), red if none.
+ */
+export function compareEggGroups(guess: Pokemon, target: Pokemon): MatchFeedback {
+  const ours = new Set(guess.eggGroups)
+  const theirs = new Set(target.eggGroups)
+  const shared = [...ours].filter((g) => theirs.has(g)).length
+  if (shared === 0) return 'mismatch'
+  return shared === ours.size && shared === theirs.size ? 'match' : 'partial'
+}
+
 /** Form: green if both are the same kind of form (Base, Mega, Regional, ...), red otherwise. */
 export function compareForm(guess: Pokemon, target: Pokemon): 'match' | 'mismatch' {
   return guess.formCategory === target.formCategory ? 'match' : 'mismatch'
@@ -119,6 +132,7 @@ export function compareGuess(guess: Pokemon, target: Pokemon): GuessFeedback {
     color: guess.color === target.color ? 'match' : 'mismatch',
     evolutionStage: compareNumber(guess.evolutionStage, target.evolutionStage),
     form: compareForm(guess, target),
+    eggGroup: compareEggGroups(guess, target),
     ability: compareAbilities(guess, target),
   }
 }

@@ -89,6 +89,27 @@ export interface ApiAbility {
   names: ApiName[]
 }
 
+/** Minimal shape of the egg-group part of /pokemon-species/{id}. */
+export interface ApiEggGroups {
+  egg_groups: NamedRef[]
+}
+
+/** PokéAPI slugs whose display name isn't just the title-cased slug. */
+const EGG_GROUP_LABELS: Record<string, string> = {
+  water1: 'Water 1',
+  water2: 'Water 2',
+  water3: 'Water 3',
+  humanshape: 'Human-Like',
+  indeterminate: 'Amorphous',
+  'no-eggs': 'Undiscovered',
+}
+
+/** Egg groups for display, in PokéAPI order, without repeats. Falls back to "Undiscovered" if the API lists none. */
+export function eggGroupNames(species: ApiEggGroups): string[] {
+  const names = [...new Set(species.egg_groups.map((g) => EGG_GROUP_LABELS[g.name] ?? titleCase(g.name)))]
+  return names.length > 0 ? names : ['Undiscovered']
+}
+
 /** Ability slugs in slot order (regular abilities, then hidden), without repeats. */
 export function abilitySlugs(p: ApiPokemon): NamedRef[] {
   const seen = new Set<string>()

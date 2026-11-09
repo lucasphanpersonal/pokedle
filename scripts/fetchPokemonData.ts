@@ -4,7 +4,7 @@
  *   npm run fetch-data
  *
  * Pulls every Pokémon entry (Gen 1-9, including regional forms, Megas,
- * Gigantamax and other alternate forms), joins in species colour, generation
+ * Gigantamax and other alternate forms), joins in species colour, egg groups, generation
  * and evolution stage, and writes a compact dataset the game loads locally.
  *
  * Source: https://pokeapi.co/api/v2. If that host can't be reached, the script
@@ -25,6 +25,7 @@ import {
   type ApiPokemonForm,
   type NamedRef,
   abilitySlugs,
+  eggGroupNames,
   categorize,
   displayName,
   englishName,
@@ -153,6 +154,7 @@ interface ApiSpecies {
   name: string
   names: ApiName[]
   color: NamedRef
+  egg_groups: NamedRef[]
   generation: NamedRef
   evolution_chain: { url: string } | null
   varieties: { is_default: boolean; pokemon: NamedRef }[]
@@ -226,6 +228,7 @@ async function main() {
       weight: p.weight / 10,
       color: species.color.name[0].toUpperCase() + species.color.name.slice(1),
       abilities,
+      eggGroups: eggGroupNames(species),
       evolutionStage: chain ? evolutionStage(chain.chain, species.name) : 1,
       formCategory: categorize(p, form, base),
     }
