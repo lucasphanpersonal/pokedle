@@ -112,6 +112,7 @@ export function SearchBar({ pokedex, guessedIds, onGuess, disabled }: SearchBarP
           disabled={disabled || !showList || !suggestions[active]}
           // Keep focus (and the open list) in the input when the button is pressed.
           onMouseDown={(e) => e.preventDefault()}
+          data-no-sound
           onClick={() => showList && suggestions[active] && choose(suggestions[active])}
           className="ds-button bevel-red px-3 text-[10px] text-ds-paper disabled:opacity-40"
         >

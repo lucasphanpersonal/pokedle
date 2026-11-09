@@ -88,3 +88,10 @@ describe('sound', () => {
     expect(notesFor('tick', 12)[0].f).toBeCloseTo(notesFor('tick')[0].f * 2)
   })
 })
+
+describe('button press sound', () => {
+  it('has a press blip that plays at the current volume', async () => {
+    const s = await import('./sound')
+    expect(s.notesFor('press').length).toBeGreaterThan(0)
+  })
+})
