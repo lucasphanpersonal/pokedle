@@ -38,6 +38,22 @@ curl -s -o /dev/null -w "%{http_code}\n" -X POST "https://<project-ref>.supabase
 ```
 Delete test rows afterwards: `delete from events where game_id = '3fa85b3a-8158-46e3-8e84-af7319e0d0a4';`
 
+## Automatic deploys (GitHub Actions)
+
+`.github/workflows/supabase-deploy.yml` runs when a change under `supabase/` is merged to `main` (or by hand from the
+Actions tab, main branch only; edits to the workflow file also trigger it). It links the project, runs `supabase db push --remote --yes`, then deploys `track` and `stats` with
+`--no-verify-jwt`. It does **not** touch function secrets such as `ALLOWED_ORIGINS`; set those by hand as above.
+
+One-time setup, in the repo under **Settings > Secrets and variables > Actions > New repository secret**:
+
+| Secret | Where to get it |
+| --- | --- |
+| `SUPABASE_ACCESS_TOKEN` | <https://supabase.com/dashboard/account/tokens> > Generate new token |
+| `SUPABASE_DB_PASSWORD` | The database password chosen when the project was created (reset under **Project Settings > Database** if lost) |
+
+The project ref is in the workflow file because it is public (it is in the function URL). Never commit either secret.
+If a secret is missing the job fails with a clear message. Manual deploys from a PC (commands above) still work.
+
 ## Security model
 
 - The `Origin` check against `ALLOWED_ORIGINS` is CORS hygiene, **not access control**: any

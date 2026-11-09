@@ -200,6 +200,9 @@ With Supabase CLI 3, `db push` targets a local database unless you pass `--remot
 
 The live project is `inxvlunfwsssifvjkgtz` (US); the client sends events to `https://inxvlunfwsssifvjkgtz.supabase.co/functions/v1/track`.
 
+After the one-time setup, merging a change under `supabase/` to `main` deploys the migrations and both functions automatically
+(`.github/workflows/supabase-deploy.yml`; needs the `SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD` repo secrets).
+
 See [supabase/README.md](supabase/README.md) for details.
 
 ### Client-side tracking and opting out
