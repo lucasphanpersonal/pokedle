@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  eggGroupNames,
   type ApiEvolutionNode,
   type ApiPokemon,
   type ApiPokemonForm,
@@ -123,5 +124,18 @@ describe('small helpers', () => {
     expect(generationNumber('generation-ix')).toBe(9)
     expect(() => generationNumber('generation-x')).toThrow()
     expect(idFromUrl('/api/v2/pokemon/37/')).toBe(37)
+  })
+})
+
+describe('eggGroupNames', () => {
+  const groups = (...names: string[]) => ({ egg_groups: names.map((name) => ({ name, url: '' })) })
+  it('formats PokéAPI slugs for display', () => {
+    expect(eggGroupNames(groups('monster', 'dragon'))).toEqual(['Monster', 'Dragon'])
+    expect(eggGroupNames(groups('water1', 'humanshape'))).toEqual(['Water 1', 'Human-Like'])
+    expect(eggGroupNames(groups('no-eggs'))).toEqual(['Undiscovered'])
+    expect(eggGroupNames(groups('indeterminate'))).toEqual(['Amorphous'])
+  })
+  it('falls back to Undiscovered when none are listed', () => {
+    expect(eggGroupNames(groups())).toEqual(['Undiscovered'])
   })
 })

@@ -9,7 +9,7 @@ import { FeedbackRow, GuessCard } from './FeedbackRow'
  * Shared Ability text from taking over the table and squeezing the others.
  * Each leaves room, after the tile padding, for its longest single word ("Gigantamax", "Fighting", "Yellow"); Gen, Height, Weight and Evolution may wrap at spaces. Form and Shared Ability use smaller text so three long abilities fit on up to three lines.
  */
-const COLUMN_WIDTHS = [12, 11, 11, 6, 7, 8, 9, 8, 12, 16]
+const COLUMN_WIDTHS = [11, 9, 9, 6, 7, 7, 8, 8, 9, 12, 14]
 
 interface GuessGridProps {
   guesses: Pokemon[]
@@ -32,7 +32,7 @@ const HARD_WIDTHS = (() => {
  * remounts the grid) appears instantly.
  *
  * Phones and tablets under 1024 px show one compact card per guess (no sideways
- * scrolling); larger tablets and desktops show the full ten-column table.
+ * scrolling); larger tablets and desktops show the full eleven-column table.
  */
 export function GuessGrid({ guesses, feedback, hard = false }: GuessGridProps) {
   const columns = hard ? HARD_COLUMNS : GRID_COLUMNS
@@ -56,7 +56,7 @@ export function GuessGrid({ guesses, feedback, hard = false }: GuessGridProps) {
           <br />
           Then: Weight · Color · Evolution · Form
           <br />
-          Bottom: Shared Ability
+          Bottom: Egg Group · Shared Ability
         </p>
         <ul className="flex flex-col">
           {guesses

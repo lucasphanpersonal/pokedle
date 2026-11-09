@@ -32,5 +32,7 @@ export interface Pokemon {
   evolutionStage: EvolutionStage
   /** Every ability, hidden ones included, display-formatted ("Speed Boost"). Forms can differ from their base. */
   abilities: string[]
+  /** Egg groups of the species (1 or 2), display-formatted ("Monster", "Water 1", "Undiscovered"). Forms share their species' groups. */
+  eggGroups: string[]
   formCategory: FormCategory
 }

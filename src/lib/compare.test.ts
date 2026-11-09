@@ -3,6 +3,7 @@ import type { Pokemon } from '../types/pokemon'
 import {
   abilityCellText,
   compareAbilities,
+  compareEggGroups,
   compareForm,
   compareGuess,
   compareNumber,
@@ -23,6 +24,7 @@ const mon = (over: Partial<Pokemon>): Pokemon => ({
   color: 'Red',
   evolutionStage: 1,
   abilities: [],
+  eggGroups: ['Monster'],
   formCategory: 'base',
   ...over,
 })
@@ -87,12 +89,29 @@ describe('compareGuess', () => {
       color: 'mismatch',
       evolutionStage: 'higher',
       form: 'match',
+      eggGroup: 'match',
       ability: { result: 'match', shared: ['Blaze'] },
     })
   })
   it('matches the answer itself on every attribute', () => {
     const p = mon({ type2: 'Flying', abilities: ['Blaze'] })
     expect(Object.values(compareGuess(p, p)).every((v) => (typeof v === 'string' ? v === 'match' : v.result === 'match'))).toBe(true)
+  })
+})
+
+describe('compareEggGroups', () => {
+  const eggs = (...eggGroups: string[]) => mon({ eggGroups })
+  it('is green when both have exactly the same groups, in any order', () => {
+    expect(compareEggGroups(eggs('Monster', 'Dragon'), eggs('Dragon', 'Monster'))).toBe('match')
+    expect(compareEggGroups(eggs('Undiscovered'), eggs('Undiscovered'))).toBe('match')
+  })
+  it('is yellow when at least one group overlaps', () => {
+    expect(compareEggGroups(eggs('Monster', 'Dragon'), eggs('Dragon'))).toBe('partial')
+    expect(compareEggGroups(eggs('Water 1'), eggs('Water 1', 'Monster'))).toBe('partial')
+    expect(compareEggGroups(eggs('Ground', 'Fairy'), eggs('Fairy', 'Plant'))).toBe('partial')
+  })
+  it('is red when nothing overlaps', () => {
+    expect(compareEggGroups(eggs('Bug'), eggs('Flying'))).toBe('mismatch')
   })
 })
 

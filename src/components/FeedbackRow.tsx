@@ -39,7 +39,7 @@ const ARROW: Partial<Record<Result, string>> = { higher: '▲', lower: '▼' }
 
 const LABEL: Record<Result, string> = {
   match: 'correct',
-  partial: 'right type, other slot',
+  partial: 'partly right',
   mismatch: 'wrong',
   higher: 'answer is higher',
   lower: 'answer is lower',
@@ -51,20 +51,23 @@ function Tile({
   index,
   animate,
   compact,
+  tiny,
   children,
 }: {
   result: Result
   index: number
   animate: boolean
-  /** Smaller text and padding for the long-text columns (Form, Shared Ability). */
+  /** Smaller text and padding for the long-text columns (Form, Egg Group, Shared Ability). */
   compact?: boolean
+  /** Smallest text, for "Undiscovered" and other long single words in narrow columns (Egg Group). */
+  tiny?: boolean
   children: ReactNode
 }) {
   const style: CSSProperties | undefined = animate ? { animationDelay: `${index * TILE_FLIP_STAGGER_MS}ms` } : undefined
   return (
     <td className="p-0">
       <div
-        className={`${BG[result]} ${animate ? 'tile-flip' : ''} relative flex h-16 flex-col items-center justify-center px-notch ${compact ? 'px-1' : 'px-2'} pb-1 text-center text-[9px] leading-[1.35] text-white ${TILE_EDGE} sm:h-[72px] ${compact ? 'sm:text-[9px]' : 'sm:text-[10px]'}`}
+        className={`${BG[result]} ${animate ? 'tile-flip' : ''} relative flex h-16 flex-col items-center justify-center px-notch ${compact ? 'px-1' : 'px-2'} pb-1 text-center text-[9px] leading-[1.35] text-white ${TILE_EDGE} sm:h-[72px] ${tiny ? 'sm:text-[8px]' : compact ? 'sm:text-[9px]' : 'sm:text-[10px]'}`}
         style={style}
         data-result={result}
       >
@@ -98,6 +101,7 @@ function buildTiles(guess: Pokemon, feedback: GuessFeedback, hard: boolean): Til
     { label: 'Color', result: feedback.color, content: guess.color },
     { label: 'Evolution', result: feedback.evolutionStage, content: `Stage ${guess.evolutionStage}` },
     { label: 'Form', result: feedback.form, content: formCellText(guess) },
+    { label: 'Egg Group', result: feedback.eggGroup, content: guess.eggGroups.join(', ') },
     { label: 'Shared Ability', result: feedback.ability.result, content: abilityCellText(guess, feedback.ability) },
   ]
   return hard ? tiles.filter((t) => t.label !== 'Gen') : tiles
@@ -105,11 +109,12 @@ function buildTiles(guess: Pokemon, feedback: GuessFeedback, hard: boolean): Til
 
 /**
  * Phone layout: one compact card per guess (sprite + name, two rows of four
- * tiles, then a full-width Shared Ability strip) so nothing scrolls sideways.
+ * tiles, then full-width Egg Group and Shared Ability strips) so nothing scrolls sideways.
  * Tablets and desktops use the table row below.
  */
 export function GuessCard({ guess, feedback, animate, hard = false }: FeedbackRowProps) {
   const tiles = buildTiles(guess, feedback, hard)
+  const egg = tiles[tiles.length - 2]
   const ability = tiles[tiles.length - 1]
   // Two rows of four tiles; Hard mode has seven, so the top row is three wider ones.
   const topCount = hard ? 3 : 4
@@ -149,7 +154,15 @@ export function GuessCard({ guess, feedback, animate, hard = false }: FeedbackRo
         <span className="sr-only">, {LABEL[feedback.pokemon]}</span>
       </div>
       {tiles.slice(0, topCount).map((_, i) => tile(i, hard ? 'col-span-4' : 'col-span-3'))}
-      {tiles.slice(topCount, -1).map((_, i) => tile(topCount + i, 'col-span-3'))}
+      {tiles.slice(topCount, -2).map((_, i) => tile(topCount + i, 'col-span-3'))}
+      <div
+        className={`${BG[egg.result]} ${animate ? 'tile-flip' : ''} px-notch col-span-12 flex min-h-9 items-center justify-center px-2 py-1.5 text-center text-[8px] leading-[1.6] text-white ${TILE_EDGE}`}
+        style={delay(tiles.length - 1)}
+        data-result={egg.result}
+      >
+        <span className="[overflow-wrap:anywhere]">Egg Group: {egg.content}</span>
+        <span className="sr-only">, {LABEL[egg.result]}</span>
+      </div>
       <div
         className={`${BG[ability.result]} ${animate ? 'tile-flip' : ''} px-notch col-span-12 flex min-h-9 items-center justify-center px-2 py-1.5 text-center text-[8px] leading-[1.6] text-white ${TILE_EDGE}`}
         style={delay(tiles.length)}
@@ -177,7 +190,7 @@ export function FeedbackRow({ guess, feedback, animate, hard = false }: Feedback
         </div>
       </th>
       {tiles.map(({ label, result, content }, i) => (
-        <Tile key={label} result={result} index={i + 1} animate={animate} compact={label === 'Form' || label === 'Shared Ability'}>
+        <Tile key={label} result={result} index={i + 1} animate={animate} compact={label === 'Form' || label === 'Egg Group' || label === 'Shared Ability'} tiny={label === 'Egg Group'}>
           {content}
         </Tile>
       ))}
