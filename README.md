@@ -38,7 +38,8 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   screen, titled "It got away!", reveals the answer with its Pokédex entry and a **New Pokémon** button, and the
   game counts as given up in History. The Daily has no give up, so streaks are unaffected.
 - **Columns**: Pokémon, Type 1, Type 2, Gen, Height, Weight, Color, Evolution (stage 1–3), Form, Egg Group, Shared Ability.
-  Green = match, yellow = type in the other slot (or one shared egg group), red = no match, ▲/▼ = the answer is higher/lower.
+  Green ✓ = match, yellow ~ = type in the other slot (or one shared egg group), red ✕ = no match, ▲/▼ = the answer is higher/lower.
+  Every tile carries its ✓, ~ or ✕ as a small pixel mark in the top-right corner (`src/components/ResultMark.tsx`), and number tiles carry their arrow, so no result depends on telling red from green.
   Form is green when the guess and the answer share a form category (Base, Mega, Regional, Gigantamax, Cosmetic, Other), red otherwise; the tile shows the guess's own category.
   Egg Group (from PokéAPI's species data; forms share their species' groups, legendaries are mostly "Undiscovered") is green when the guess and the answer have exactly the same groups, yellow when they share at least one, red when none; the tile lists the guess's own groups.
   Shared Ability lists every ability the two share (hidden abilities count). With no match it is red and lists all of
@@ -147,6 +148,10 @@ asked to flag any break), and UI changes are screenshotted and measured at 320, 
 6. **One action colour.** The main action on a screen (Guess, New Pokémon) is a red button everywhere it appears;
    secondary actions (See results, History) are white.
 7. **Dialog headers.** A dialog's title is vertically centred on its ✕ close button.
+8. **Readable colours, never colour alone.** White text needs at least 4.5:1 against its face, so the tile green is
+   `#2a8530` (4.67:1) and red `#c84040` (4.93:1); yellow tiles use dark ink text. Every result also has a non-colour
+   cue: the ✓ / ~ / ✕ corner mark (7×7 pixel art, 8px from the top and ending 10px from the right edge, so it never
+   meets tile text) or a ▲/▼ arrow. Check contrast before changing `--color-fb-*`.
 
 ## Dataset
 
