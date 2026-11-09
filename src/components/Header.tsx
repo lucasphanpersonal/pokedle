@@ -34,12 +34,12 @@ export function Header({ mode, onModeChange, onHelp, hard, hardLocked }: HeaderP
             ))}
           </div>
           <HardToggle hard={hard} hardLocked={hardLocked} className="hidden sm:inline-flex" />
-          {/* Bars live in the header from tablet width up; on phones they are in Help (the header is full). */}
-          <div className="ds-button hidden items-center gap-1 bg-ds-paper pr-1 text-ds-ink sm:flex">
+          {/* Bars live in the header from 760px wide up; on phones they are in Help (the header is full). */}
+          <div className="ds-button hidden items-center gap-1 bg-ds-paper pr-1 text-ds-ink min-[760px]:flex">
             <SpeakerButton className="!min-h-10 !border-0 !shadow-none" />
             <VolumeBars />
           </div>
-          <SpeakerButton className="sm:hidden" />
+          <SpeakerButton className="min-[760px]:hidden" />
           <button
             type="button"
             onClick={onHelp}
