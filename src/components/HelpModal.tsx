@@ -1,7 +1,8 @@
-import { useId, useState, useSyncExternalStore } from 'react'
+import { useId, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { isBrowserDoNotTrack, isOptedOutByPlayer, setTrackingOptOut } from '../lib/analytics'
 import { isCrtOn, setCrt } from '../lib/display'
 import { isHardPref, setHardPref, subscribeHardPref } from '../lib/hardMode'
+import { ResultMark } from './ResultMark'
 import { VolumeBars } from './VolumeControl'
 import { Modal } from './Modal'
 
@@ -14,7 +15,7 @@ interface HelpModalProps {
 }
 
 /** A tiny guess tile; data-result gives it the same coloured bevel as the grid. */
-function Swatch({ result, children }: { result: 'match' | 'partial' | 'mismatch'; children: string }) {
+function Swatch({ result, children }: { result: 'match' | 'partial' | 'mismatch'; children: ReactNode }) {
   const color = { match: 'bg-fb-match', partial: 'bg-fb-partial text-ds-ink', mismatch: 'bg-fb-mismatch' }[result]
   return (
     <span data-result={result} className={`${color} inline-flex h-7 w-7 shrink-0 items-center justify-center px-notch [--px:2px] text-[9px] text-white bevel`}>
@@ -162,13 +163,13 @@ export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
         </p>
         <ul className="space-y-2">
           <li className="flex items-center gap-2">
-            <Swatch result="match">✓</Swatch> Exact match
+            <Swatch result="match"><ResultMark kind="match" className="" /></Swatch> Exact match
           </li>
           <li className="flex items-center gap-2">
-            <Swatch result="partial">~</Swatch> Partly right (a type in the other slot, or one shared egg group)
+            <Swatch result="partial"><ResultMark kind="partial" className="" /></Swatch> Partly right (a type in the other slot, or one shared egg group)
           </li>
           <li className="flex items-center gap-2">
-            <Swatch result="mismatch">✕</Swatch> No match
+            <Swatch result="mismatch"><ResultMark kind="mismatch" className="" /></Swatch> No match
           </li>
           <li className="flex items-center gap-2">
             <Swatch result="mismatch">▲</Swatch> The answer is higher
@@ -177,6 +178,10 @@ export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
             <Swatch result="mismatch">▼</Swatch> The answer is lower
           </li>
         </ul>
+        <p>
+          The small mark in each tile's corner says the same as its colour (✓ match, ~ partly right, ✕ no match), so you
+          never have to tell red from green.
+        </p>
         <dl className="space-y-2">
           <div>
             <dt className="inline">Gen, Height, Weight, Evolution: </dt>

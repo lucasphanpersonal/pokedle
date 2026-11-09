@@ -16,9 +16,15 @@
   --color-ds-red: #e04848;
   --color-ds-red-dark: #a02828;
 
-  --color-fb-match: #48b848;
+  /*
+   * Tile faces. White tile text needs at least 4.5:1 against the face (the text is 7 to 10px), so
+   * green and red are a shade deeper than the classic menu colours: #2a8530 is 4.67:1, #c84040 4.93:1.
+   * Yellow carries ink text instead (8.5:1). Each tile also gets a corner mark (ResultMark.tsx)
+   * so results are never told apart by colour alone.
+   */
+  --color-fb-match: #2a8530;
   --color-fb-partial: #e8c030;
-  --color-fb-mismatch: #d84848;
+  --color-fb-mismatch: #c84040;
 }
 
 @layer base {
@@ -181,6 +187,13 @@
   .bevel[data-result='partial'] {
     --face: var(--color-fb-partial);
     text-shadow: none;
+  }
+  /* The corner mark shares the tile text's shadow (none on yellow). */
+  .bevel[data-result] .result-mark {
+    filter: drop-shadow(1px 1px 0 rgb(0 0 0 / 0.4));
+  }
+  .bevel[data-result='partial'] .result-mark {
+    filter: none;
   }
 
   /*

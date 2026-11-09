@@ -12,6 +12,7 @@ import { formatDex } from '../lib/dexEntry'
 import { iconUrl } from '../lib/pokedex'
 import { breakable, lineChars, longestPiece, longestWord } from '../lib/tileText'
 import type { Pokemon } from '../types/pokemon'
+import { ResultMark } from './ResultMark'
 
 interface FeedbackRowProps {
   guess: Pokemon
@@ -54,6 +55,12 @@ const BG: Record<Result, string> = {
 
 const ARROW: Partial<Record<Result, string>> = { higher: '▲', lower: '▼' }
 
+/** The tile's corner mark (check, tilde or cross), so no result is told apart by colour alone. */
+function Mark({ result }: { result: Result }) {
+  // Higher/lower tiles already carry an arrow, and 'unknown' has nothing to mark.
+  return result === 'match' || result === 'partial' || result === 'mismatch' ? <ResultMark kind={result} /> : null
+}
+
 const LABEL: Record<Result, string> = {
   match: 'correct',
   partial: 'partly right',
@@ -94,6 +101,7 @@ function Tile({
         style={style}
         data-result={result}
       >
+        <Mark result={result} />
         <span className={`fit ${hyphenate ? '[hyphens:auto]' : ''}`}>{children}</span>
         {ARROW[result] && (
           <span aria-hidden className="absolute bottom-[7px] left-0 right-0 text-[9px] leading-none">
@@ -161,10 +169,11 @@ export function GuessCard({ guess, feedback, animate, hard = false }: FeedbackRo
     return (
       <div
         key={i}
-        className={`${BG[result]} ${animate ? 'tile-flip' : ''} ${span} tile-fit px-notch flex min-h-11 flex-col items-center justify-center px-2.5 py-1.5 text-center leading-[1.3] text-white [--fs:8px] sm:[--fs:10px] ${TILE_EDGE}`}
+        className={`${BG[result]} ${animate ? 'tile-flip' : ''} ${span} tile-fit px-notch relative flex min-h-11 flex-col items-center justify-center px-2.5 py-1.5 text-center leading-[1.3] text-white [--fs:8px] sm:[--fs:10px] ${TILE_EDGE}`}
         style={fit(null, chars, delay(i + 1))}
         data-result={result}
       >
+        <Mark result={result} />
         <span className="sr-only">{label}: </span>
         <span className="fit">
           {content}
@@ -192,18 +201,20 @@ export function GuessCard({ guess, feedback, animate, hard = false }: FeedbackRo
       {tiles.slice(0, topCount).map((_, i) => tile(i, hard ? 'col-span-4' : 'col-span-3'))}
       {tiles.slice(topCount, -2).map((_, i) => tile(topCount + i, 'col-span-3'))}
       <div
-        className={`${BG[egg.result]} ${animate ? 'tile-flip' : ''} px-notch col-span-12 flex min-h-9 items-center justify-center px-2.5 py-1.5 text-center text-[8px] leading-[1.6] text-white sm:text-[10px] ${TILE_EDGE}`}
+        className={`${BG[egg.result]} ${animate ? 'tile-flip' : ''} px-notch relative col-span-12 flex min-h-9 items-center justify-center px-2.5 py-1.5 text-center text-[8px] leading-[1.6] text-white sm:text-[10px] ${TILE_EDGE}`}
         style={delay(tiles.length - 1)}
         data-result={egg.result}
       >
+        <Mark result={egg.result} />
         <span className="[overflow-wrap:anywhere] [hyphens:manual]">Egg Group: {egg.content}</span>
         <span className="sr-only">, {LABEL[egg.result]}</span>
       </div>
       <div
-        className={`${BG[ability.result]} ${animate ? 'tile-flip' : ''} px-notch col-span-12 flex min-h-9 items-center justify-center px-2.5 py-1.5 text-center text-[8px] leading-[1.6] text-white sm:text-[10px] ${TILE_EDGE}`}
+        className={`${BG[ability.result]} ${animate ? 'tile-flip' : ''} px-notch relative col-span-12 flex min-h-9 items-center justify-center px-2.5 py-1.5 text-center text-[8px] leading-[1.6] text-white sm:text-[10px] ${TILE_EDGE}`}
         style={delay(tiles.length)}
         data-result={ability.result}
       >
+        <Mark result={ability.result} />
         <span className="[overflow-wrap:anywhere]">Ability: {ability.content}</span>
         <span className="sr-only">, {LABEL[ability.result]}</span>
       </div>
