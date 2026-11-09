@@ -24,6 +24,7 @@ export function Header({ mode, onModeChange, onHelp, hard, hardLocked }: HeaderP
             role="radiogroup"
             aria-label="Game mode"
             onKeyDown={(e) => {
+              if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
               if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return
               e.preventDefault()
               const next = mode === 'daily' ? 'endless' : 'daily'

@@ -105,7 +105,7 @@ Older plain saves are still read. The search box shows "You got it!" once a game
   comparison tiles in two rows of four (Type 1, Type 2, Gen, Height / Weight, Color, Evolution, Form; in Hard mode the top row is three wider tiles without Gen) and full-width Egg Group and Shared Ability strips,
   with a small key above the list. The search box uses 16 px text so iOS doesn't
   zoom, and every button and suggestion is at least 44 px tall for touch.
-- Keyboard: type to search, ↑/↓ to move through suggestions, Enter to guess, Esc to close a dialog.
+- Keyboard: type to search, ↑/↓ to move through suggestions, Enter to guess, Esc to close a dialog, ←/→ to switch Daily/Endless when that toggle is focused.
 - **Win confetti**: a ~2 second burst of pixel confetti in the game's colours, with a few Poké Balls and stars, falls over the result dialog when you win (Daily or Endless). It starts after the last tile flips, is pointer-free, and is not shown for players who set "reduce motion" (`src/components/Confetti.tsx`).
 - Animations are turned off for players who set "reduce motion".
 
