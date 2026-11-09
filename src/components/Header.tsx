@@ -17,17 +17,18 @@ export function Header({ mode, onModeChange, onHelp, hard, hardLocked }: HeaderP
     <header className="ds-titlebar px-2 py-2 sm:px-5 sm:py-3">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-1 sm:gap-2">
         <h1 className="text-[12px] whitespace-nowrap max-[380px]:text-[10px] max-[340px]:text-[8px] sm:text-xl">POKEMONDLE</h1>
-        <nav className="flex items-center gap-1.5 sm:gap-2" aria-label="Game mode">
-          <div className="px-notch flex h-11 border-[3px] border-ds-frame bg-ds-red-dark p-0.5" role="group">
+        <nav className="flex items-center gap-1.5 sm:gap-2" aria-label="Game controls">
+          {/* Two ds-buttons side by side (same border, shading and font as Hard / speaker / ?); the lit one is green like Hard when on. */}
+          <div className="flex" role="group" aria-label="Game mode">
             {(['daily', 'endless'] as const).map((m) => (
               <button
                 key={m}
                 type="button"
                 onClick={() => onModeChange(m)}
                 aria-pressed={mode === m}
-                className={`ds-focus-inset h-full px-1.5 text-[9px] max-[340px]:px-1 max-[340px]:text-[8px] uppercase sm:px-3 sm:text-[10px] ${
-                  mode === m ? 'bg-ds-paper text-ds-ink shadow-[0_2px_0_var(--color-ds-frame)]' : 'text-ds-paper'
-                }`}
+                className={`ds-button h-11 px-1.5 text-[9px] uppercase max-[340px]:px-1 max-[340px]:text-[8px] sm:px-3 sm:text-[10px] ${
+                  m === 'endless' ? '-ml-[3px]' : ''
+                } ${mode === m ? 'bg-fb-match text-white' : 'bg-ds-paper text-ds-ink'}`}
               >
                 {m}
               </button>
