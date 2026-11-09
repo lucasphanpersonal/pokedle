@@ -15,8 +15,8 @@ describe('tile text helpers', () => {
   })
 
   it('adds a soft hyphen only to known long words', () => {
-    expect(breakable('Undiscovered')).toBe('Undis­covered')
+    expect(breakable('Undiscovered')).toBe('Undis\u00ADcovered')
     expect(breakable('Fire')).toBe('Fire')
-    expect(breakable('Human-Like, Electric')).toBe('Human-Like, Elec­tric')
+    expect(breakable('Human-Like, Electric')).toBe('Human-Like, Elec\u00ADtric')
   })
 })

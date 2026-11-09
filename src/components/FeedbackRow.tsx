@@ -62,7 +62,7 @@ function Tile({
   animate,
   compact,
   tiny,
-  chars,
+  fit: textFit,
   children,
 }: {
   result: Result
@@ -72,11 +72,11 @@ function Tile({
   compact?: boolean
   /** Smallest text, for "Undiscovered" and other long single words in narrow columns (Egg Group). */
   tiny?: boolean
-  /** Longest word in the tile, so the text can shrink to fit inside the padding. */
-  chars: Fit
+  /** Longest word and piece in the tile, so the text can shrink to fit inside the padding. */
+  fit: Fit
   children: ReactNode
 }) {
-  const style = fit(tiny ? 8 : compact ? 9 : 10, chars, animate ? { animationDelay: `${index * TILE_FLIP_STAGGER_MS}ms` } : undefined)
+  const style = fit(tiny ? 8 : compact ? 9 : 10, textFit, animate ? { animationDelay: `${index * TILE_FLIP_STAGGER_MS}ms` } : undefined)
   return (
     <td className="p-0">
       <div
@@ -217,7 +217,7 @@ export function FeedbackRow({ guess, feedback, animate, hard = false }: Feedback
         </div>
       </th>
       {tiles.map(({ label, result, content }, i) => (
-        <Tile key={label} result={result} index={i + 1} animate={animate} compact={label === 'Type 1' || label === 'Type 2' || label === 'Form' || label === 'Egg Group' || label === 'Shared Ability'} tiny={label === 'Egg Group'} chars={tiles[i].chars}>
+        <Tile key={label} result={result} index={i + 1} animate={animate} compact={label === 'Type 1' || label === 'Type 2' || label === 'Form' || label === 'Egg Group' || label === 'Shared Ability'} tiny={label === 'Egg Group'} fit={tiles[i].chars}>
           {content}
         </Tile>
       ))}

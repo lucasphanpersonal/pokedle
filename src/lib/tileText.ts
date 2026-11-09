@@ -7,7 +7,7 @@
  * font, down to 7px, at which that word fits on one line.
  */
 
-const SHY = '­'
+const SHY = '\u00AD'
 
 /**
  * Long words that may still not fit at 7px in the narrowest tiles get a soft hyphen at
@@ -32,7 +32,7 @@ export function breakable(text: string): string {
 /** Length of the longest word across the given text parts (words split at spaces and commas). */
 export function longestWord(...parts: (string | number)[]): number {
   let max = 1
-  for (const p of parts) for (const w of String(p).split(/[\s,]+/)) max = Math.max(max, w.replace(/­/g, '').length)
+  for (const p of parts) for (const w of String(p).split(/[\s,]+/)) max = Math.max(max, w.replace(/\u00AD/g, '').length)
   return max
 }
 
@@ -45,6 +45,6 @@ export function longestPiece(...parts: (string | number)[]): number {
   let max = 1
   for (const p of parts)
     for (const w of breakable(String(p)).split(/[\s,]+/))
-      for (const piece of w.split(/(?<=[-­])/)) max = Math.max(max, piece.length)
+      for (const piece of w.split(/(?<=[-\u00AD])/)) max = Math.max(max, piece.length)
   return max
 }

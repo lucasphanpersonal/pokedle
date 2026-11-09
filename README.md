@@ -117,14 +117,15 @@ asked to flag any break), and UI changes are screenshotted and measured at 320, 
 1. **One bevel for everything.** Every button, toggle and guess tile uses the shared `.bevel` style in
    `src/index.css` (`.ds-button` includes it): 2px dark outline, 6px light top edge, 6px dark bottom edge, 4px shaded
    sides. Pick the face colour with `.bevel-paper` (white), `.bevel-red`, `.bevel-green`, or `data-result` on tiles.
-   Never hand-roll a `box-shadow` or `border` bevel on a single control.
+   Never hand-roll a `box-shadow` or `border` bevel on a single control. The only exceptions are pixel icons that
+   are not menu buttons: a dialog's ✕ close icon and the small on/off switch graphics in Help.
 2. **Pressed means the inverse bevel.** A selected or "on" control (the chosen Daily/Endless side, Hard when on) adds
    `.bevel-pressed`: same edges, dark on top and light at the bottom. The edges stay the same size, so labels sit at
    the same height whether a control is up or down.
 3. **Equal heights and gaps.** Header and menu controls are all 44px tall (also the minimum touch target), top-aligned
    in one row, with one gap size per row (6px on phones, 8px from 640px up). Nothing may spill past the screen edge
    at any width from 320px.
-4. **Text stays inside the padding.** Tile and button text keeps at least 10px from the tile edge (the 6px bevel plus
+4. **Text stays inside the padding.** Guess-tile and button text keeps at least 10px from the edge (the 6px bevel plus
    4px of air). Guess tiles shrink long words to fit (`.tile-fit`, down to 7px) or wrap them at a soft hyphen
    (`src/lib/tileText.ts`), e.g. "Undis- / covered", rather than run edge to edge.
 5. **Stepped corners and pixel font.** Boxes and buttons use stepped pixel corners (`.ds-button`, `.px-notch`) and

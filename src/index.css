@@ -223,7 +223,7 @@
       var(--px) var(--px)
     );
   }
-  .ds-button:active:not(:disabled) {
+  .ds-button:active:not(:disabled, .bevel-pressed) {
     transform: translateY(2px);
     --bevel-top: var(--lo);
     --bevel-bottom: var(--hi);
