@@ -96,7 +96,7 @@ export default function App() {
 
   // First time Hard is switched on: explain it, once any open dialog (e.g. Help, where it can also be switched) closes.
   const hardNotice = useSyncExternalStore(subscribeHardPref, isHardNoticePending, () => false)
-  const showHardNotice = hardNotice && !showHelp && !showHistory && !showResult
+  const showHardNotice = hardNotice && !showHelp && !showHistory && !showResult && !revealing
 
   const closeHelp = () => {
     setShowHelp(false)

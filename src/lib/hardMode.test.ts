@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { effectiveHard, hardLocked } from './hardMode'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { dismissHardNotice, effectiveHard, hardLocked, isHardNoticePending, setHardPref } from './hardMode'
 
 describe('hard mode rules', () => {
   it('a fresh game follows the preference', () => {
@@ -18,15 +18,16 @@ describe('hard mode rules', () => {
 })
 
 describe('hard mode first-time notice', () => {
-  it('shows once, the first time Hard is turned on', async () => {
+  afterEach(() => vi.unstubAllGlobals())
+  it('shows once, the first time Hard is turned on', () => {
     const store = new Map<string, string>()
-    globalThis.window = {
+    vi.stubGlobal('window', {
       localStorage: {
         getItem: (k: string) => store.get(k) ?? null,
         setItem: (k: string, v: string) => void store.set(k, v),
       },
-    } as unknown as Window & typeof globalThis
-    const m = await import('./hardMode')
+    })
+    const m = { dismissHardNotice, isHardNoticePending, setHardPref }
     m.setHardPref(false)
     expect(m.isHardNoticePending()).toBe(false)
     m.setHardPref(true)

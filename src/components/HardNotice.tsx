@@ -54,9 +54,12 @@ export function HardNotice({ appliesNow, onDismiss }: HardNoticeProps) {
     root?.setAttribute('inert', '')
     boxRef.current?.focus()
     const onKey = (e: KeyboardEvent) => {
+      // Leave shortcuts alone (Ctrl+A, Cmd+Z…).
+      if (e.ctrlKey || e.metaKey || e.altKey) return
       if (['Enter', ' ', 'Escape', 'z', 'Z', 'a', 'A'].includes(e.key)) {
         e.preventDefault()
-        advanceRef.current()
+        // A held key (e.g. Enter still down from pressing Hard) must not skip the message unread.
+        if (!e.repeat) advanceRef.current()
       }
     }
     document.addEventListener('keydown', onKey)
