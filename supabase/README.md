@@ -41,7 +41,7 @@ Delete test rows afterwards: `delete from events where game_id = '3fa85b3a-8158-
 ## Automatic deploys (GitHub Actions)
 
 `.github/workflows/supabase-deploy.yml` runs when a change under `supabase/` is merged to `main` (or by hand from the
-Actions tab). It links the project, runs `supabase db push --remote --yes`, then deploys `track` and `stats` with
+Actions tab, main branch only; edits to the workflow file also trigger it). It links the project, runs `supabase db push --remote --yes`, then deploys `track` and `stats` with
 `--no-verify-jwt`. It does **not** touch function secrets such as `ALLOWED_ORIGINS`; set those by hand as above.
 
 One-time setup, in the repo under **Settings > Secrets and variables > Actions > New repository secret**:

@@ -23,12 +23,16 @@ concurrency:
 env:
   # Not a secret: it is already in the public function URL.
   SUPABASE_PROJECT_REF: inxvlunfwsssifvjkgtz
-  SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-  SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Manual runs from another branch must not push its migrations to production.
+    if: github.ref == 'refs/heads/main'
+    # Secrets are scoped to this job, not the whole workflow.
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
