@@ -51,7 +51,8 @@ export default function App() {
     stopCry()
   }
   // A mode switch or new game must not play the old game's pending ticks or fanfare.
-  useEffect(() => clearSoundTimers, [gameId])
+  // A mode switch or new game must also end any win burst still on screen, so switching back can't replay it.
+  useEffect(() => () => { clearSoundTimers(); setConfettiGame(null) }, [gameId])
   // Win burst, for the game it was earned in. Only set from a fresh guess, so reloading a won Daily never replays it.
   const [confettiGame, setConfettiGame] = useState<string | null>(null)
   const endConfetti = useCallback(() => setConfettiGame(null), [])
