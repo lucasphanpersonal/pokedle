@@ -2,6 +2,8 @@
 
 A Wordle-style guessing game covering every Pokémon from Gen 1 to Gen 9, including regional forms, Megas and Gigantamax.
 
+Pokémondle is an unofficial fan project. It is not affiliated with, endorsed or sponsored by Nintendo, Game Freak or The Pokémon Company. Pokémon and all related names are trademarks of their respective owners.
+
 ## Getting started
 
 ```bash
