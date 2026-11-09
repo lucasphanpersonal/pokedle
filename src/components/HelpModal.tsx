@@ -213,6 +213,10 @@ export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
       <HardModeSetting locked={hardLocked} gameHard={gameHard} />
       <DisplaySettings />
       <StatsToggle />
+      <p className="mt-5 border-t-2 border-ds-frame-light pt-4 text-[9px] leading-4 text-ds-frame">
+        Pokémondle is an unofficial fan project. It is not affiliated with, endorsed or sponsored by Nintendo, Game Freak or The
+        Pokémon Company. Pokémon and all related names are trademarks of their respective owners.
+      </p>
     </Modal>
   )
 }
