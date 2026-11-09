@@ -50,7 +50,7 @@ export function Modal({ title, onClose, children }: ModalProps) {
         aria-labelledby={titleId}
         className="ds-box pop-in max-h-[90dvh] w-full max-w-md overflow-y-auto p-5 sm:p-6"
       >
-        <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="mb-4 flex items-center justify-between gap-3">
           <h2 id={titleId} className="text-xs leading-5 sm:text-sm">
             {title}
           </h2>

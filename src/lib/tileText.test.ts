@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { breakable, longestPiece, longestWord } from './tileText'
+import { breakable, lineChars, longestPiece, longestWord } from './tileText'
 
 describe('tile text helpers', () => {
   it('finds the longest word across parts, ignoring soft hyphens', () => {
-    expect(longestWord('Monster, Dragon')).toBe(7)
+    expect(longestWord('Monster, Dragon')).toBe(8) // "Monster,": the comma is drawn on the same line
     expect(longestWord('Gen', 9)).toBe(3)
     expect(longestWord(breakable('Undiscovered'))).toBe(12)
   })
@@ -18,5 +18,13 @@ describe('tile text helpers', () => {
     expect(breakable('Undiscovered')).toBe('Undis\u00ADcovered')
     expect(breakable('Fire')).toBe('Fire')
     expect(breakable('Human-Like, Electric')).toBe('Human-Like, Elec\u00ADtric')
+  })
+
+  it('finds the narrowest line that keeps a name within a number of lines', () => {
+    expect(lineChars('Pikachu', 3)).toBe(7)
+    expect(lineChars('Gigantamax Venusaur', 3)).toBe(10)
+    expect(lineChars('Gigantamax Single Strike Urshifu', 3)).toBe(13) // "Gigantamax" / "Single Strike" / "Urshifu"
+    expect(lineChars('Paldean Tauros (Combat Breed)', 3)).toBe(14) // "Paldean Tauros" / "(Combat" / "Breed)"
+    expect(lineChars('Mega Charizard X', 1)).toBe(16)
   })
 })

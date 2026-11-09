@@ -2,6 +2,7 @@ import { puzzleNumber } from '../lib/daily'
 import { computeStats, type HistoryEntry } from '../lib/history'
 import { iconUrl, POKEDEX_BY_ID } from '../lib/pokedex'
 import { Modal } from './Modal'
+import { PixelStar } from './PixelStar'
 
 interface HistoryModalProps {
   history: HistoryEntry[]
@@ -48,12 +49,16 @@ export function HistoryModal({ history, onClose }: HistoryModalProps) {
                     className="h-10 w-10 shrink-0 [image-rendering:pixelated]"
                   />
                   <div className="min-w-0 flex-1">
-                    <div className="truncate">
-                      {name}
-                      {h.hard && <span className="ml-2 text-[9px] text-ds-frame">★ Hard</span>}
-                    </div>
+                    {/* Long form names wrap rather than being cut off. */}
+                    <div className="[overflow-wrap:anywhere]">{name}</div>
                     <div className="text-[9px] text-ds-frame">
                       #{puzzleNumber(h.date)} · {h.date}
+                      {h.hard && (
+                        <span className="ml-2 inline-flex items-center gap-1 whitespace-nowrap">
+                          <PixelStar />
+                          Hard
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="shrink-0 text-right text-[9px]">
