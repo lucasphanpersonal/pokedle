@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Confetti } from './components/Confetti'
 import { GuessGrid } from './components/GuessGrid'
+import { HardNotice } from './components/HardNotice'
 import { HardToggle } from './components/HardToggle'
 import { Header } from './components/Header'
 import { HelpModal } from './components/HelpModal'
@@ -11,6 +12,7 @@ import { GRID_COLUMNS } from './config/gameConfig'
 import { TILE_FLIP_DURATION_MS, TILE_FLIP_STAGGER_MS } from './config/uiConfig'
 import { useAnalytics } from './hooks/useAnalytics'
 import { usePokemondle, type GameMode } from './hooks/usePokemondle'
+import { dismissHardNotice, isHardNoticePending, subscribeHardPref } from './lib/hardMode'
 import { computeStats } from './lib/history'
 import { playCry, stopCry } from './lib/cry'
 import { POKEDEX } from './lib/pokedex'
@@ -91,6 +93,10 @@ export default function App() {
   const [dismissedResult, setDismissedResult] = useState<string | null>(null)
   const finished = game.gameStatus !== 'playing'
   const showResult = finished && !revealing && dismissedResult !== gameId
+
+  // First time Hard is switched on: explain it, once any open dialog (e.g. Help, where it can also be switched) closes.
+  const hardNotice = useSyncExternalStore(subscribeHardPref, isHardNoticePending, () => false)
+  const showHardNotice = hardNotice && !showHelp && !showHistory && !showResult
 
   const closeHelp = () => {
     setShowHelp(false)
@@ -178,6 +184,7 @@ export default function App() {
       )}
       {confettiGame === gameId && <Confetti onDone={endConfetti} />}
       {showHistory && <HistoryModal history={game.history} onClose={() => setShowHistory(false)} />}
+      {showHardNotice && <HardNotice appliesNow={game.guesses.length === 0} onDismiss={dismissHardNotice} />}
       {showHelp && <HelpModal onClose={closeHelp} hardLocked={game.hardSwitchLocked} gameHard={hard} />}
     </div>
   )

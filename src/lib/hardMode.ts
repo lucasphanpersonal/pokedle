@@ -25,6 +25,26 @@ export function subscribeHardPref(listener: () => void): () => void {
 export function setHardPref(on: boolean): void {
   pref = on
   saveJson(KEY, on)
+  // The first time a player turns Hard on, explain what it does (HardNotice).
+  if (on && loadJson(NOTICE_KEY) !== true) noticePending = true
+  listeners.forEach((l) => l())
+}
+
+/**
+ * One-time "the Gen column is hidden" text box, shown the first time Hard mode
+ * is switched on (from the header button or Help). Remembered per device once
+ * dismissed. Only setHardPref raises it, so a change from another tab doesn't.
+ */
+const NOTICE_KEY = 'seen-hard-notice'
+let noticePending = false
+
+export function isHardNoticePending(): boolean {
+  return noticePending
+}
+
+export function dismissHardNotice(): void {
+  noticePending = false
+  saveJson(NOTICE_KEY, true)
   listeners.forEach((l) => l())
 }
 

@@ -16,3 +16,25 @@ describe('hard mode rules', () => {
     expect(hardLocked({ guessIds: [2, 1], targetId: 1 })).toBe(false)
   })
 })
+
+describe('hard mode first-time notice', () => {
+  it('shows once, the first time Hard is turned on', async () => {
+    const store = new Map<string, string>()
+    globalThis.window = {
+      localStorage: {
+        getItem: (k: string) => store.get(k) ?? null,
+        setItem: (k: string, v: string) => void store.set(k, v),
+      },
+    } as unknown as Window & typeof globalThis
+    const m = await import('./hardMode')
+    m.setHardPref(false)
+    expect(m.isHardNoticePending()).toBe(false)
+    m.setHardPref(true)
+    expect(m.isHardNoticePending()).toBe(true)
+    m.dismissHardNotice()
+    expect(m.isHardNoticePending()).toBe(false)
+    m.setHardPref(false)
+    m.setHardPref(true)
+    expect(m.isHardNoticePending()).toBe(false)
+  })
+})

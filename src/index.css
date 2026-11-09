@@ -287,9 +287,21 @@ html.crt body {
   text-shadow: 0 0 1px rgb(255 255 255 / 0.12);
 }
 
+/* The ▼ "more" arrow at the end of in-game text (HardNotice): steps up and down. */
+@keyframes text-advance {
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+.text-advance {
+  animation: text-advance 0.8s steps(1) infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tile-flip,
   .pop-in,
+  .text-advance,
   html.crt body::after {
     animation: none;
   }
