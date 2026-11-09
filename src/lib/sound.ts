@@ -166,7 +166,7 @@ function unlockOnGesture(): void {
 }
 unlockOnGesture()
 
-/** Elements that make the press blip. Anything with a `button` role is covered automatically. */
+/** Elements that make the press blip: real buttons, radio options and switches. */
 const PRESSABLE = 'button, [role="radio"], [role="switch"]'
 
 /**
