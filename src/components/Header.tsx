@@ -18,14 +18,14 @@ export function Header({ mode, onModeChange, onHelp, hard, hardLocked }: HeaderP
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-1 sm:gap-2">
         <h1 className="text-[12px] whitespace-nowrap max-[380px]:text-[10px] max-[340px]:text-[8px] sm:text-xl">POKEMONDLE</h1>
         <nav className="flex items-center gap-1.5 sm:gap-2" aria-label="Game mode">
-          <div className="px-notch flex border-[3px] border-ds-frame bg-ds-red-dark p-0.5" role="group">
+          <div className="px-notch flex h-11 border-[3px] border-ds-frame bg-ds-red-dark p-0.5" role="group">
             {(['daily', 'endless'] as const).map((m) => (
               <button
                 key={m}
                 type="button"
                 onClick={() => onModeChange(m)}
                 aria-pressed={mode === m}
-                className={`ds-focus-inset min-h-10 px-1.5 text-[9px] max-[340px]:px-1 max-[340px]:text-[8px] uppercase sm:px-3 sm:text-[10px] ${
+                className={`ds-focus-inset h-full px-1.5 text-[9px] max-[340px]:px-1 max-[340px]:text-[8px] uppercase sm:px-3 sm:text-[10px] ${
                   mode === m ? 'bg-ds-paper text-ds-ink shadow-[0_2px_0_var(--color-ds-frame)]' : 'text-ds-paper'
                 }`}
               >
@@ -35,16 +35,16 @@ export function Header({ mode, onModeChange, onHelp, hard, hardLocked }: HeaderP
           </div>
           <HardToggle hard={hard} hardLocked={hardLocked} className="hidden sm:inline-flex" />
           {/* Bars live in the header from 760px wide up; on phones they are in Help (the header is full). */}
-          <div className="ds-button hidden items-center gap-1 bg-ds-paper pr-1 text-ds-ink min-[760px]:flex">
-            <SpeakerButton className="!min-h-10 !border-0 !shadow-none" />
-            <VolumeBars />
+          <div className="ds-button hidden h-11 items-center gap-1 bg-ds-paper pr-1 text-ds-ink min-[760px]:flex">
+            <SpeakerButton className="!h-full !min-h-0 !border-0 !shadow-none" />
+            <VolumeBars className="!h-full" />
           </div>
           <SpeakerButton className="min-[760px]:hidden" />
           <button
             type="button"
             onClick={onHelp}
             aria-label="How to play"
-            className="ds-button min-w-11 max-[340px]:min-w-9 bg-ds-paper text-xs text-ds-ink"
+            className="ds-button min-w-11 max-[340px]:min-w-9 h-11 bg-ds-paper text-[10px] text-ds-ink"
           >
             ?
           </button>
