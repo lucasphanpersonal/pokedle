@@ -46,8 +46,8 @@ const PATHS = Object.fromEntries(
 export type MarkKind = keyof typeof ART
 
 /**
- * Pinned in a tile's top-right corner, just under the light top bevel (8px down, so it sits on the
- * face colour) and 3px from the right, so it ends 10px from the edge and never meets the tile text.
+ * Pinned in a tile's top-right corner, just under the light top bevel (8px down, clear of the stepped
+ * corner) and 3px from the right (its last column overlaps the 4px side shade), so it ends 10px from the edge and never meets the tile text.
  */
 export function ResultMark({ kind, className = 'absolute right-[3px] top-2' }: { kind: MarkKind; className?: string }) {
   return (

@@ -39,7 +39,7 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   game counts as given up in History. The Daily has no give up, so streaks are unaffected.
 - **Columns**: Pokémon, Type 1, Type 2, Gen, Height, Weight, Color, Evolution (stage 1–3), Form, Egg Group, Shared Ability.
   Green ✓ = match, yellow ~ = type in the other slot (or one shared egg group), red ✕ = no match, ▲/▼ = the answer is higher/lower.
-  Every tile carries its ✓, ~ or ✕ as a small pixel mark in the top-right corner (`src/components/ResultMark.tsx`), and number tiles carry their arrow, so no result depends on telling red from green.
+  Every tile carries its ✓, ~ or ✕ as a small pixel mark in the top-right corner (`src/components/ResultMark.tsx`), and number tiles carry their arrow, so no match, partial or miss depends on telling red from green.
   Form is green when the guess and the answer share a form category (Base, Mega, Regional, Gigantamax, Cosmetic, Other), red otherwise; the tile shows the guess's own category.
   Egg Group (from PokéAPI's species data; forms share their species' groups, legendaries are mostly "Undiscovered") is green when the guess and the answer have exactly the same groups, yellow when they share at least one, red when none; the tile lists the guess's own groups.
   Shared Ability lists every ability the two share (hidden abilities count). With no match it is red and lists all of
