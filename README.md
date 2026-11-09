@@ -37,7 +37,8 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   Green = match, yellow = type in the other slot, red = no match, ▲/▼ = the answer is higher/lower.
   Form is green when the guess and the answer share a form category (Base, Mega, Regional, Gigantamax, Cosmetic, Other), red otherwise; the tile shows the guess's own category.
   Shared Ability lists every ability the two share (hidden abilities count). With no match it is red and lists all of
-  the guess's own abilities instead, or "Unknown" for the few new Megas with no ability data yet.
+  the guess's own abilities instead.
+  Guessing the exact answer always turns every tile green. (Forms with no ability data on PokéAPI, like the new Legends Z-A Megas, borrow their base species' abilities in the data script.)
 - **Hard mode**: an optional switch that hides the Gen column (table and phone cards). It is the **Hard** button in the header (on phones it sits under History), and it also appears under **Help → Difficulty**. While a game is in progress the button shows a lock note and can't be changed until that game is solved.
   It is a per-device preference (`localStorage['pokemondle:hard-mode']`, off by default, `src/lib/hardMode.ts`) that
   sets how the *next* game starts. Each game records its own `hard` flag when its first guess is made, so the mode

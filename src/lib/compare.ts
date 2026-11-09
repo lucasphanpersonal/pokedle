@@ -72,6 +72,8 @@ export function compareWeight(guess: number, target: number): NumberFeedback {
 
 /** Abilities both Pokémon can have (hidden ones included), in the guess's order. */
 export function compareAbilities(guess: Pokemon, target: Pokemon): AbilityFeedback {
+  // The exact answer is always a full match, even if it has no ability data.
+  if (guess.id === target.id) return { result: 'match', shared: [...guess.abilities] }
   const theirs = new Set(target.abilities)
   const shared = [...new Set(guess.abilities)].filter((a) => theirs.has(a))
   return { result: shared.length > 0 ? 'match' : 'mismatch', shared }
@@ -80,10 +82,11 @@ export function compareAbilities(guess: Pokemon, target: Pokemon): AbilityFeedba
 /**
  * What the Shared Ability cell shows. On a match: the shared names. On no
  * match: all of the guess's own abilities, so the player can see none of
- * them are the answer's. Gen 9 Megas have no ability data yet, so they show "Unknown".
+ * them are the answer's. "Unknown" only shows for a Pokémon with no ability data at all
+ * (the data script now gives new forms their base species' abilities, so none are left).
  */
 export function abilityCellText(guess: Pokemon, feedback: AbilityFeedback): string {
-  if (feedback.result === 'match') return feedback.shared.join(', ')
+  if (feedback.result === 'match') return feedback.shared.length > 0 ? feedback.shared.join(', ') : 'Unknown'
   return guess.abilities.length > 0 ? guess.abilities.join(', ') : 'Unknown'
 }
 

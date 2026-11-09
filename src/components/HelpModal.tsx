@@ -185,7 +185,7 @@ export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
           </div>
           <div>
             <dt className="inline">Shared Ability: </dt>
-            <dd className="inline">green with the shared ability names if your guess and the answer share any ability (hidden ones count). Otherwise it is red and lists all of the guess's own abilities, since none of them is the answer's ("Unknown" if the Pokémon has no ability data yet).</dd>
+            <dd className="inline">green with the shared ability names if your guess and the answer share any ability (hidden ones count). Otherwise it is red and lists all of the guess's own abilities, since none of them is the answer's. Guessing the answer itself always makes every tile green.</dd>
           </div>
         </dl>
         <p>

@@ -114,7 +114,7 @@ describe('formCellText', () => {
 })
 
 describe('compareAbilities', () => {
-  const target = mon({ abilities: ['Blaze', 'Solar Power'] })
+  const target = mon({ id: 99, abilities: ['Blaze', 'Solar Power'] })
   it('matches and lists every shared ability, hidden ones included', () => {
     expect(compareAbilities(mon({ abilities: ['Solar Power', 'Blaze', 'Torrent'] }), target)).toEqual({
       result: 'match',
@@ -129,6 +129,12 @@ describe('compareAbilities', () => {
   })
   it('is a mismatch with nothing shared', () => {
     expect(compareAbilities(mon({ abilities: ['Torrent'] }), target)).toEqual({ result: 'mismatch', shared: [] })
+  })
+  it('is a full match when the guess is the answer, even with no ability data', () => {
+    const answer = mon({ id: 9, name: 'Mega Tatsugiri' })
+    expect(compareAbilities(answer, answer)).toEqual({ result: 'match', shared: [] })
+    expect(abilityCellText(answer, compareAbilities(answer, answer))).toBe('Unknown')
+    expect(Object.values(compareGuess(answer, answer)).every((f) => f === 'match' || (typeof f === 'object' && f.result === 'match'))).toBe(true)
   })
   it('is a mismatch when either side has no abilities', () => {
     expect(compareAbilities(mon({}), target).result).toBe('mismatch')
