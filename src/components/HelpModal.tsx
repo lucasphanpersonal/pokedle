@@ -98,7 +98,7 @@ function DisplaySettings() {
         <span>Volume</span>
         <VolumeBars />
       </div>
-      <p className="mt-1 text-[9px] text-ds-frame">Retro 8-bit blips as you type and as tiles flip, a jingle when you win, then the answer's cry. Tap a bar or use the arrow keys to set the volume; no bars lit is muted. The speaker button in the header mutes and unmutes.</p>
+      <p className="mt-1 text-[9px] text-ds-frame">Retro 8-bit blips as you type and as tiles flip, a jingle when you win, then the answer's cry. Tap a dash or use the arrow keys to set the volume; none lit is muted. The speaker button in the header mutes and unmutes.</p>
     </section>
   )
 }
