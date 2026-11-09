@@ -23,7 +23,9 @@ returns anything about the answer. Raw events are rolled up into `daily_totals` 
    ```
    Set `ALLOWED_ORIGINS` **before** deploying. Secrets take effect on the function's next start, so
    if you change them later, redeploy the function.
-   `--no-verify-jwt` is required because browsers call the function without a Supabase token.
+   `verify_jwt = false` for both `track` and `stats` is set in `supabase/config.toml`, so the CLI keeps JWT
+   verification off even without the flag. The `--no-verify-jwt` flags are kept as a double check, because
+   browsers call these functions without a Supabase token.
    `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided to the function automatically.
 3. The function URL is `https://<project-ref>.supabase.co/functions/v1/track`. That is the only
    value the client will need (e.g. as `VITE_TRACK_URL`).
