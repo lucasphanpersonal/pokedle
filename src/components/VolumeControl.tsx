@@ -40,8 +40,8 @@ export function SpeakerButton({ className = '' }: { className?: string }) {
 }
 
 /**
- * Console-style volume: five equal dashes (" - - - - - ") that grow taller to the right and
- * fill in up to the current level. One focusable slider (arrow keys, Home, End);
+ * Console-style volume: five equal dashes (" - - - - - "), empty white when off and
+ * green when lit, up to the current level. One focusable slider (arrow keys, Home, End);
  * tapping a dash sets that level, and tapping the top lit dash steps down by one.
  */
 export function VolumeBars({ className = '' }: { className?: string }) {
