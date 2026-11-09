@@ -88,7 +88,7 @@ Older plain saves are still read. The search box shows "You got it!" once a game
   over caught games (given-up games don't count toward those two). They are kept in
   `localStorage['pokemondle:endless-record']` (`caught`, `gaveUp`, `guesses` and `scored` (the guess total and how many
   caught games it covers), `fewest`, and the key of the last game counted, so each game counts once across reloads and
-  tabs). Tallies saved before guess totals existed keep their caught and given-up counts, and the average starts from
+  tabs). Tallies saved before guess totals existed keep their caught and given-up counts, and the average and fewest start from
   the next catch. Individual Endless games are not listed.
 - A streak counts consecutive days with a solved Daily. It stays alive while today's Daily is still open, and resets
   when a day goes by unsolved. Today's Daily, if solved before this feature existed, is added
