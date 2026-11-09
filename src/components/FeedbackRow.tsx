@@ -95,11 +95,11 @@ function buildTiles(guess: Pokemon, feedback: GuessFeedback, hard: boolean): Til
   const tiles: TileData[] = [
     { label: 'Type 1', result: feedback.type1, content: guess.type1 },
     { label: 'Type 2', result: feedback.type2, content: guess.type2 ?? 'None' },
-    { label: 'Gen', result: feedback.generation, content: `Gen ${guess.generation}` },
-    { label: 'Height', result: feedback.height, content: `${guess.height} m` },
-    { label: 'Weight', result: feedback.weight, content: guess.weight > 0 ? `${guess.weight} kg` : '???' },
+    { label: 'Gen', result: feedback.generation, content: <>Gen{" "}<br />{guess.generation}</> },
+    { label: 'Height', result: feedback.height, content: <>{guess.height}{" "}<br />m</> },
+    { label: 'Weight', result: feedback.weight, content: guess.weight > 0 ? <>{guess.weight}{" "}<br />kg</> : '???' },
     { label: 'Color', result: feedback.color, content: guess.color },
-    { label: 'Evolution', result: feedback.evolutionStage, content: `Stage ${guess.evolutionStage}` },
+    { label: 'Evolution', result: feedback.evolutionStage, content: <>Stage{" "}<br />{guess.evolutionStage}</> },
     { label: 'Form', result: feedback.form, content: formCellText(guess) },
     { label: 'Egg Group', result: feedback.eggGroup, content: guess.eggGroups.join(', ') },
     { label: 'Shared Ability', result: feedback.ability.result, content: abilityCellText(guess, feedback.ability) },
@@ -179,18 +179,18 @@ export function FeedbackRow({ guess, feedback, animate, hard = false }: Feedback
   const tiles = buildTiles(guess, feedback, hard)
   return (
     <tr>
-            <th scope="row" className="p-0 pr-1 font-normal">
+      <th scope="row" className="p-0 font-normal">
         <div
-          className={`${BG[feedback.pokemon]} ${animate ? 'tile-flip' : ''} relative flex h-16 w-[96px] flex-col items-center justify-center px-notch text-[7px] leading-[10px] text-white ${TILE_EDGE} sm:h-[72px] sm:w-[104px] sm:text-[8px]`}
+          className={`${BG[feedback.pokemon]} ${animate ? 'tile-flip' : ''} relative flex h-16 w-full flex-col items-center justify-center px-notch text-[7px] leading-[10px] text-white ${TILE_EDGE} sm:h-[72px] sm:text-[8px]`}
           data-result={feedback.pokemon}
         >
           <img src={iconUrl(guess.id)} alt="" width={40} height={40} className="-my-1 h-10 w-10 [image-rendering:pixelated]" />
           <span className="line-clamp-2 px-1 text-center [overflow-wrap:anywhere]">{guess.name}</span>
-          <span className="absolute right-2 top-1.5 text-[7px] leading-none opacity-80">{formatDex(guess.dexNumber)}</span>
+          <span className="absolute right-3 top-2 text-[7px] leading-none opacity-80">{formatDex(guess.dexNumber)}</span>
         </div>
       </th>
       {tiles.map(({ label, result, content }, i) => (
-        <Tile key={label} result={result} index={i + 1} animate={animate} compact={label === 'Form' || label === 'Egg Group' || label === 'Shared Ability'} tiny={label === 'Egg Group'}>
+        <Tile key={label} result={result} index={i + 1} animate={animate} compact={label === 'Type 1' || label === 'Type 2' || label === 'Form' || label === 'Egg Group' || label === 'Shared Ability'} tiny={label === 'Egg Group'}>
           {content}
         </Tile>
       ))}
