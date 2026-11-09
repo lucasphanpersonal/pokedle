@@ -45,7 +45,7 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   sets how the *next* game starts. Each game records its own `hard` flag when its first guess is made, so the mode
   can't change mid-game: the switch is disabled while the current game is in progress and unlocks once it is solved.
   Hard games show "Hard mode" under the guess count, a **★ Hard mode** line on the result screen and a **★ Hard** tag
-  in History (the star is a small pixel SVG, `PixelStar.tsx`, since the pixel font has no ★) (streaks still count them). Their analytics events carry `config.hard_mode = true`, and a Hard Daily
+  in History (streaks still count them). The star is a small pixel SVG (`PixelStar.tsx`), since the pixel font has no ★. Their analytics events carry `config.hard_mode = true`, and a Hard Daily
   gets its own **Today's stats (Hard)** panel, compared only with other Hard players (see
   [Public daily stats](#public-daily-stats)).
 - **Pokédex numbers**: every guess shows its National Dex number (`#025`) beside the name as a display-only label,
@@ -130,11 +130,11 @@ asked to flag any break), and UI changes are screenshotted and measured at 320, 
    (`src/lib/tileText.ts`), e.g. "Undis- / covered", rather than run edge to edge. Multi-line tiles are also sized by
    line count so nothing is cut off: the table's Pokémon name gets up to 3 lines under its sprite and Pokédex number,
    and Shared Ability up to 4 lines at 9px or 5 at 8px (`lineChars` in `tileText.ts`).
+5. **Stepped corners and pixel font.** Boxes and buttons use stepped pixel corners (`.ds-button`, `.px-notch`) and
+   Press Start 2P; images use `image-rendering: pixelated`.
 6. **One action colour.** The main action on a screen (Guess, New Pokémon) is a red button everywhere it appears;
    secondary actions (See results, History) are white.
 7. **Dialog headers.** A dialog's title is vertically centred on its ✕ close button.
-5. **Stepped corners and pixel font.** Boxes and buttons use stepped pixel corners (`.ds-button`, `.px-notch`) and
-   Press Start 2P; images use `image-rendering: pixelated`.
 
 ## Dataset
 

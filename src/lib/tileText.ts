@@ -69,6 +69,6 @@ export function lineChars(text: string, maxLines: number): number {
     return count
   }
   let cap = Math.max(1, ...words.map((w) => w.length))
-  while (lines(cap) > maxLines) cap++
+  while (lines(cap) > Math.max(1, maxLines)) cap++
   return cap
 }

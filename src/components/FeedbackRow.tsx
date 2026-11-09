@@ -33,13 +33,13 @@ interface Fit {
   piece: number
 }
 const fitOf = (...parts: (string | number)[]): Fit => ({ chars: longestWord(...parts), piece: longestPiece(...parts) })
-/** Pass fs as null when a class sets --fs (so it can change with screen width). */
 /**
  * Shared Ability can be three long names, so it is sized by line count as well as by its longest
  * word: the largest size (up to 9px) at which it wraps onto 4 lines, or else up to 8px on 5 lines.
  * Both fit inside the 72px table tile. Wraps at spaces only, like the browser.
  */
 const abilityFit = (text: string): Fit => ({ chars: lineChars(text, 4), piece: lineChars(text, 5) })
+/** Pass fs as null when a class sets --fs (so it can change with screen width). */
 const fit = (fs: number | null, { chars, piece }: Fit, extra?: CSSProperties): CSSProperties =>
   ({ ...extra, ...(fs === null ? {} : { '--fs': `${fs}px` }), '--chars': chars, '--piece': piece }) as CSSProperties
 
@@ -225,11 +225,11 @@ export function FeedbackRow({ guess, feedback, animate, hard = false }: Feedback
           style={fit(8, { chars: lineChars(guess.name, 3), piece: lineChars(guess.name, 3) })}
           data-result={feedback.pokemon}
         >
-          <div className="-mt-1.5 -mb-1 flex items-start justify-between">
+          <div className="-mt-2 -mb-1 flex items-start justify-between">
             <img src={iconUrl(guess.id)} alt="" width={40} height={40} className="-ml-1 h-10 w-10 shrink-0 [image-rendering:pixelated]" />
-            <span className="mt-2.5 text-[7px] leading-none opacity-80">{formatDex(guess.dexNumber)}</span>
+            <span className="mt-3 text-[7px] leading-none opacity-80">{formatDex(guess.dexNumber)}</span>
           </div>
-          <span className="fit line-clamp-3 text-center">{guess.name}</span>
+          <span className="fit relative line-clamp-3 text-center">{guess.name}</span>
         </div>
       </th>
       {tiles.map(({ label, result, content }, i) => (
