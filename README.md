@@ -106,6 +106,7 @@ Older plain saves are still read. The search box shows "You got it!" once a game
   with a small key above the list. The search box uses 16 px text so iOS doesn't
   zoom, and every button and suggestion is at least 44 px tall for touch.
 - Keyboard: type to search, ↑/↓ to move through suggestions, Enter to guess, Esc to close a dialog.
+- **Win confetti**: a ~2 second burst of pixel confetti in the game's colours, with a few Poké Balls and stars, falls over the result dialog when you win (Daily or Endless). It starts after the last tile flips, is pointer-free, and is not shown for players who set "reduce motion" (`src/components/Confetti.tsx`).
 - Animations are turned off for players who set "reduce motion".
 
 ## Dataset

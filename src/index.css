@@ -245,3 +245,48 @@ html.crt body {
     animation: none;
   }
 }
+
+/* Win confetti (components/Confetti.tsx): pixel squares, Poké Balls and stars falling and spinning. */
+@keyframes confetti-fall {
+  from {
+    transform: translate3d(0, -12vh, 0) rotate(0deg);
+  }
+  to {
+    transform: translate3d(var(--drift), 110vh, 0) rotate(var(--spin));
+  }
+}
+
+.confetti-piece {
+  position: absolute;
+  top: 0;
+  width: var(--size);
+  height: var(--size);
+  animation-name: confetti-fall;
+  animation-timing-function: ease-in;
+  animation-fill-mode: both;
+  will-change: transform;
+}
+
+.confetti-square {
+  box-shadow: inset -2px -2px 0 rgb(0 0 0 / 0.25);
+}
+
+.confetti-ball {
+  border: 2px solid var(--color-ds-ink);
+  border-radius: 9999px;
+  background: linear-gradient(to bottom, #e04848 0 45%, #202830 45% 55%, #f8f8f8 55%);
+}
+
+.confetti-star {
+  width: auto;
+  height: auto;
+  font-size: var(--size);
+  line-height: 1;
+  text-shadow: 2px 2px 0 rgb(0 0 0 / 0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confetti-piece {
+    display: none;
+  }
+}

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Confetti } from './components/Confetti'
 import { GuessGrid } from './components/GuessGrid'
 import { HardToggle } from './components/HardToggle'
 import { Header } from './components/Header'
@@ -49,8 +50,11 @@ export default function App() {
     soundTimers.current = []
     stopCry()
   }
-  // A mode switch or new game must not play the old game's pending ticks or fanfare.
-  useEffect(() => clearSoundTimers, [gameId])
+  // A mode switch or new game must not play the old game's pending ticks or fanfare, or leave its win burst set to replay.
+  useEffect(() => () => { clearSoundTimers(); setConfettiGame(null) }, [gameId])
+  // Win burst, for the game it was earned in. Only set from a fresh guess, so reloading a won Daily never replays it.
+  const [confettiGame, setConfettiGame] = useState<string | null>(null)
+  const endConfetti = useCallback(() => setConfettiGame(null), [])
   const onGuess = useCallback(
     (pokemon: Pokemon) => {
       const result = submitGuess(pokemon)
@@ -74,6 +78,7 @@ export default function App() {
           if (won) {
             later(() => playSound('win'), rowRevealMs(hard) + 100)
             later(() => playCry(pokemon), rowRevealMs(hard) + 100 + WIN_FANFARE_MS)
+            later(() => setConfettiGame(gameId), rowRevealMs(hard) + 100)
           }
         }
       }
@@ -171,6 +176,7 @@ export default function App() {
           onNewGame={mode === 'endless' ? game.startNewEndlessGame : undefined}
         />
       )}
+      {confettiGame === gameId && <Confetti onDone={endConfetti} />}
       {showHistory && <HistoryModal history={game.history} onClose={() => setShowHistory(false)} />}
       {showHelp && <HelpModal onClose={closeHelp} hardLocked={game.hardSwitchLocked} gameHard={hard} />}
     </div>
