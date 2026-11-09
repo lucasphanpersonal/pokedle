@@ -124,7 +124,7 @@ export default function App() {
               History · Streak {stats.currentStreak}
             </button>
             {/* Phones have no room for this in the header; wide screens show it there. */}
-            <HardToggle hard={hard} hardLocked={game.hardSwitchLocked} className="sm:hidden" />
+            <HardToggle hard={hard} hardLocked={game.hardSwitchLocked} className="inline-flex sm:hidden" />
           </div>
         </div>
 

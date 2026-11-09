@@ -8,7 +8,10 @@ interface HardToggleProps {
   className?: string
 }
 
-/** Pixel toggle for Hard mode (hides the Gen column). Shown in the header on wide screens and under History on phones. */
+/**
+ * Pixel toggle for Hard mode (hides the Gen column). Shown in the header on wide screens and under History on phones.
+ * On/off is shown by the pressed style, like the Daily/Endless toggle. The caller sets the display class.
+ */
 export function HardToggle({ hard, hardLocked, className = '' }: HardToggleProps) {
   return (
     <button
@@ -24,11 +27,11 @@ export function HardToggle({ hard, hardLocked, className = '' }: HardToggleProps
           ? 'Hard mode is locked for this game. It applies to your next Daily or a new Endless game.'
           : 'Hard mode: hides the Gen column'
       }
-      className={`ds-button min-h-11 whitespace-nowrap px-2 text-[9px] sm:px-3 sm:text-[10px] ${
+      className={`ds-button min-h-11 items-center justify-center whitespace-nowrap px-2 text-center text-[9px] sm:px-3 sm:text-[10px] ${
         hard ? 'bg-fb-match text-white' : 'bg-ds-paper text-ds-ink'
       } ${hardLocked ? 'cursor-not-allowed opacity-75' : ''} ${className}`}
     >
-      Hard {hard ? 'on' : 'off'}
+      Hard
     </button>
   )
 }
