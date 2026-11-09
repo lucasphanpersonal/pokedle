@@ -21,7 +21,7 @@ npm run fetch-data # rebuild src/data/pokemon.json from PokéAPI
 scripts/fetchPokemonData.ts   builds the local Pokémon dataset from PokéAPI
 src/components/               Header, SearchBar, GuessGrid, FeedbackRow, ResultModal, HistoryModal, HelpModal, GiveUpModal, Modal
 src/hooks/usePokemondle.ts    game state (target, guesses, status), saved to localStorage (answer id scrambled, see below)
-src/lib/history.ts            solved-Daily history, streak maths and the Endless tally (pure, tested)
+src/lib/history.ts            solved-Daily history, streak maths and Endless stats (pure, tested)
 src/hooks/useAnalytics.ts     wraps guesses with anonymous analytics
 src/hooks/useRevealEffects.ts  flip-reveal hold, tick sounds, win fanfare, cry and confetti timers
 src/hooks/useMediaQuery.ts     live CSS media-query match (GuessGrid picks table or cards with it)
@@ -84,9 +84,12 @@ Older plain saves are still read. The search box shows "You got it!" once a game
 - The **History** button under the puzzle title shows the current streak, and opens a screen with current and best
   streak, Dailies solved, average and fewest guesses, and a list of past Dailies (puzzle number, date, answer, guesses).
   The Daily result screen shows the streak too.
-- History also shows an **Endless** tally: Pokémon caught and given up in Endless, kept in
-  `localStorage['pokemondle:endless-record']` (`caught`, `gaveUp`, and the key of the last game counted, so each game
-  counts once across reloads and tabs). Individual Endless games are not listed.
+- History also shows **Endless** stats: games played, Pokémon caught and given up, and the average and fewest guesses
+  over caught games (given-up games don't count toward those two). They are kept in
+  `localStorage['pokemondle:endless-record']` (`caught`, `gaveUp`, `guesses` and `scored` (the guess total and how many
+  caught games it covers), `fewest`, and the key of the last game counted, so each game counts once across reloads and
+  tabs). Tallies saved before guess totals existed keep their caught and given-up counts, and the average and fewest start from
+  the next catch. Individual Endless games are not listed.
 - A streak counts consecutive days with a solved Daily. It stays alive while today's Daily is still open, and resets
   when a day goes by unsolved. Today's Daily, if solved before this feature existed, is added
   the next time the page loads; earlier ones can't be recovered.

@@ -73,7 +73,7 @@ function syncEndlessRecord(endless: SavedGame): EndlessRecord {
   const stored = parseEndlessRecord(loadJson('endless-record'))
   const status = statusOf(endless)
   if (status === 'playing') return stored
-  const next = recordEndless(stored, endless.key, status)
+  const next = recordEndless(stored, endless.key, status, endless.guessIds.length)
   if (next !== stored) saveJson('endless-record', next)
   return next
 }

@@ -94,35 +94,84 @@ function trailingRun(sortedDays: number[]): number {
 }
 
 /**
- * Endless tally on this device: games caught and given up. `last` is the key
- * (start time) of the last game counted, so each game is counted once even if
- * it is seen again on reload or from another tab. Endless games are played one
- * at a time, so remembering only the last one is enough.
+ * Endless tally on this device: games caught and given up, plus guess totals
+ * for the caught ones. `last` is the key (start time) of the last game
+ * counted, so each game is counted once even if it is seen again on reload or
+ * from another tab. Endless games are played one at a time, so remembering
+ * only the last one is enough.
+ *
+ * `scored` counts the caught games whose guess count is known: tallies saved
+ * before guess counts were kept have caught games without one, so the average
+ * divides by `scored`, not `caught`.
  */
 export interface EndlessRecord {
   caught: number
   gaveUp: number
+  /** Total guesses across the scored caught games. */
+  guesses: number
+  /** Caught games included in `guesses` and `fewest`. */
+  scored: number
+  /** Fewest guesses in a caught game; null until one is scored. */
+  fewest: number | null
   last: string | null
 }
 
-export const EMPTY_ENDLESS_RECORD: EndlessRecord = { caught: 0, gaveUp: 0, last: null }
+export const EMPTY_ENDLESS_RECORD: EndlessRecord = { caught: 0, gaveUp: 0, guesses: 0, scored: 0, fewest: null, last: null }
 
 const isCount = (v: unknown): v is number => Number.isInteger(v) && (v as number) >= 0
 
 export function parseEndlessRecord(raw: unknown): EndlessRecord {
   if (typeof raw !== 'object' || raw === null) return EMPTY_ENDLESS_RECORD
   const r = raw as Record<string, unknown>
+  const caught = isCount(r.caught) ? r.caught : 0
+  // Guess totals only stand if they are consistent with each other and with `caught`.
+  const scored = isCount(r.scored) ? r.scored : 0
+  const guesses = isCount(r.guesses) ? r.guesses : 0
+  const fewest = isCount(r.fewest) && r.fewest >= 1 ? r.fewest : null
+  const scoresOk = scored >= 1 && scored <= caught && fewest !== null && guesses >= scored * fewest
   return {
-    caught: isCount(r.caught) ? r.caught : 0,
+    caught,
     gaveUp: isCount(r.gaveUp) ? r.gaveUp : 0,
+    guesses: scoresOk ? guesses : 0,
+    scored: scoresOk ? scored : 0,
+    fewest: scoresOk ? fewest : null,
     last: typeof r.last === 'string' ? r.last : null,
   }
 }
 
-/** Counts a finished Endless game once. Returns the same record if it was already counted. */
-export function recordEndless(record: EndlessRecord, gameKey: string, result: 'won' | 'lost'): EndlessRecord {
+/**
+ * Counts a finished Endless game once; `guesses` is how many it took. Returns
+ * the same record if it was already counted.
+ */
+export function recordEndless(record: EndlessRecord, gameKey: string, result: 'won' | 'lost', guesses: number): EndlessRecord {
   if (record.last === gameKey) return record
-  return result === 'won'
-    ? { ...record, caught: record.caught + 1, last: gameKey }
-    : { ...record, gaveUp: record.gaveUp + 1, last: gameKey }
+  if (result === 'lost') return { ...record, gaveUp: record.gaveUp + 1, last: gameKey }
+  return {
+    ...record,
+    caught: record.caught + 1,
+    guesses: record.guesses + guesses,
+    scored: record.scored + 1,
+    fewest: record.fewest === null ? guesses : Math.min(record.fewest, guesses),
+    last: gameKey,
+  }
+}
+
+export interface EndlessStats {
+  /** Caught plus given up. */
+  played: number
+  caught: number
+  gaveUp: number
+  /** Average guesses per caught game; null until one is scored. */
+  averageGuesses: number | null
+  fewestGuesses: number | null
+}
+
+export function computeEndlessStats(record: EndlessRecord): EndlessStats {
+  return {
+    played: record.caught + record.gaveUp,
+    caught: record.caught,
+    gaveUp: record.gaveUp,
+    averageGuesses: record.scored ? record.guesses / record.scored : null,
+    fewestGuesses: record.fewest,
+  }
 }
