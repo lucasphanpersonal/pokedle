@@ -8,7 +8,7 @@ interface HeaderProps {
   onHelp: () => void
   /** Whether the game on screen is played in Hard mode (shown while locked). */
   hard: boolean
-  /** The game in progress has guesses, so Hard mode can't change until it is solved. */
+  /** The game in progress has guesses, so Hard mode can't change until it is solved (or given up). */
   hardLocked: boolean
 }
 

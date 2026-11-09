@@ -47,7 +47,7 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
 - **Hard mode**: an optional switch that hides the Gen column (table and phone cards). It is the **Hard** button in the header (on phones it sits under History), and it also appears under **Help → Difficulty**. While a game is in progress the button shows a lock note and can't be changed until that game is solved (or given up, in Endless).
   It is a per-device preference (`localStorage['pokemondle:hard-mode']`, off by default, `src/lib/hardMode.ts`) that
   sets how the *next* game starts. Each game records its own `hard` flag when its first guess is made, so the mode
-  can't change mid-game: the switch is disabled while the current game is in progress and unlocks once it is solved.
+  can't change mid-game: the switch is disabled while the current game is in progress and unlocks once it is solved (or given up, in Endless).
   The first time a player turns Hard on, an in-game style text box at the bottom of the screen explains that the Gen
   column is hidden (`src/components/HardNotice.tsx`). The text types out letter by letter with a stepping ▼ arrow; a tap,
   click, Enter, Space, Z/A or Esc finishes the text, then closes the box. If Hard was switched on inside Help, it appears
