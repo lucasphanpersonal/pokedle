@@ -39,15 +39,17 @@ export function finishedTransition(last: SeenGame | null, current: SeenGame): 'w
  * a finished game restored from storage on reload is never re-sent (and the
  * per-game stored flag also dedupes across StrictMode and tabs).
  */
-export function useAnalytics(game: GameView): (pokemon: Pokemon) => GuessResult {
+export function useAnalytics(game: GameView): (pokemon: Pokemon) => { result: GuessResult; applied: AppliedGuess | null } {
   const { mode, gameKey, targetPokemon, guesses, gameStatus, hard, submitGuessDetailed } = game
   useEffect(() => startAnalytics(), [])
 
   // Tagged with the game the guess was actually applied to (not the rendered
   // one), so a guess just after local midnight isn't filed under yesterday.
+  // Returns the same outcome so the UI can react to the game it landed in.
   const wrapped = useCallback(
-    (pokemon: Pokemon): GuessResult => {
-      const { result, applied } = submitGuessDetailed(pokemon)
+    (pokemon: Pokemon): { result: GuessResult; applied: AppliedGuess | null } => {
+      const outcome = submitGuessDetailed(pokemon)
+      const { result, applied } = outcome
       if (result === 'ok' && applied) {
         const ref = { mode: applied.mode, gameKey: applied.gameKey, targetId: applied.targetId, hard: applied.hard }
         trackGuess(ref, {
@@ -60,7 +62,7 @@ export function useAnalytics(game: GameView): (pokemon: Pokemon) => GuessResult 
         // transition. trackFinish is once-per-game, so the effect can't double-send.
         if (applied.status !== 'playing') trackFinish(ref, applied.status, applied.guessNumber)
       }
-      return result
+      return outcome
     },
     [submitGuessDetailed],
   )

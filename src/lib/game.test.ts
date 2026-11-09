@@ -86,6 +86,18 @@ describe('applyGuessToGames', () => {
     const out = applyGuessToGames(games('2026-11-08'), 'daily', target, '2026-11-09', pool)
     expect(out.applied).toMatchObject({ gameKey: '2026-11-09', status: 'won' })
   })
+  it('does not report a win for yesterday\'s answer guessed just after midnight', () => {
+    // The rendered (stale) game still holds yesterday's answer; the guess lands in today's game.
+    const yesterdayTarget = newDailyGame('2026-11-08', pool).targetId
+    // Pick a following day whose answer differs, so the guess really is a miss today.
+    const today = ['2026-11-09', '2026-11-10', '2026-11-11', '2026-11-12'].find(
+      (k) => newDailyGame(k, pool).targetId !== yesterdayTarget,
+    )
+    expect(today).toBeDefined()
+    const out = applyGuessToGames(games('2026-11-08'), 'daily', yesterdayTarget, today as string, pool)
+    expect(out.result).toBe('ok')
+    expect(out.applied).toMatchObject({ gameKey: today, status: 'playing' })
+  })
   it('reports nothing for rejected guesses', () => {
     const g = games('2026-11-08')
     const first = applyGuessToGames(g, 'daily', 5, '2026-11-08', pool)
