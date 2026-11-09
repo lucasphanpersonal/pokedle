@@ -16,7 +16,7 @@ export function Header({ mode, onModeChange, onHelp, hard, hardLocked }: HeaderP
   return (
     <header className="ds-titlebar px-2 py-2 sm:px-5 sm:py-3">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-1 sm:gap-2">
-        <h1 className="text-[12px] whitespace-nowrap max-[390px]:text-[9px] max-[360px]:text-[8px] sm:text-xl">POKEMONDLE</h1>
+        <h1 className="text-[12px] whitespace-nowrap max-[390px]:text-[9px] max-[360px]:text-[8px] sm:text-xl">POKÉMONDLE</h1>
         <nav className="flex items-center gap-1.5 sm:gap-2" aria-label="Game controls">
           {/*
             One segmented control (a radio group: exactly one mode is on). Both halves use the shared bevel:
