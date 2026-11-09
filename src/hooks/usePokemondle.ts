@@ -3,7 +3,9 @@ import { compareGuess, type GuessFeedback } from '../lib/compare'
 import { localDateKey, puzzleNumber } from '../lib/daily'
 import {
   applyGuessToGames,
+  canGiveUp,
   decodeSave,
+  giveUp as giveUpGame,
   encodeSave,
   rollOverGames,
   gameStatus as statusOf,
@@ -18,7 +20,7 @@ import {
   type SavedGame,
 } from '../lib/game'
 import { effectiveHard, hardLocked, isHardPref, reloadHardPref, subscribeHardPref } from '../lib/hardMode'
-import { parseHistory, recordSolve, type HistoryEntry } from '../lib/history'
+import { parseEndlessRecord, parseHistory, recordEndless, recordSolve, type EndlessRecord, type HistoryEntry } from '../lib/history'
 import { POKEDEX, POKEDEX_BY_ID } from '../lib/pokedex'
 import { loadJson, saveJson, storageKey } from '../lib/storage'
 import type { Pokemon } from '../types/pokemon'
@@ -66,6 +68,16 @@ function syncHistory(daily: SavedGame): HistoryEntry[] {
   return next
 }
 
+/** Reads the saved Endless tally and counts the Endless game if it has just finished (once per game). */
+function syncEndlessRecord(endless: SavedGame): EndlessRecord {
+  const stored = parseEndlessRecord(loadJson('endless-record'))
+  const status = statusOf(endless)
+  if (status === 'playing') return stored
+  const next = recordEndless(stored, endless.key, status)
+  if (next !== stored) saveJson('endless-record', next)
+  return next
+}
+
 const lookup = (id: number) => POKEDEX_BY_ID.get(id) as Pokemon
 
 const msUntilLocalMidnight = () => {
@@ -85,12 +97,14 @@ export function usePokemondle(mode: GameMode) {
   // re-render) are each validated against the result of the one before.
   const gamesRef = useRef(games)
   const [history, setHistory] = useState<HistoryEntry[]>(() => syncHistory(games.daily))
+  const [endlessRecord, setEndlessRecord] = useState<EndlessRecord>(() => syncEndlessRecord(games.endless))
 
   const commit = useCallback((next: Games) => {
     if (next === gamesRef.current) return
     gamesRef.current = next
     setGamesState(next)
     setHistory(syncHistory(next.daily))
+    setEndlessRecord(syncEndlessRecord(next.endless))
   }, [])
 
   useEffect(() => saveJson('daily', encodeSave(games.daily)), [games.daily])
@@ -103,6 +117,7 @@ export function usePokemondle(mode: GameMode) {
       if (e.key === storageKey('daily') || e.key === storageKey('endless')) commit(rollOver(loadGames()))
       if (e.key === storageKey('hard-mode')) reloadHardPref()
       if (e.key === storageKey('history')) setHistory(parseHistory(loadJson('history')))
+      if (e.key === storageKey('endless-record')) setEndlessRecord(parseEndlessRecord(loadJson('endless-record')))
     }
     window.addEventListener('focus', check)
     document.addEventListener('visibilitychange', check)
@@ -166,6 +181,12 @@ export function usePokemondle(mode: GameMode) {
     commit({ ...current, endless: newEndlessGame(POKEDEX, Math.random, current.endless.targetId) })
   }, [commit])
 
+  /** Ends the current Endless game as given up, revealing the answer. Does nothing if it can't be given up. */
+  const giveUp = useCallback(() => {
+    const current = gamesRef.current
+    commit({ ...current, endless: giveUpGame(current.endless) })
+  }, [commit])
+
   return {
     mode,
     /** Identity of the current game: Daily = date key, Endless = start time (ISO). */
@@ -180,10 +201,15 @@ export function usePokemondle(mode: GameMode) {
     hardSwitchLocked,
     /** Solved Dailies on this device, newest first. */
     history,
+    /** Endless games caught and given up on this device. */
+    endlessRecord,
+    /** True if the current game can be given up (Endless, in progress, at least one guess). */
+    canGiveUp: canGiveUp(game),
     /** Daily puzzle number (#1 = launch day); null in Endless mode. */
     puzzleNumber: mode === 'daily' ? puzzleNumber(game.key) : null,
     submitGuess,
     submitGuessDetailed,
     startNewEndlessGame,
+    giveUp,
   }
 }

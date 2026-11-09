@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { Confetti } from './components/Confetti'
+import { GiveUpModal } from './components/GiveUpModal'
 import { GuessGrid } from './components/GuessGrid'
 import { HardNotice } from './components/HardNotice'
 import { HardToggle } from './components/HardToggle'
@@ -94,9 +95,17 @@ export default function App() {
   const finished = game.gameStatus !== 'playing'
   const showResult = finished && !revealing && dismissedResult !== gameId
 
+  // Endless "Give up" asks first. Keyed by game, so switching modes or starting a new game drops a pending ask.
+  const [giveUpAsk, setGiveUpAsk] = useState<string | null>(null)
+  const showGiveUp = giveUpAsk === gameId && game.canGiveUp
+  const confirmGiveUp = () => {
+    setGiveUpAsk(null)
+    game.giveUp()
+  }
+
   // First time Hard is switched on: explain it, once any open dialog (e.g. Help, where it can also be switched) closes.
   const hardNotice = useSyncExternalStore(subscribeHardPref, isHardNoticePending, () => false)
-  const showHardNotice = hardNotice && !showHelp && !showHistory && !showResult && !revealing
+  const showHardNotice = hardNotice && !showHelp && !showHistory && !showResult && !showGiveUp && !revealing
 
   const closeHelp = () => {
     setShowHelp(false)
@@ -145,8 +154,17 @@ export default function App() {
             guessedIds={game.guesses.map((g) => g.id)}
             onGuess={onGuess}
             disabled={finished}
+            doneText={game.gameStatus === 'lost' ? 'It got away!' : undefined}
           />
         </div>
+
+        {game.canGiveUp && (
+          <div className="flex justify-center">
+            <button type="button" onClick={() => setGiveUpAsk(gameId)} className="ds-button bevel-paper px-4 text-[10px]">
+              Give up
+            </button>
+          </div>
+        )}
 
         {finished && !revealing && (
           <div className="flex flex-wrap justify-center gap-2">
@@ -178,12 +196,18 @@ export default function App() {
           streak={stats.currentStreak}
           bestStreak={stats.bestStreak}
           hard={hard}
+          gaveUp={game.gameStatus === 'lost'}
           onClose={() => setDismissedResult(gameId)}
           onNewGame={mode === 'endless' ? game.startNewEndlessGame : undefined}
         />
       )}
       {confettiGame === gameId && <Confetti onDone={endConfetti} />}
-      {showHistory && <HistoryModal history={game.history} onClose={() => setShowHistory(false)} />}
+      {showGiveUp && (
+        <GiveUpModal guesses={game.guesses.length} onConfirm={confirmGiveUp} onCancel={() => setGiveUpAsk(null)} />
+      )}
+      {showHistory && (
+        <HistoryModal history={game.history} endless={game.endlessRecord} onClose={() => setShowHistory(false)} />
+      )}
       {showHardNotice && <HardNotice appliesNow={game.guesses.length === 0} onDismiss={dismissHardNotice} />}
       {showHelp && <HelpModal onClose={closeHelp} hardLocked={game.hardSwitchLocked} gameHard={hard} />}
     </div>

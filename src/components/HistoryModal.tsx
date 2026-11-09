@@ -1,11 +1,13 @@
 import { puzzleNumber } from '../lib/daily'
-import { computeStats, type HistoryEntry } from '../lib/history'
+import { computeStats, type EndlessRecord, type HistoryEntry } from '../lib/history'
 import { iconUrl, POKEDEX_BY_ID } from '../lib/pokedex'
 import { Modal } from './Modal'
 import { PixelStar } from './PixelStar'
 
 interface HistoryModalProps {
   history: HistoryEntry[]
+  /** Endless games caught and given up on this device. */
+  endless: EndlessRecord
   onClose: () => void
 }
 
@@ -18,8 +20,8 @@ function Stat({ label, value, wide }: { label: string; value: string | number; w
   )
 }
 
-/** Past Dailies solved on this device, with streaks and a few totals. */
-export function HistoryModal({ history, onClose }: HistoryModalProps) {
+/** Past Dailies solved on this device, with streaks and a few totals, plus the Endless tally. */
+export function HistoryModal({ history, endless, onClose }: HistoryModalProps) {
   const stats = computeStats(history)
   return (
     <Modal title="History" onClose={onClose}>
@@ -69,9 +71,17 @@ export function HistoryModal({ history, onClose }: HistoryModalProps) {
             })}
           </ul>
         )}
+        <section aria-labelledby="history-endless">
+          <h3 id="history-endless" className="mb-2 text-[11px]">Endless</h3>
+          <div className="grid grid-cols-6 gap-2">
+            <Stat wide label="Caught" value={endless.caught} />
+            <Stat wide label="Gave up" value={endless.gaveUp} />
+          </div>
+        </section>
         <p className="text-[9px] text-ds-frame">
           Saved on this device only: it doesn't carry over to other devices or browsers, and clearing site data erases it.
-          Only solved Dailies are listed, and missing a day resets your streak.
+          Only solved Dailies are listed, and missing a day resets your streak. Endless games are counted when you catch
+          the Pokémon or give up.
         </p>
       </div>
     </Modal>

@@ -11,6 +11,8 @@ interface SearchBarProps {
   guessedIds: number[]
   onGuess: (pokemon: Pokemon) => GuessResult
   disabled?: boolean
+  /** Placeholder shown while disabled (the game is over). */
+  doneText?: string
 }
 
 const MAX_SUGGESTIONS = 8
@@ -20,7 +22,7 @@ const MAX_SUGGESTIONS = 8
  * can be submitted. Keyboard: type, ↑/↓ to move, Enter to guess, Esc to close.
  * Touch: tap a suggestion.
  */
-export function SearchBar({ pokedex, guessedIds, onGuess, disabled }: SearchBarProps) {
+export function SearchBar({ pokedex, guessedIds, onGuess, disabled, doneText = 'You got it!' }: SearchBarProps) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(0)
@@ -93,7 +95,7 @@ export function SearchBar({ pokedex, guessedIds, onGuess, disabled }: SearchBarP
           enterKeyHint="go"
           value={query}
           disabled={disabled}
-          placeholder={disabled ? 'You got it!' : "Who's that Pokémon?"}
+          placeholder={disabled ? doneText : "Who's that Pokémon?"}
           onChange={(e) => {
             playSound('type', Math.floor(Math.random() * 3))
             setQuery(e.target.value)
