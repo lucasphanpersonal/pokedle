@@ -1,12 +1,12 @@
 import { puzzleNumber } from '../lib/daily'
-import { computeStats, type EndlessRecord, type HistoryEntry } from '../lib/history'
+import { computeEndlessStats, computeStats, type EndlessRecord, type HistoryEntry } from '../lib/history'
 import { iconUrl, POKEDEX_BY_ID } from '../lib/pokedex'
 import { Modal } from './Modal'
 import { PixelStar } from './PixelStar'
 
 interface HistoryModalProps {
   history: HistoryEntry[]
-  /** Endless games caught and given up on this device. */
+  /** Endless tally on this device: caught, given up and guess totals. */
   endless: EndlessRecord
   onClose: () => void
 }
@@ -20,9 +20,11 @@ function Stat({ label, value, wide }: { label: string; value: string | number; w
   )
 }
 
-/** Past Dailies solved on this device, with streaks and a few totals, plus the Endless tally. */
+/** Past Dailies solved on this device, with streaks and a few totals, plus Endless stats. */
 export function HistoryModal({ history, endless, onClose }: HistoryModalProps) {
   const stats = computeStats(history)
+  const endlessStats = computeEndlessStats(endless)
+  const avg = (n: number | null) => (n === null ? '-' : n.toFixed(1))
   return (
     <Modal title="History" onClose={onClose}>
       <div className="space-y-4 text-[10px] leading-5">
@@ -30,7 +32,7 @@ export function HistoryModal({ history, endless, onClose }: HistoryModalProps) {
           <Stat label="Streak" value={stats.currentStreak} />
           <Stat label="Best streak" value={stats.bestStreak} />
           <Stat label="Solved" value={stats.solved} />
-          <Stat wide label="Avg guesses" value={stats.averageGuesses === null ? '-' : stats.averageGuesses.toFixed(1)} />
+          <Stat wide label="Avg guesses" value={avg(stats.averageGuesses)} />
           <Stat wide label="Fewest" value={stats.fewestGuesses ?? '-'} />
         </div>
 
@@ -74,14 +76,17 @@ export function HistoryModal({ history, endless, onClose }: HistoryModalProps) {
         <section aria-labelledby="history-endless">
           <h3 id="history-endless" className="mb-2 text-[11px]">Endless</h3>
           <div className="grid grid-cols-6 gap-2">
-            <Stat wide label="Caught" value={endless.caught} />
-            <Stat wide label="Gave up" value={endless.gaveUp} />
+            <Stat label="Played" value={endlessStats.played} />
+            <Stat label="Caught" value={endlessStats.caught} />
+            <Stat label="Gave up" value={endlessStats.gaveUp} />
+            <Stat wide label="Avg guesses" value={avg(endlessStats.averageGuesses)} />
+            <Stat wide label="Fewest" value={endlessStats.fewestGuesses ?? '-'} />
           </div>
         </section>
         <p className="text-[9px] text-ds-frame">
           Saved on this device only: it doesn't carry over to other devices or browsers, and clearing site data erases it.
           Only solved Dailies are listed, and missing a day resets your streak. Endless games are counted when you catch
-          the Pokémon or give up.
+          the Pokémon or give up; the Endless average and fewest count caught games only.
         </p>
       </div>
     </Modal>
