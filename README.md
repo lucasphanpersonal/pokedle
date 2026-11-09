@@ -1,4 +1,4 @@
-# Pokemondle
+# Pokémondle
 
 A Wordle-style guessing game covering every Pokémon from Gen 1 to Gen 9, including regional forms, Megas and Gigantamax.
 
