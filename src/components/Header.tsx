@@ -43,7 +43,7 @@ export function Header({ mode, onModeChange, onHelp, hard, hardLocked }: HeaderP
                 onClick={() => onModeChange(m)}
                 className={`ds-focus-inset h-full px-1.5 text-[9px] uppercase max-[340px]:px-1 max-[340px]:text-[8px] sm:px-3 sm:text-[10px] ${
                   mode === m
-                    ? 'bg-[color-mix(in_srgb,var(--color-fb-match),black_22%)] pt-1.5 text-white shadow-[inset_0_6px_0_rgb(0_0_0/0.3),inset_4px_0_0_rgb(0_0_0/0.12),inset_-4px_0_0_rgb(0_0_0/0.12)]'
+                    ? 'bg-[color-mix(in_srgb,var(--color-fb-match),black_22%)] text-white shadow-[inset_0_4px_0_rgb(0_0_0/0.3),inset_4px_0_0_rgb(0_0_0/0.12),inset_-4px_0_0_rgb(0_0_0/0.12)]'
                     : 'bg-ds-paper text-ds-ink shadow-[inset_0_-4px_0_rgb(0_0_0/0.22)]'
                 }`}
               >
