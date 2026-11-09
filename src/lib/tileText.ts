@@ -29,10 +29,10 @@ export function breakable(text: string): string {
   return text.replace(/[A-Za-z]+/g, (w) => BREAKS[w] ?? w)
 }
 
-/** Length of the longest word across the given text parts (words split at spaces and commas). */
+/** Length of the longest word across the given text parts (split at spaces; a trailing comma counts, as it is drawn on the same line). */
 export function longestWord(...parts: (string | number)[]): number {
   let max = 1
-  for (const p of parts) for (const w of String(p).split(/[\s,]+/)) max = Math.max(max, w.replace(/\u00AD/g, '').length)
+  for (const p of parts) for (const w of String(p).split(/\s+/)) max = Math.max(max, w.replace(/\u00AD/g, '').length)
   return max
 }
 
@@ -44,7 +44,31 @@ export function longestWord(...parts: (string | number)[]): number {
 export function longestPiece(...parts: (string | number)[]): number {
   let max = 1
   for (const p of parts)
-    for (const w of breakable(String(p)).split(/[\s,]+/))
+    for (const w of breakable(String(p)).split(/\s+/))
       for (const piece of w.split(/(?<=[-\u00AD])/)) max = Math.max(max, piece.length)
   return max
+}
+
+/**
+ * Narrowest line, in characters, at which a name wraps (at spaces) onto at most `maxLines`
+ * lines. Never less than the name's longest word. Used to size names in the table's
+ * Pokémon tile so even "Paldean Tauros (Combat Breed)" fits without being cut off.
+ */
+export function lineChars(text: string, maxLines: number): number {
+  const words = text.split(/\s+/).filter(Boolean)
+  const lines = (cap: number) => {
+    let count = 0
+    let len = 0
+    for (const w of words) {
+      if (len > 0 && len + 1 + w.length <= cap) len += 1 + w.length
+      else {
+        count++
+        len = w.length
+      }
+    }
+    return count
+  }
+  let cap = Math.max(1, ...words.map((w) => w.length))
+  while (lines(cap) > maxLines) cap++
+  return cap
 }

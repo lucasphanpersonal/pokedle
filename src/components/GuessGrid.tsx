@@ -8,8 +8,15 @@ import { FeedbackRow, GuessCard } from './FeedbackRow'
  * Share of the table width for each column (sums to 100). Fixed widths stop the
  * Shared Ability text from taking over the table and squeezing the others.
  * Each leaves room for the common words at full size; anything longer shrinks to fit inside the tile padding (.tile-fit in index.css) or wraps at a soft hyphen (lib/tileText.ts).
+ * Pokémon is widest so almost every name (all but "Paldean Tauros (Combat Breed)") fits on three lines at 7px or more;
+ * Shared Ability is sized by line count (abilityFit in FeedbackRow.tsx), so three long abilities still stay inside the tile.
  */
-const COLUMN_WIDTHS = [10, 10.5, 10.5, 6, 7, 7, 9, 8, 9, 11, 12]
+const COLUMN_WIDTHS = [12.5, 10.375, 10.375, 6, 7, 7, 9, 8, 8.5, 9.5, 11.75]
+
+/** Phone key: the labels of the card's two tile rows, in column order. */
+const KEY_TOP = ['Type 1', 'Type 2', 'Gen', 'Height']
+const HARD_KEY_TOP = ['Type 1', 'Type 2', 'Height']
+const KEY_BOTTOM = ['Weight', 'Color', 'Evolution', 'Form']
 
 interface GuessGridProps {
   guesses: Pokemon[]
@@ -51,13 +58,22 @@ export function GuessGrid({ guesses, feedback, hard = false }: GuessGridProps) {
   return (
     <div className="ds-box p-2 sm:p-3">
       <div className="lg:hidden">
-        <p aria-hidden className="mb-2 text-center text-[8px] leading-3 text-ds-frame">
-          {hard ? 'Top: Type 1 · Type 2 · Height' : 'Top: Type 1 · Type 2 · Gen · Height'}
-          <br />
-          Then: Weight · Color · Evolution · Form
-          <br />
-          Bottom: Egg Group · Shared Ability
-        </p>
+        {/*
+          Key laid out like the card's two rows of tiles (Egg Group and Ability strips label themselves).
+          Phrased as a sentence it wrapped unevenly on narrow phones.
+        */}
+        <div aria-hidden className="mb-2 grid grid-cols-12 gap-x-1 text-center text-[8px] leading-3 text-ds-frame max-[360px]:text-[7px] sm:text-[9px] sm:leading-4">
+          {(hard ? HARD_KEY_TOP : KEY_TOP).map((label) => (
+            <span key={label} className={hard ? 'col-span-4' : 'col-span-3'}>
+              {label}
+            </span>
+          ))}
+          {KEY_BOTTOM.map((label) => (
+            <span key={label} className="col-span-3">
+              {label}
+            </span>
+          ))}
+        </div>
         <ul className="flex flex-col">
           {guesses
             .map((g, i) => ({ g, f: feedback[i], i }))

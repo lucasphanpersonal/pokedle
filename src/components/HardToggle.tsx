@@ -28,7 +28,7 @@ export function HardToggle({ hard, hardLocked, className = '' }: HardToggleProps
           ? 'Hard mode is locked for this game. It applies to your next Daily or a new Endless game.'
           : 'Hard mode: hides the Gen column'
       }
-      className={`ds-button h-11 items-center justify-center whitespace-nowrap px-2 text-center text-[9px] sm:px-3 sm:text-[10px] ${
+      className={`ds-button h-11 items-center justify-center whitespace-nowrap px-2.5 text-center text-[9px] sm:px-3 sm:text-[10px] ${
         hard ? 'bevel-green bevel-pressed text-white [text-shadow:1px_1px_0_rgb(0_0_0/0.4)]' : 'bevel-paper text-ds-ink'
       } ${hardLocked ? 'cursor-not-allowed opacity-75' : ''} ${className}`}
     >

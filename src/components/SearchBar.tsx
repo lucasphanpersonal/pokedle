@@ -105,7 +105,7 @@ export function SearchBar({ pokedex, guessedIds, onGuess, disabled }: SearchBarP
           onBlur={() => setOpen(false)}
           onKeyDown={onKeyDown}
           // 16px on phones stops iOS Safari zooming into the field.
-          className="min-h-11 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-[11px] placeholder:text-ds-frame sm:text-xs"
+          className="min-h-11 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-[11px] placeholder:text-ds-frame max-[360px]:placeholder:text-[9px] sm:text-xs"
         />
         <button
           type="button"

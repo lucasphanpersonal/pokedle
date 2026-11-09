@@ -45,7 +45,7 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   sets how the *next* game starts. Each game records its own `hard` flag when its first guess is made, so the mode
   can't change mid-game: the switch is disabled while the current game is in progress and unlocks once it is solved.
   Hard games show "Hard mode" under the guess count, a **★ Hard mode** line on the result screen and a **★ Hard** tag
-  in History (streaks still count them). Their analytics events carry `config.hard_mode = true`, and a Hard Daily
+  in History (the star is a small pixel SVG, `PixelStar.tsx`, since the pixel font has no ★) (streaks still count them). Their analytics events carry `config.hard_mode = true`, and a Hard Daily
   gets its own **Today's stats (Hard)** panel, compared only with other Hard players (see
   [Public daily stats](#public-daily-stats)).
 - **Pokédex numbers**: every guess shows its National Dex number (`#025`) beside the name as a display-only label,
@@ -103,7 +103,7 @@ Older plain saves are still read. The search box shows "You got it!" once a game
 - Desktop and large tablet (≥ 1024 px): all eleven columns fit on screen.
 - Phones and tablets under 1024 px: no sideways scrolling. Each guess is a compact card: sprite and name on top, then the
   comparison tiles in two rows of four (Type 1, Type 2, Gen, Height / Weight, Color, Evolution, Form; in Hard mode the top row is three wider tiles without Gen) and full-width Egg Group and Shared Ability strips,
-  with a small key above the list. The search box uses 16 px text so iOS doesn't
+  with a small key above the list laid out in the same two rows of four as the tiles. The search box uses 16 px text so iOS doesn't
   zoom, and every button and suggestion is at least 44 px tall for touch.
 - Keyboard: type to search, ↑/↓ to move through suggestions, Enter to guess, Esc to close a dialog, ←/→ to switch Daily/Endless when that toggle is focused.
 - **Win confetti**: a ~2 second burst of pixel confetti in the game's colours, with a few Poké Balls and stars, falls over the result dialog when you win (Daily or Endless). It starts after the last tile flips, is pointer-free, and is not shown for players who set "reduce motion" (`src/components/Confetti.tsx`).
@@ -127,7 +127,12 @@ asked to flag any break), and UI changes are screenshotted and measured at 320, 
    at any width from 320px.
 4. **Text stays inside the padding.** Guess-tile and button text keeps at least 10px from the edge (the 6px bevel plus
    4px of air). Guess tiles shrink long words to fit (`.tile-fit`, down to 7px) or wrap them at a soft hyphen
-   (`src/lib/tileText.ts`), e.g. "Undis- / covered", rather than run edge to edge.
+   (`src/lib/tileText.ts`), e.g. "Undis- / covered", rather than run edge to edge. Multi-line tiles are also sized by
+   line count so nothing is cut off: the table's Pokémon name gets up to 3 lines under its sprite and Pokédex number,
+   and Shared Ability up to 4 lines at 9px or 5 at 8px (`lineChars` in `tileText.ts`).
+6. **One action colour.** The main action on a screen (Guess, New Pokémon) is a red button everywhere it appears;
+   secondary actions (See results, History) are white.
+7. **Dialog headers.** A dialog's title is vertically centred on its ✕ close button.
 5. **Stepped corners and pixel font.** Boxes and buttons use stepped pixel corners (`.ds-button`, `.px-notch`) and
    Press Start 2P; images use `image-rendering: pixelated`.
 

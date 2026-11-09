@@ -17,7 +17,7 @@ interface HelpModalProps {
 function Swatch({ result, children }: { result: 'match' | 'partial' | 'mismatch'; children: string }) {
   const color = { match: 'bg-fb-match', partial: 'bg-fb-partial text-ds-ink', mismatch: 'bg-fb-mismatch' }[result]
   return (
-    <span data-result={result} className={`${color} inline-flex h-6 min-w-6 items-center justify-center px-notch [--px:2px] px-1 text-[9px] text-white bevel`}>
+    <span data-result={result} className={`${color} inline-flex h-7 w-7 shrink-0 items-center justify-center px-notch [--px:2px] text-[9px] text-white bevel`}>
       {children}
     </span>
   )

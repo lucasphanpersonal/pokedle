@@ -6,6 +6,7 @@ import type { Pokemon } from '../types/pokemon'
 import { DailyStats } from './DailyStats'
 import { DexEntryCard } from './DexEntryCard'
 import { Modal } from './Modal'
+import { PixelStar } from './PixelStar'
 
 interface ResultModalProps {
   mode: GameMode
@@ -60,13 +61,16 @@ export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestSt
           You caught <strong>{target.name}</strong> in {feedback.length} {feedback.length === 1 ? 'guess' : 'guesses'}!
         </p>
         {hard && (
-          <p className="border-2 border-ds-frame bg-ds-paper px-2 py-1 text-[9px]">★ Hard mode: no Gen column</p>
+          <p className="inline-flex items-center gap-1.5 border-2 border-ds-frame bg-ds-paper px-2 py-1 text-[9px]">
+            <PixelStar />
+            Hard mode: no Gen column
+          </p>
         )}
 
         <DexEntryCard key={target.id} target={target} />
 
         {onNewGame && (
-          <button type="button" onClick={onNewGame} className="ds-button bevel-paper px-4 text-[10px]">
+          <button type="button" onClick={onNewGame} className="ds-button bevel-red px-4 text-[10px] text-ds-paper">
             New Pokémon
           </button>
         )}
