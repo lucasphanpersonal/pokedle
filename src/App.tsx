@@ -12,7 +12,7 @@ import { SearchBar } from './components/SearchBar'
 import { GRID_COLUMNS } from './config/gameConfig'
 import { TILE_FLIP_DURATION_MS, TILE_FLIP_STAGGER_MS } from './config/uiConfig'
 import { useAnalytics } from './hooks/useAnalytics'
-import { usePokemondle, type GameMode } from './hooks/usePokemondle'
+import { usePokemondle, type GameMode, type GuessResult } from './hooks/usePokemondle'
 import { dismissHardNotice, isHardNoticePending, subscribeHardPref } from './lib/hardMode'
 import { computeStats } from './lib/history'
 import { playCry, stopCry } from './lib/cry'
@@ -40,7 +40,6 @@ export default function App() {
   const stats = computeStats(game.history)
   const submitGuess = useAnalytics(game)
   const gameId = `${mode}:${game.gameKey}`
-  const targetId = game.targetPokemon.id
   const hard = game.hard
 
   // Hold the result screen until the newest row has flipped in. Started from
@@ -59,11 +58,14 @@ export default function App() {
   const [confettiGame, setConfettiGame] = useState<string | null>(null)
   const endConfetti = useCallback(() => setConfettiGame(null), [])
   const onGuess = useCallback(
-    (pokemon: Pokemon) => {
-      const result = submitGuess(pokemon)
-      if (result === 'ok') {
+    (pokemon: Pokemon): GuessResult => {
+      const { result, applied } = submitGuess(pokemon)
+      if (result === 'ok' && applied) {
         clearSoundTimers()
-        const won = pokemon.id === targetId
+        // Judge the win by the game the guess landed in, not the rendered one:
+        // just after local midnight the rendered game can still be yesterday's.
+        const appliedId = `${applied.mode}:${applied.gameKey}`
+        const won = applied.status === 'won'
         const later = (fn: () => void, ms: number) => soundTimers.current.push(window.setTimeout(fn, ms))
         if (prefersReducedMotion()) {
           if (won) {
@@ -72,7 +74,7 @@ export default function App() {
           }
         } else {
           const token = ++revealToken.current
-          setReveal({ gameId, token })
+          setReveal({ gameId: appliedId, token })
           later(() => setReveal((cur) => (cur?.token === token ? null : cur)), rowRevealMs(hard))
           // One tick per tile, as it turns over, climbing in pitch across the row.
           for (let i = 0; i < GRID_COLUMNS.length - (hard ? 1 : 0); i++) {
@@ -81,13 +83,13 @@ export default function App() {
           if (won) {
             later(() => playSound('win'), rowRevealMs(hard) + 100)
             later(() => playCry(pokemon), rowRevealMs(hard) + 100 + WIN_FANFARE_MS)
-            later(() => setConfettiGame(gameId), rowRevealMs(hard) + 100)
+            later(() => setConfettiGame(appliedId), rowRevealMs(hard) + 100)
           }
         }
       }
       return result
     },
-    [submitGuess, gameId, targetId, hard],
+    [submitGuess, hard],
   )
   const revealing = reveal?.gameId === gameId
 
