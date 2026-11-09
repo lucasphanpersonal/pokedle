@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { GuessGrid } from './components/GuessGrid'
+import { HardToggle } from './components/HardToggle'
 import { Header } from './components/Header'
 import { HelpModal } from './components/HelpModal'
 import { HistoryModal } from './components/HistoryModal'
@@ -93,7 +94,13 @@ export default function App() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <Header mode={mode} onModeChange={setMode} onHelp={() => setShowHelp(true)} />
+      <Header
+        mode={mode}
+        onModeChange={setMode}
+        onHelp={() => setShowHelp(true)}
+        hard={hard}
+        hardLocked={game.hardSwitchLocked}
+      />
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-3 py-4 sm:px-5 sm:py-6">
         <div className="flex flex-col items-center gap-2 text-center">
           <p className="text-[10px] sm:text-xs">
@@ -103,13 +110,22 @@ export default function App() {
             {game.guesses.length} {game.guesses.length === 1 ? 'guess' : 'guesses'}
             {hard && ' · Hard mode'}
           </p>
-          <button
-            type="button"
-            onClick={() => setShowHistory(true)}
-            className="ds-button min-h-11 bg-ds-paper px-3 text-[9px]"
-          >
-            History · Streak {stats.currentStreak}
-          </button>
+          {game.hardSwitchLocked && (
+            <p id="hard-lock-note" className="max-w-md text-[8px] leading-4 text-ds-frame">
+              Hard mode is locked for this game. It applies to your next Daily or a new Endless game.
+            </p>
+          )}
+          <div className="flex flex-wrap justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowHistory(true)}
+              className="ds-button min-h-11 bg-ds-paper px-3 text-[9px]"
+            >
+              History · Streak {stats.currentStreak}
+            </button>
+            {/* Phones have no room for this in the header; wide screens show it there. */}
+            <HardToggle hard={hard} hardLocked={game.hardSwitchLocked} className="sm:hidden" />
+          </div>
         </div>
 
         <div className="mx-auto w-full max-w-xl">

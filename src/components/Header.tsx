@@ -1,14 +1,19 @@
 import { useSyncExternalStore } from 'react'
 import type { GameMode } from '../lib/game'
+import { HardToggle } from './HardToggle'
 import { isSoundOn, setSoundOn, subscribeSound } from '../lib/sound'
 
 interface HeaderProps {
   mode: GameMode
   onModeChange: (mode: GameMode) => void
   onHelp: () => void
+  /** Whether the game on screen is played in Hard mode (shown while locked). */
+  hard: boolean
+  /** The game in progress has guesses, so Hard mode can't change until it is solved. */
+  hardLocked: boolean
 }
 
-export function Header({ mode, onModeChange, onHelp }: HeaderProps) {
+export function Header({ mode, onModeChange, onHelp, hard, hardLocked }: HeaderProps) {
   const sound = useSyncExternalStore(subscribeSound, isSoundOn, () => true)
   return (
     <header className="ds-titlebar px-2 py-2 sm:px-5 sm:py-3">
@@ -30,6 +35,7 @@ export function Header({ mode, onModeChange, onHelp }: HeaderProps) {
               </button>
             ))}
           </div>
+          <HardToggle hard={hard} hardLocked={hardLocked} className="hidden sm:inline-flex" />
           <button
             type="button"
             onClick={() => {
