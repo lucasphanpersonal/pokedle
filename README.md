@@ -21,6 +21,7 @@ src/components/               Header, SearchBar, GuessGrid, FeedbackRow, ResultM
 src/hooks/usePokemondle.ts    game state (target, guesses, status), saved to localStorage (answer id scrambled, see below)
 src/lib/history.ts            solved-Daily history, streak maths and the Endless tally (pure, tested)
 src/hooks/useAnalytics.ts     wraps guesses with anonymous analytics
+src/hooks/useRevealEffects.ts  flip-reveal hold, tick sounds, win fanfare, cry and confetti timers
 src/lib/                      dataset + search, Pokédex entry fetch (dexEntry.ts), comparison, daily seed, game rules, sound, storage, tile text fitting (tileText.ts)
 src/config/gameConfig.ts      game settings, including which form categories are enabled
 src/config/uiConfig.ts        tile animation timing
@@ -102,7 +103,7 @@ Older plain saves are still read. The search box shows "You got it!" once a game
 - **Sound effects and volume**: original 8-bit style blips synthesised in the browser with the Web Audio API
   (`src/lib/sound.ts`; square/triangle oscillators, no audio files and nothing copied from the games; the win cry below is the only audio, and it is streamed, not bundled): a short press blip on every button, switch and radio (one document-level click listener in `sound.ts`, so new buttons get it automatically; the speaker and Guess buttons opt out with `data-no-sound`), a blip as
   you type, a tick as you move through suggestions, a two-note chime on a guess, a rising tick as each tile flips
-  (timed from `App.tsx` to match the flip animation), a low buzz for a bad or duplicate guess and a fanfare when
+  (timed from `useRevealEffects` to match the flip animation), a low buzz for a bad or duplicate guess and a fanfare when
   you win, then the answer's cry after the fanfare. Volume is a Nintendo-style row of 5 equal dashes (empty white when off, green when lit) (`src/components/VolumeControl.tsx`; none lit is muted, default 5): tap a dash (the 4th lights the first 4) or use the arrow keys, Home and End. The dashes sit in the header from 760px wide up and always in **Help → Display & sound**; the speaker button mutes and restores the last level. The level scales the blips and the win cry (iOS Safari ignores volume on the cry), and is saved per
   device in `localStorage['pokemondle:volume']` (the old `pokemondle:sound` on/off setting is migrated: off becomes 0). The audio context is created on the first tap or keypress, as
   browsers (including iOS Safari) require. Typing and menu blips still play with "reduce motion"; only the tile ticks are skipped.
