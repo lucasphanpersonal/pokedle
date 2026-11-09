@@ -32,5 +32,7 @@ export default defineConfig({
   build: { chunkSizeWarningLimit: 700 },
   test: {
     environment: 'node',
+    // Browser smoke tests (e2e/) run under Playwright, not Vitest.
+    exclude: ['**/node_modules/**', 'e2e/**'],
   },
 })

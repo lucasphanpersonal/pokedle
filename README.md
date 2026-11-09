@@ -12,12 +12,14 @@ npm run dev        # local dev server
 npm run build      # static production build in dist/
 npm run preview    # serve the production build locally
 npm run test       # unit tests
+npm run test:e2e   # browser smoke test (Playwright; first run: npx playwright install chromium)
 npm run fetch-data # rebuild src/data/pokemon.json from PokéAPI
 ```
 
 ## Project layout
 
 ```
+e2e/smoke.spec.ts             Playwright browser smoke test (load, guess, win, mode switch at 390px and 1280px)
 scripts/fetchPokemonData.ts   builds the local Pokémon dataset from PokéAPI
 src/components/               Header, SearchBar, GuessGrid, FeedbackRow, ResultModal, HistoryModal, HelpModal, GiveUpModal, Modal
 src/hooks/usePokemondle.ts    game state (target, guesses, status), saved to localStorage (answer id scrambled, see below)
@@ -188,7 +190,7 @@ GitHub Pages under a sub-path.
 One-time setup: in the repo's **Settings → Pages → Build and deployment**, set **Source** to
 **GitHub Actions**. GitHub Pages needs the repository to be public on a free plan.
 
-Pull requests run the same lint, test and build checks (`.github/workflows/ci.yml`) without deploying.
+Pull requests run the same lint, test and build checks (`.github/workflows/ci.yml`) without deploying, then a Playwright browser smoke test of the production build (`e2e/`, at 390px and 1280px; a failing run uploads its report as an artifact).
 
 ## Analytics (Supabase)
 
