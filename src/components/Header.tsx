@@ -18,17 +18,34 @@ export function Header({ mode, onModeChange, onHelp, hard, hardLocked }: HeaderP
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-1 sm:gap-2">
         <h1 className="text-[12px] whitespace-nowrap max-[380px]:text-[10px] max-[340px]:text-[8px] sm:text-xl">POKEMONDLE</h1>
         <nav className="flex items-center gap-1.5 sm:gap-2" aria-label="Game controls">
-          {/* Two ds-buttons side by side (same border, shading and font as Hard / speaker / ?); the lit one is green like Hard when on. */}
-          <div className="flex" role="group" aria-label="Game mode">
+          {/* One segmented control (a radio group: exactly one mode is on). The chosen side is green and pressed in; the other is raised. */}
+          <div
+            className="px-notch flex h-11 gap-[3px] border-[3px] border-ds-frame bg-ds-frame"
+            role="radiogroup"
+            aria-label="Game mode"
+            onKeyDown={(e) => {
+              if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
+              if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return
+              e.preventDefault()
+              const next = mode === 'daily' ? 'endless' : 'daily'
+              onModeChange(next)
+              e.currentTarget.querySelector<HTMLElement>(`[data-mode="${next}"]`)?.focus()
+            }}
+          >
             {(['daily', 'endless'] as const).map((m) => (
               <button
                 key={m}
                 type="button"
+                role="radio"
+                data-mode={m}
+                aria-checked={mode === m}
+                tabIndex={mode === m ? 0 : -1}
                 onClick={() => onModeChange(m)}
-                aria-pressed={mode === m}
-                className={`ds-button h-11 px-1.5 text-[9px] uppercase max-[340px]:px-1 max-[340px]:text-[8px] sm:px-3 sm:text-[10px] ${
-                  m === 'endless' ? '-ml-[3px]' : ''
-                } ${mode === m ? 'bg-fb-match text-white' : 'bg-ds-paper text-ds-ink'}`}
+                className={`ds-focus-inset h-full px-1.5 text-[9px] uppercase max-[340px]:px-1 max-[340px]:text-[8px] sm:px-3 sm:text-[10px] ${
+                  mode === m
+                    ? 'bg-[color-mix(in_srgb,var(--color-fb-match),black_22%)] pt-1.5 text-white shadow-[inset_0_6px_0_rgb(0_0_0/0.3),inset_4px_0_0_rgb(0_0_0/0.12),inset_-4px_0_0_rgb(0_0_0/0.12)]'
+                    : 'bg-ds-paper text-ds-ink shadow-[inset_0_-4px_0_rgb(0_0_0/0.22)]'
+                }`}
               >
                 {m}
               </button>
