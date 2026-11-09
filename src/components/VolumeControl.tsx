@@ -40,9 +40,9 @@ export function SpeakerButton({ className = '' }: { className?: string }) {
 }
 
 /**
- * Console-style volume: five stepped bars that grow taller to the right and
- * fill in up to the current level. One focusable slider (arrow keys, Home, End);
- * tapping a bar sets that level, and tapping the lit top bar steps down by one.
+ * Console-style volume: five equal dashes (" - - - - - "), empty white when off and
+ * green when lit, up to the current level. One focusable slider (arrow keys, Home, End);
+ * tapping a dash sets that level, and tapping the top lit dash steps down by one.
  */
 export function VolumeBars({ className = '' }: { className?: string }) {
   const level = useVolume()
@@ -67,19 +67,18 @@ export function VolumeBars({ className = '' }: { className?: string }) {
       aria-valuenow={level}
       aria-valuetext={level === 0 ? 'Muted' : `${level} of ${MAX_VOLUME}`}
       onKeyDown={onKeyDown}
-      className={`ds-focus flex h-11 touch-manipulation items-end gap-0.5 ${className}`}
+      className={`ds-focus flex h-11 touch-manipulation items-center gap-0.5 ${className}`}
     >
       {BARS.map((n) => (
-        // Each column is a full-height tap target; the visible bar inside is stepped.
+        // Each column is a full-height tap target; the visible dash inside is small.
         <div
           key={n}
           onClick={() => setVolume(n === level ? n - 1 : n)}
-          className="flex h-full w-6 cursor-pointer items-end justify-center pb-1.5"
+          className="flex h-full w-6 cursor-pointer items-center justify-center"
         >
           <span
             aria-hidden="true"
-            style={{ height: 6 + n * 4 }}
-            className={`block w-4 border-2 border-ds-frame ${n <= level ? 'bg-fb-match' : 'bg-ds-paper'}`}
+            className={`block h-3.5 w-5 border-2 border-ds-frame ${n <= level ? 'bg-fb-match' : 'bg-ds-paper'}`}
           />
         </div>
       ))}
