@@ -146,7 +146,7 @@ asked to flag any break), and UI changes are screenshotted and measured at 320, 
    line count so nothing is cut off: the table's Pokémon name gets up to 3 lines under its sprite and Pokédex number,
    and Shared Ability up to 4 lines at 9px or 5 at 8px (`lineChars` in `tileText.ts`).
 5. **Stepped corners and pixel font.** Boxes and buttons use stepped pixel corners (`.ds-button`, `.px-notch`) and
-   Press Start 2P; images use `image-rendering: pixelated`.
+   Press Start 2P, self-hosted from `@fontsource/press-start-2p` (no Google Fonts request); images use `image-rendering: pixelated`.
 6. **One action colour.** The main action on a screen (Guess, New Pokémon) is a red button everywhere it appears;
    secondary actions (See results, History) are white.
 7. **Dialog headers.** A dialog's title is vertically centred on its ✕ close button.
