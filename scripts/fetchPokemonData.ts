@@ -202,8 +202,11 @@ async function main() {
       generation = Math.max(speciesGen, generationNumber(vg.generation.name))
     }
 
+    // New forms (e.g. the Legends Z-A Megas) can have no ability data on PokéAPI yet;
+    // fall back to the base species' abilities so Shared Ability still works.
+    const ownSlugs = abilitySlugs(p)
     const abilities = await Promise.all(
-      abilitySlugs(p).map(async (ref) => {
+      (ownSlugs.length > 0 ? ownSlugs : abilitySlugs(base)).map(async (ref) => {
         const a = await get<ApiAbility>(ref.url)
         return (englishName(a.names) ?? titleCase(a.name)).replaceAll('\u2019', "'")
       }),
