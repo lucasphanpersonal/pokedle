@@ -7,7 +7,7 @@ import { Modal } from './Modal'
 
 interface HelpModalProps {
   onClose: () => void
-  /** The current game is in progress, so Hard mode can't be switched until it is solved. */
+  /** The current game is in progress, so Hard mode can't be switched until it is solved (or given up). */
   hardLocked: boolean
   /** The current game's own mode, shown while the switch is locked. */
   gameHard: boolean
@@ -75,7 +75,7 @@ function HardModeSetting({ locked, gameHard }: { locked: boolean; gameHard: bool
       <p id={noteId} className="mt-1 text-[9px] text-ds-frame">
         Hides the Gen column, so you can't narrow it down by generation. The same switch is the Hard button in the header
         (under History on phones). It is fixed once you make a game's first
-        guess{locked ? `: this game is in ${gameHard ? 'Hard' : 'normal'} mode, and the switch unlocks when you solve it.` : ', and applies to the next game you start.'} Hard games
+        guess{locked ? `: this game is in ${gameHard ? 'Hard' : 'normal'} mode, and the switch unlocks when you solve it (or give up, in Endless).` : ', and applies to the next game you start.'} Hard games
         are marked in History and get their own Daily stats, compared only with other Hard players.
       </p>
     </section>
@@ -202,11 +202,12 @@ export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
         </p>
         <p>
           <strong>Daily</strong> is the same Pokémon for everyone, new each day at midnight. <strong>Endless</strong> gives you a
-          fresh Pokémon whenever you like. Your progress is saved on this device.
+          fresh Pokémon whenever you like. Stuck in Endless? After your first guess, <strong>Give up</strong> under the search box
+          reveals the answer (it asks first). Your progress is saved on this device.
         </p>
         <p>
           Solve the Daily each day to build a <strong>streak</strong>; missing a day resets it. The History button lists every
-          Daily you've solved, with your streaks and totals. It is saved on this device only and doesn't carry over to other devices.
+          Daily you've solved, with your streaks and totals, plus how many Endless Pokémon you've caught and given up on. It is saved on this device only and doesn't carry over to other devices.
         </p>
         <p className="hidden lg:block">Keyboard: type to search, ↑/↓ to pick, Enter to guess, Esc to close.</p>
       </div>

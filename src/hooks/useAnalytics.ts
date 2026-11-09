@@ -21,19 +21,19 @@ export interface SeenGame {
 
 /**
  * Decides whether this render is the moment a game finished. Only a
- * playing -> won change within the same game counts, so a finished game
+ * playing -> won (or, in Endless, playing -> lost by giving up) change within the same game counts, so a finished game
  * seen on first mount, a mode switch or new game, and the same state seen
  * twice (StrictMode's double effect) all report nothing.
  */
-export function finishedTransition(last: SeenGame | null, current: SeenGame): 'won' | null {
+export function finishedTransition(last: SeenGame | null, current: SeenGame): 'won' | 'lost' | null {
   if (!last || last.id !== current.id) return null
   if (last.status !== 'playing' || current.status === 'playing') return null
-  return 'won'
+  return current.status
 }
 
 /**
  * Wraps submitGuess with analytics and reports game_finished when a game moves
- * from playing to won. Returns the wrapped submitGuess.
+ * from playing to won (or to lost, when an Endless game is given up). Returns the wrapped submitGuess.
  *
  * game_finished only fires on an observed transition within the same game, so
  * a finished game restored from storage on reload is never re-sent (and the

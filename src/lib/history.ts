@@ -92,3 +92,37 @@ function trailingRun(sortedDays: number[]): number {
   }
   return run
 }
+
+/**
+ * Endless tally on this device: games caught and given up. `last` is the key
+ * (start time) of the last game counted, so each game is counted once even if
+ * it is seen again on reload or from another tab. Endless games are played one
+ * at a time, so remembering only the last one is enough.
+ */
+export interface EndlessRecord {
+  caught: number
+  gaveUp: number
+  last: string | null
+}
+
+export const EMPTY_ENDLESS_RECORD: EndlessRecord = { caught: 0, gaveUp: 0, last: null }
+
+const isCount = (v: unknown): v is number => Number.isInteger(v) && (v as number) >= 0
+
+export function parseEndlessRecord(raw: unknown): EndlessRecord {
+  if (typeof raw !== 'object' || raw === null) return EMPTY_ENDLESS_RECORD
+  const r = raw as Record<string, unknown>
+  return {
+    caught: isCount(r.caught) ? r.caught : 0,
+    gaveUp: isCount(r.gaveUp) ? r.gaveUp : 0,
+    last: typeof r.last === 'string' ? r.last : null,
+  }
+}
+
+/** Counts a finished Endless game once. Returns the same record if it was already counted. */
+export function recordEndless(record: EndlessRecord, gameKey: string, result: 'won' | 'lost'): EndlessRecord {
+  if (record.last === gameKey) return record
+  return result === 'won'
+    ? { ...record, caught: record.caught + 1, last: gameKey }
+    : { ...record, gaveUp: record.gaveUp + 1, last: gameKey }
+}

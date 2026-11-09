@@ -171,8 +171,7 @@ function validateEvent(
     row.guess_number = e.guess_number
     row.is_correct = e.is_correct
   } else if (name === 'game_finished') {
-    // 'lost' is no longer sent by the game (there is no loss state), but older cached
-    // clients may still send it, so it stays accepted.
+    // 'lost' is sent when an Endless game is given up (the Daily has no loss state).
     if (e.result !== 'won' && e.result !== 'lost') return bad('invalid_result')
     if (!isInt(e.guess_count, 1, MAX_GUESS_NUMBER)) return bad('invalid_guess_count')
     row.result = e.result

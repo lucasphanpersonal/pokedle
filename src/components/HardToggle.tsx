@@ -3,7 +3,7 @@ import { setHardPref } from '../lib/hardMode'
 interface HardToggleProps {
   /** The Hard mode state the screen is showing: this game's while locked, otherwise the next game's. */
   hard: boolean
-  /** The game in progress has guesses, so Hard mode can't change until it is solved. */
+  /** The game in progress has guesses, so Hard mode can't change until it is solved (or given up). */
   hardLocked: boolean
   className?: string
 }

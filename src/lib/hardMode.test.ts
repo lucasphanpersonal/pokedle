@@ -13,6 +13,7 @@ describe('hard mode rules', () => {
   it('locks only while a game is in progress', () => {
     expect(hardLocked({ guessIds: [], targetId: 1 })).toBe(false)
     expect(hardLocked({ guessIds: [2], targetId: 1 })).toBe(true)
+    expect(hardLocked({ guessIds: [2], targetId: 1, gaveUp: true })).toBe(false)
     expect(hardLocked({ guessIds: [2, 1], targetId: 1 })).toBe(false)
   })
 })

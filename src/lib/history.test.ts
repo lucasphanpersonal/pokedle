@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computeStats, parseHistory, recordSolve, type HistoryEntry } from './history'
+import { computeStats, EMPTY_ENDLESS_RECORD, parseEndlessRecord, parseHistory, recordEndless, recordSolve, type HistoryEntry } from './history'
 
 const e = (date: string, guesses = 5, targetId = 25): HistoryEntry => ({ date, targetId, guesses })
 
@@ -57,5 +57,19 @@ describe('hard mode in history', () => {
     expect(out[0].hard).toBe(true)
     expect(out[1].hard).toBeUndefined()
     expect(computeStats(out, '2026-11-08').currentStreak).toBe(2)
+  })
+})
+
+describe('Endless record', () => {
+  it('counts each finished game once, by its key', () => {
+    const a = recordEndless(EMPTY_ENDLESS_RECORD, 'g1', 'won')
+    expect(a).toEqual({ caught: 1, gaveUp: 0, last: 'g1' })
+    expect(recordEndless(a, 'g1', 'won')).toBe(a)
+    expect(recordEndless(a, 'g2', 'lost')).toEqual({ caught: 1, gaveUp: 1, last: 'g2' })
+  })
+  it('reads junk as an empty record', () => {
+    expect(parseEndlessRecord(null)).toEqual(EMPTY_ENDLESS_RECORD)
+    expect(parseEndlessRecord({ caught: -1, gaveUp: 2.5, last: 3 })).toEqual(EMPTY_ENDLESS_RECORD)
+    expect(parseEndlessRecord({ caught: 4, gaveUp: 1, last: 'k' })).toEqual({ caught: 4, gaveUp: 1, last: 'k' })
   })
 })
