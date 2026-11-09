@@ -124,7 +124,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => setShowHistory(true)}
-              className="ds-button h-11 bg-ds-paper px-3 text-[9px] sm:px-4 sm:text-[10px]"
+              className="ds-button bevel-paper h-11 px-3 text-[9px] sm:px-4 sm:text-[10px]"
             >
               History · Streak {stats.currentStreak}
             </button>
@@ -147,12 +147,12 @@ export default function App() {
             <button
               type="button"
               onClick={() => setDismissedResult(null)}
-              className="ds-button bg-ds-paper px-4 text-[10px]"
+              className="ds-button bevel-paper px-4 text-[10px]"
             >
               See results
             </button>
             {mode === 'endless' && (
-              <button type="button" onClick={game.startNewEndlessGame} className="ds-button bg-ds-red px-4 text-[10px] text-ds-paper">
+              <button type="button" onClick={game.startNewEndlessGame} className="ds-button bevel-red px-4 text-[10px] text-ds-paper">
                 New Pokémon
               </button>
             )}

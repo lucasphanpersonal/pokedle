@@ -128,37 +128,85 @@
   }
 
   /*
-   * Platinum battle-menu style block: flat colour with a light top edge, a dark
-   * bottom edge, slightly shaded sides and a dark pixel outline. The colour
-   * comes from data-result so the same class works for every feedback state.
+   * THE bevel ("embossing"). One rule for every tile and button so they can't drift
+   * apart: flat face colour, a light top edge, a dark bottom edge, slightly shaded
+   * sides and a 2px dark pixel outline, like a Platinum battle-menu block.
+   * Set the face with --face (or a .bevel-* colour class / data-result on tiles).
+   * .bevel-pressed flips the edges (dark top, light bottom) so a chosen toggle
+   * reads as pushed in. The edges are equal (6px top and bottom) in both states,
+   * so labels stay vertically centred whether a control is up or down.
    */
-  .tile-bevel {
-    --tile: var(--color-fb-mismatch);
-    --hi: color-mix(in srgb, var(--tile), white 48%);
-    --lo: color-mix(in srgb, var(--tile), black 40%);
-    --side: color-mix(in srgb, var(--tile), black 14%);
+  .bevel,
+  .ds-button {
+    --face: var(--color-ds-paper);
+    --hi: color-mix(in srgb, var(--face), white 48%);
+    --lo: color-mix(in srgb, var(--face), black 40%);
+    --side: color-mix(in srgb, var(--face), black 14%);
+    --bevel-top: var(--hi);
+    --bevel-bottom: var(--lo);
+    background-color: var(--face);
     box-shadow:
       inset 0 0 0 2px var(--color-ds-frame),
-      inset 0 6px 0 0 var(--hi),
-      inset 0 -6px 0 0 var(--lo),
+      inset 0 6px 0 0 var(--bevel-top),
+      inset 0 -6px 0 0 var(--bevel-bottom),
       inset 4px 0 0 0 var(--side),
       inset -4px 0 0 0 var(--side);
+  }
+  /* White face: lift it off the paper with a pure-white top and a grey-blue base. */
+  .bevel-paper {
+    --face: #eef2f6;
+    --hi: #ffffff;
+    --lo: color-mix(in srgb, var(--color-ds-frame-light), var(--color-ds-frame) 35%);
+    --side: color-mix(in srgb, var(--face), var(--color-ds-frame) 10%);
+  }
+  .bevel-red {
+    --face: var(--color-ds-red);
+  }
+  .bevel-green {
+    --face: var(--color-fb-match);
+  }
+  .bevel-pressed {
+    --bevel-top: var(--lo);
+    --bevel-bottom: var(--hi);
+  }
+
+  /* Guess tiles: the bevel, coloured by data-result, with shadowed white text. */
+  .bevel[data-result] {
+    --face: var(--color-fb-mismatch);
     text-shadow: 1px 1px 0 rgb(0 0 0 / 0.4);
   }
-  .tile-bevel[data-result='match'] {
-    --tile: var(--color-fb-match);
+  .bevel[data-result='match'] {
+    --face: var(--color-fb-match);
   }
-  .tile-bevel[data-result='partial'] {
-    --tile: var(--color-fb-partial);
+  .bevel[data-result='partial'] {
+    --face: var(--color-fb-partial);
     text-shadow: none;
   }
 
-  /* DS-style menu button: pixel outline, shaded bottom edge, pressed on tap. */
+  /*
+   * Tile text that always stays inside the tile's padding (10px a side: the 6px bevel
+   * plus 4px of air). The tile sets --fs (its normal font size) and --chars (its longest
+   * word) and --piece (its longest piece between hyphens; see lib/tileText.ts). The pixel
+   * font is monospaced, so a word fits when font-size <= content width / chars: use that,
+   * capped at --fs. If that would be under 8px, wrap at the hyphen instead and size for the
+   * longest piece (up to 8px). Never below 7px; any break is the last resort.
+   */
+  .tile-fit {
+    container-type: inline-size;
+  }
+  .tile-fit .fit {
+    /* Whole word on one line, or (if that would drop below 8px) wrapped at its hyphen at up to 8px. */
+    --fit: max(100cqi / var(--chars), min(8px, 100cqi / var(--piece, var(--chars))));
+    font-size: max(7px, min(var(--fs), var(--fit)));
+    font-size: max(7px, min(var(--fs), round(down, var(--fit), 1px)));
+    hyphens: manual;
+    overflow-wrap: anywhere;
+  }
+
+  /* DS-style menu button: the bevel plus stepped pixel corners; presses in on tap. */
   .ds-button {
-    --px: 3px;
+    --px: 4px;
     min-height: 44px;
-    border: 3px solid var(--color-ds-frame);
-    box-shadow: inset 0 -4px 0 rgb(0 0 0 / 0.22);
     transition: transform 60ms steps(1);
     clip-path: polygon(
       var(--px) 0,
@@ -175,9 +223,10 @@
       var(--px) var(--px)
     );
   }
-  .ds-button:active:not(:disabled) {
+  .ds-button:active:not(:disabled, .bevel-pressed) {
     transform: translateY(2px);
-    box-shadow: inset 0 4px 0 rgb(0 0 0 / 0.18);
+    --bevel-top: var(--lo);
+    --bevel-bottom: var(--hi);
   }
   /*
    * Outlines outside the box would be cut off by the pixel corners, so focus is

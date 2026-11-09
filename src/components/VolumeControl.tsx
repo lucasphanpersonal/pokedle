@@ -32,7 +32,7 @@ export function SpeakerButton({ className = '' }: { className?: string }) {
       onClick={toggleMute}
       aria-label="Sound"
       aria-pressed={level > 0}
-      className={`ds-button flex h-11 min-w-11 max-[340px]:min-w-9 items-center justify-center bg-ds-paper text-ds-ink ${className}`}
+      className={`ds-button bevel-paper flex h-11 min-w-11 max-[360px]:min-w-9 items-center justify-center text-ds-ink ${className}`}
     >
       <SpeakerIcon level={level} />
     </button>
