@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { decodeSave } from '../src/lib/game'
+import { decodeSave } from '../src/lib/game.ts'
 import pokedex from '../src/data/pokemon.json' with { type: 'json' }
 
 // The game must keep working end to end: load, guess, win, and switch modes.
@@ -38,6 +38,14 @@ async function savedGame(page: Page, key: string) {
   return decodeSave(raw) as { guessIds: number[]; targetId: number } | null
 }
 
+// The answer is random (Endless) or rotates daily, so never guess a fixed name blindly:
+// take the first candidate that is not the current answer, so a game never ends early by chance.
+async function nonAnswer(page: Page, mode: 'daily' | 'endless', candidates: string[]) {
+  await expect.poll(async () => (await savedGame(page, mode))?.targetId).toBeDefined()
+  const target = names.get((await savedGame(page, mode))!.targetId)
+  return candidates.find((n) => n !== target)!
+}
+
 test('loads the game with the guess box and mode toggle', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(e.message))
@@ -53,12 +61,10 @@ test('loads the game with the guess box and mode toggle', async ({ page }) => {
 
 test('guessing, winning, and surviving a reload', async ({ page }) => {
   await page.goto('/')
-  await guess(page, 'Bulbasaur')
+  await guess(page, await nonAnswer(page, 'daily', ['Bulbasaur', 'Charmander']))
   await expect.poll(async () => (await savedGame(page, 'daily'))?.guessIds).toHaveLength(1)
 
-  const game = (await savedGame(page, 'daily'))!
-  const answer = names.get(game.targetId)!
-  if (answer === 'Bulbasaur') test.skip(true, 'Bulbasaur is today’s answer; the win path is covered by the next guess')
+  const answer = names.get((await savedGame(page, 'daily'))!.targetId)!
   await guess(page, answer)
 
   const result = page.getByRole('dialog')
@@ -73,27 +79,29 @@ test('guessing, winning, and surviving a reload', async ({ page }) => {
 
 test('a repeat guess is rejected', async ({ page }) => {
   await page.goto('/')
-  await guess(page, 'Pidgey')
+  const first = await nonAnswer(page, 'daily', ['Pidgey', 'Zubat'])
+  await guess(page, first)
   await expect.poll(async () => (await savedGame(page, 'daily'))?.guessIds).toHaveLength(1)
-  await guessBox(page).fill('Pidgey')
+  await guessBox(page).fill(first)
   // Already-guessed Pokémon are removed from the suggestions.
-  await expect(option(page, 'Pidgey')).toHaveCount(0)
+  await expect(option(page, first)).toHaveCount(0)
 })
 
 test('switching to Endless and back keeps each mode separate', async ({ page }) => {
   await page.goto('/')
-  await guess(page, 'Rattata')
+  const dailyGuess = await nonAnswer(page, 'daily', ['Rattata', 'Spearow'])
+  await guess(page, dailyGuess)
   await expect.poll(async () => (await savedGame(page, 'daily'))?.guessIds).toHaveLength(1)
 
   await page.getByRole('radio', { name: 'endless' }).click()
   await expect(page.getByRole('radio', { name: 'endless' })).toBeChecked()
   await expect(guessBox(page)).toBeEnabled()
-  await guess(page, 'Caterpie')
+  await guess(page, await nonAnswer(page, 'endless', ['Caterpie', 'Weedle']))
   await expect.poll(async () => (await savedGame(page, 'endless'))?.guessIds).toHaveLength(1)
 
   await page.getByRole('radio', { name: 'daily' }).click()
   await expect(page.getByRole('radio', { name: 'daily' })).toBeChecked()
   const daily = await savedGame(page, 'daily')
   expect(daily!.guessIds).toHaveLength(1)
-  expect(names.get(daily!.guessIds[0])).toBe('Rattata')
+  expect(names.get(daily!.guessIds[0])).toBe(dailyGuess)
 })
