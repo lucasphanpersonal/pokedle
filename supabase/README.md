@@ -18,7 +18,7 @@ returns anything about the answer. Raw events are rolled up into `daily_totals` 
    npx supabase link --project-ref <project-ref>
    npx supabase db push --remote --yes                    # creates tables, views, functions, cron job
    # Later migrations (e.g. 20261107120000_widen_guess_caps.sql) are applied by the same command.
-   npx supabase secrets set ALLOWED_ORIGINS="https://lucasphanpersonal.github.io,http://localhost:5173"
+   npx supabase secrets set ALLOWED_ORIGINS="https://pokemondle.io,https://lucasphanpersonal.github.io"
    npx supabase functions deploy track --no-verify-jwt --yes
    npx supabase functions deploy stats --no-verify-jwt --yes   # public daily stats for the result screen
    ```
@@ -34,7 +34,7 @@ returns anything about the answer. Raw events are rolled up into `daily_totals` 
 Quick smoke test (should print `204`):
 ```sh
 curl -s -o /dev/null -w "%{http_code}\n" -X POST "https://<project-ref>.supabase.co/functions/v1/track" \
-  -H "Origin: http://localhost:5173" -H "Content-Type: text/plain" \
+  -H "Origin: https://pokemondle.io" -H "Content-Type: text/plain" \
   -d '{"events":[{"event":"game_started","game_id":"3fa85b3a-8158-46e3-8e84-af7319e0d0a4","mode":"endless","target_id":25,"device":"desktop"}]}'
 ```
 Delete test rows afterwards: `delete from events where game_id = '3fa85b3a-8158-46e3-8e84-af7319e0d0a4';`
@@ -43,7 +43,7 @@ Delete test rows afterwards: `delete from events where game_id = '3fa85b3a-8158-
 
 `.github/workflows/supabase-deploy.yml` runs when a change under `supabase/` is merged to `main` (or by hand from the
 Actions tab, main branch only; edits to the workflow file also trigger it). It links the project, runs `supabase db push --remote --yes`, then deploys `track` and `stats` with
-`--no-verify-jwt`. It does **not** touch function secrets such as `ALLOWED_ORIGINS`; set those by hand as above.
+`--no-verify-jwt`. It also sets `ALLOWED_ORIGINS` on every run from the list in the workflow's `env`, so change the list there: a value set by hand is overwritten by the next run. Other function secrets are not touched.
 
 The Supabase CLI version in the workflow is pinned (currently `3.1.0`), so a new CLI release never runs with the
 database secrets before someone has looked at it. Dependabot (`.github/dependabot.yml`) opens weekly PRs for npm
@@ -73,7 +73,7 @@ If a secret is missing the job fails with a clear message. Manual deploys from a
   is keyed on the IP alone (`events.ip_hash`, a salted hash, never the raw IP). Someone with many IPs can still
   flood; that is acceptable for analytics: the worst case is some noisy rows, and the tables are write-only
   for the function and unreadable by the browser. The public stats are protected separately (one finished game per
-  visitor per puzzle date, see below).
+  network per UTC day, see below).
 - Retried or duplicate events are ignored (unique on `game_id, event, guess_number`).
 - If no client IP is available the request is hashed with a random value, `ip_hash` is null, and it is not rate limited.
 - `events.ip_hash` (nullable, 64 hex chars) is the salted IP-only hash; it is never selected by the views or roll-up.
@@ -100,8 +100,10 @@ to the game with a 60 s cache. `select public_daily_stats(current_date);` is the
 for one daily puzzle (games finished, solve rate, guess histogram), never the target or per-player data.
 `public_daily_stats(date, hard)` serves normal games by default, or only Hard mode games (`config.hard_mode = true`, no Gen column)
 with `?hard=1`; each has its own 5-game threshold. The raw events and the private views include both (filter on `config->>'hard_mode'`).
-Each visitor counts at most once per puzzle date and split (their earliest finish by `received_at`, then `id`), so one visitor
-cannot skew the panel by posting many finishes. It returns nulls and an empty histogram when fewer than 5 games finished, and errors for dates older
+Each network counts at most once per puzzle date and split, keyed on `ip_hash` (falling back to `visitor_hash` for older
+rows) and taking the earliest finish by `received_at`, then `id`. Rotating the User-Agent therefore doesn't add fake finishes;
+only many IPs would. Because the hashes rotate with the UTC-day salt, a player whose finishes land on two UTC days can count
+twice, and players sharing one network (home Wi-Fi, a school) count as one. It returns nulls and an empty histogram when fewer than 5 games finished, and errors for dates older
 than 400 days or more than 1 day ahead.
 
 ## Maintenance

@@ -15,7 +15,7 @@ function Stat({ label, value, wide }: { label: string; value: string | number; w
   return (
     <div className={`${wide ? 'col-span-3' : 'col-span-2'} border-2 border-ds-frame bg-ds-paper px-1 py-2 text-center`}>
       <div className="text-sm leading-5">{value}</div>
-      <div className="text-[9px] leading-4 text-ds-frame">{label}</div>
+      <div className="tx-9 leading-4 text-ds-frame">{label}</div>
     </div>
   )
 }
@@ -27,7 +27,7 @@ export function HistoryModal({ history, endless, onClose }: HistoryModalProps) {
   const avg = (n: number | null) => (n === null ? '-' : n.toFixed(1))
   return (
     <Modal title="History" onClose={onClose}>
-      <div className="space-y-4 text-[10px] leading-5">
+      <div className="space-y-4 tx-10 leading-5">
         <div className="grid grid-cols-6 gap-2">
           <Stat label="Streak" value={stats.currentStreak} />
           <Stat label="Best streak" value={stats.bestStreak} />
@@ -55,7 +55,7 @@ export function HistoryModal({ history, endless, onClose }: HistoryModalProps) {
                   <div className="min-w-0 flex-1">
                     {/* Long form names wrap rather than being cut off. */}
                     <div className="[overflow-wrap:anywhere]">{name}</div>
-                    <div className="text-[9px] text-ds-frame">
+                    <div className="tx-9 text-ds-frame">
                       {puzzleNumber(h.date) >= 1 && `#${puzzleNumber(h.date)} · `}
                       {h.date}
                       {h.hard && (
@@ -66,7 +66,7 @@ export function HistoryModal({ history, endless, onClose }: HistoryModalProps) {
                       )}
                     </div>
                   </div>
-                  <div className="shrink-0 text-right text-[9px]">
+                  <div className="shrink-0 text-right tx-9">
                     {h.guesses} {h.guesses === 1 ? 'guess' : 'guesses'}
                   </div>
                 </li>
@@ -75,7 +75,7 @@ export function HistoryModal({ history, endless, onClose }: HistoryModalProps) {
           </ul>
         )}
         <section aria-labelledby="history-endless">
-          <h3 id="history-endless" className="mb-2 text-[11px]">Endless</h3>
+          <h3 id="history-endless" className="mb-2 tx-11">Endless</h3>
           <div className="grid grid-cols-6 gap-2">
             <Stat label="Played" value={endlessStats.played} />
             <Stat label="Caught" value={endlessStats.caught} />
@@ -84,7 +84,7 @@ export function HistoryModal({ history, endless, onClose }: HistoryModalProps) {
             <Stat wide label="Fewest" value={endlessStats.fewestGuesses ?? '-'} />
           </div>
         </section>
-        <p className="text-[9px] text-ds-frame">
+        <p className="tx-9 text-ds-frame">
           Saved on this device only: it doesn't carry over to other devices or browsers, and clearing site data erases it.
           Only solved Dailies are listed, and missing a day resets your streak. Endless games are counted when you catch
           the Pokémon or give up; the Endless average and fewest count caught games only.

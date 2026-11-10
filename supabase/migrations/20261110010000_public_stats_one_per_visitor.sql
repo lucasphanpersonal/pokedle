@@ -2,9 +2,11 @@
 --
 -- 1. Public stats poisoning: public_daily_stats() counted every game_finished row, so one visitor
 --    could post thousands of fake Daily finishes and skew the result-screen panel. It now counts at
---    most ONE finished game per visitor_hash per puzzle date (within the normal/hard split): the
---    visitor's earliest row (received_at, ties broken by id), so the pick is deterministic.
---    visitor_hash rotates daily (daily salt), so this is a per-day cap, which is enough here.
+--    most ONE finished game per network per puzzle date (within the normal/hard split), keyed on
+--    ip_hash so rotating the User-Agent doesn't help (rows from before ip_hash existed fall back to
+--    visitor_hash). The earliest row wins (received_at, ties broken by id), so the pick is deterministic.
+--    Both hashes rotate with the daily UTC salt, so a player whose games land on two UTC days can count
+--    twice; that is fine here. Players sharing one network (home Wi-Fi, a school) count as one.
 --
 -- 2. Flood cap bypass: the per-visitor cap is keyed on salt|IP|user agent, so rotating the User-Agent
 --    gave unlimited budget. events gets an ip_hash (salted sha256 of the IP alone, rotating daily
@@ -30,14 +32,14 @@ begin
     raise exception 'date out of range' using errcode = '22023';
   end if;
 
-  -- One finished game per visitor: the earliest by received_at, then id.
+  -- One finished game per network (ip_hash, else visitor_hash): the earliest by received_at, then id.
   select count(*) into n
   from (
-    select distinct on (visitor_hash) visitor_hash
+    select distinct on (coalesce(ip_hash, visitor_hash)) 1 as one
     from public.events
     where event = 'game_finished' and mode = 'daily' and puzzle_date = p_date
       and (coalesce(config->>'hard_mode', 'false') = 'true') = coalesce(p_hard, false)
-    order by visitor_hash, received_at, id
+    order by coalesce(ip_hash, visitor_hash), received_at, id
   ) d;
 
   if n < 5 then
@@ -47,11 +49,11 @@ begin
 
   return query
   with f as (
-    select distinct on (visitor_hash) result, guess_count
+    select distinct on (coalesce(ip_hash, visitor_hash)) result, guess_count
     from public.events
     where event = 'game_finished' and mode = 'daily' and puzzle_date = p_date
       and (coalesce(config->>'hard_mode', 'false') = 'true') = coalesce(p_hard, false)
-    order by visitor_hash, received_at, id
+    order by coalesce(ip_hash, visitor_hash), received_at, id
   ),
   h as (
     select coalesce(guess_count::text, 'lost') as k, count(*) as c

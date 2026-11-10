@@ -89,7 +89,7 @@ export function HardNotice({ appliesNow, onDismiss }: HardNoticeProps) {
           {text} Press Enter or tap to continue.
         </p>
         {/* Typed-out copy for sighted players. The hidden tail keeps the box its final size from the first letter. */}
-        <p aria-hidden="true" className="text-[10px] leading-6 sm:text-xs sm:leading-7">
+        <p aria-hidden="true" className="tx-10 leading-6 sm:text-xs sm:leading-7">
           {text.slice(0, shown)}
           <span className="invisible">{text.slice(shown)}</span>
         </p>

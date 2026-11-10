@@ -157,20 +157,20 @@ export function SearchBar({ pokedex, guessedIds, onGuess, disabled, doneText = '
               aria-selected={i === active}
               onMouseEnter={() => setActive(i)}
               onClick={() => choose(p)}
-              className={`flex min-h-11 cursor-pointer items-center gap-3 px-notch px-2 text-[10px] sm:text-xs ${
+              className={`flex min-h-11 cursor-pointer items-center gap-3 px-notch px-2 tx-10 sm:text-xs ${
                 i === active ? 'bg-ds-sky-bottom' : ''
               }`}
             >
               <img src={iconUrl(p.id)} alt="" width={40} height={40} loading="lazy" className="h-10 w-10 [image-rendering:pixelated]" />
               <span className="flex-1 leading-4">{p.name}</span>
-              <span className="text-[8px] text-ds-frame">{formatDex(p.dexNumber)}</span>
+              <span className="tx-8 text-ds-frame">{formatDex(p.dexNumber)}</span>
             </li>
           ))}
         </ul>
       )}
 
       {message && (
-        <p role="alert" className="mt-2 text-center text-[9px] text-ds-red-dark">
+        <p role="alert" className="mt-2 text-center tx-9 text-ds-red-dark">
           {message}
         </p>
       )}
