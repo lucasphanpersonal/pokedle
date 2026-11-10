@@ -214,13 +214,18 @@ npx supabase functions deploy track --no-verify-jwt --yes   # deploy the event-c
 npx supabase functions deploy stats --no-verify-jwt --yes   # deploy the public daily-stats function
 ```
 
+The function stores two salted hashes per event, a visitor hash (IP + user agent) and an IP-only hash used for a
+second, higher flood cap. Both rotate daily with the salt and neither the raw IP nor the user agent is stored.
+
 Secrets take effect on the function's next start; redeploy after changing them.
 With Supabase CLI 3, `db push` targets a local database unless you pass `--remote`, and `--yes` skips the confirmation prompt for hosted projects. `link` creates `supabase/.temp/`, which is git-ignored.
 
 The live project is `inxvlunfwsssifvjkgtz` (US); the client sends events to `https://inxvlunfwsssifvjkgtz.supabase.co/functions/v1/track`.
 
 After the one-time setup, merging a change under `supabase/` to `main` deploys the migrations and both functions automatically
-(`.github/workflows/supabase-deploy.yml`; needs the `SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD` repo secrets).
+(`.github/workflows/supabase-deploy.yml`; needs the `SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD` repo secrets; the
+Supabase CLI version there is pinned and bumped by hand). Dependabot (`.github/dependabot.yml`) opens weekly update PRs
+for npm packages and GitHub Actions.
 
 See [supabase/README.md](supabase/README.md) for details.
 
@@ -244,7 +249,8 @@ switch is shown off and disabled.
 The Daily result screen reads totals from the `stats` Edge Function
 (`GET /functions/v1/stats?date=YYYY-MM-DD`), which calls `public_daily_stats()` and returns only
 `games_finished`, `wins`, `solve_rate` and a guesses histogram. Nothing per-player and never the answer.
-Below 5 finished games it returns an empty histogram, and the panel stays hidden. Responses are cached for 60 s.
+Each visitor counts at most once per puzzle (migration `20261110010000_public_stats_one_per_visitor.sql`), so one
+player cannot skew it by posting many finishes. Below 5 finished games it returns an empty histogram, and the panel stays hidden. Responses are cached for 60 s.
 The client derives the URL from `VITE_TRACK_URL` (`/track` becomes `/stats`), skips the request for players who
 opted out (or send GPC / Do Not Track), and shows nothing if the request fails or the player is offline.
 

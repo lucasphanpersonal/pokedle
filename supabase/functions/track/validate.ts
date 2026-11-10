@@ -173,6 +173,7 @@ function validateEvent(
   } else if (name === 'game_finished') {
     // 'lost' is sent when an Endless game is given up (the Daily has no loss state).
     if (e.result !== 'won' && e.result !== 'lost') return bad('invalid_result')
+    if (e.result === 'lost' && e.mode === 'daily') return bad('invalid_result')
     if (!isInt(e.guess_count, 1, MAX_GUESS_NUMBER)) return bad('invalid_guess_count')
     row.result = e.result
     row.guess_count = e.guess_count

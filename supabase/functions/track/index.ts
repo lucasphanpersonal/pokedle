@@ -1,7 +1,7 @@
 // Supabase Edge Function: POST /functions/v1/track
 // Accepts batched analytics events, validates them against an allow-list,
 // derives a daily-rotating anonymous visitor hash, and inserts with the service role.
-// The IP and user agent are only used to compute the hash and are never stored.
+// The IP and user agent are only used to compute salted hashes and are never stored.
 import { createClient } from 'npm:@supabase/supabase-js@2.119.0'
 import { validateBatch } from './validate.ts'
 
@@ -13,6 +13,14 @@ const MAX_BODY_BYTES = 64 * 1024
 const MAX_EVENTS_PER_VISITOR_PER_DAY = Math.max(
   1,
   Number(Deno.env.get('MAX_EVENTS_PER_VISITOR_PER_DAY')) || 5000,
+)
+
+// Second cap keyed on the IP alone. The per-visitor cap above includes the user agent, so rotating the
+// User-Agent would give unlimited budget; this one cannot be dodged that way. It is higher because a
+// whole school or office can sit behind one IP. Override with the MAX_EVENTS_PER_IP_PER_DAY secret.
+const MAX_EVENTS_PER_IP_PER_DAY = Math.max(
+  1,
+  Number(Deno.env.get('MAX_EVENTS_PER_IP_PER_DAY')) || 20000,
 )
 
 const allowedOrigins = (Deno.env.get('ALLOWED_ORIGINS') ?? '')
@@ -78,7 +86,7 @@ function clientIp(req: Request): string {
 }
 
 // The Origin check is CORS hygiene, not access control (non-browser clients can forge it).
-// The real defences are validation and the per-visitor rate limit.
+// The real defences are validation and the per-visitor and per-IP rate limits.
 Deno.serve(async (req) => {
   const origin = req.headers.get('origin')?.replace(/\/$/, '') ?? null
   if (!origin || !allowedOrigins.includes(origin)) return respond(403, null, 'forbidden')
@@ -111,7 +119,10 @@ Deno.serve(async (req) => {
     const identity = ip || hex(crypto.getRandomValues(new Uint8Array(16)).buffer)
     const visitorHash = await sha256(`${salt}|${identity}|${req.headers.get('user-agent') ?? ''}`)
 
-    if (ip) {
+    // Salted hash of the IP alone (rotates daily like visitor_hash; the raw IP is never stored).
+    const ipHash = ip ? await sha256(`${salt}|ip|${ip}`) : null
+
+    if (ip && ipHash) {
       const { count, error: countError } = await supabase
         .from('events')
         .select('id', { count: 'exact', head: true })
@@ -123,13 +134,24 @@ Deno.serve(async (req) => {
         console.warn('rate_limited', { existing: count ?? 0, incoming: result.rows.length })
         return respond(429, origin, 'rate_limited')
       }
+
+      const { count: ipCount, error: ipCountError } = await supabase
+        .from('events')
+        .select('id', { count: 'exact', head: true })
+        .eq('ip_hash', ipHash)
+        .gte('received_at', `${day}T00:00:00Z`)
+      if (ipCountError) throw ipCountError
+      if ((ipCount ?? 0) + result.rows.length > MAX_EVENTS_PER_IP_PER_DAY) {
+        console.warn('rate_limited_ip', { existing: ipCount ?? 0, incoming: result.rows.length })
+        return respond(429, origin, 'rate_limited')
+      }
     }
 
     // Retries/duplicates are silently ignored (unique on game_id, event, guess_number).
     const { error } = await supabase
       .from('events')
       .upsert(
-        result.rows.map((r) => ({ ...r, visitor_hash: visitorHash })),
+        result.rows.map((r) => ({ ...r, visitor_hash: visitorHash, ip_hash: ipHash })),
         { onConflict: 'game_id,event,guess_number', ignoreDuplicates: true },
       )
     if (error) throw error
