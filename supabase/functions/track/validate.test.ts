@@ -128,9 +128,12 @@ describe('invalid input', () => {
       expect(r.rows[0].config).toEqual({})
     }
   })
-  it("accepts result 'lost'", () => {
-    const r = run([{ ...finished, result: 'lost', guess_count: 6 }])
+  it("accepts result 'lost' for endless (give up)", () => {
+    const r = run([{ ...finished, mode: 'endless', puzzle_date: undefined, result: 'lost', guess_count: 6 }])
     expect(r.ok && r.rows[0].result).toBe('lost')
+  })
+  it("rejects result 'lost' for daily (no loss state)", () => {
+    expect(err([{ ...finished, result: 'lost', guess_count: 6 }])).toBe('invalid_result')
   })
   it('rejects bad app_version characters', () => {
     for (const v of ['1 2', '1.0;drop', '<b>', '']) {

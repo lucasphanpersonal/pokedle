@@ -143,7 +143,8 @@ function StatsToggle() {
       </p>
       <p className="mt-2">
         After you solve the Daily, the result screen shows anonymous totals for that puzzle (players who solved it, average
-        guesses and how you compare). It is only shown while sharing is on.
+        guesses and how you compare). Each network counts once a day, so a household on one Wi-Fi counts as one
+        player. It is only shown while sharing is on.
       </p>
       <PixelSwitch
         label="Share anonymous stats"
