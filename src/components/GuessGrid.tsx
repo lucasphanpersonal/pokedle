@@ -1,13 +1,20 @@
-import { useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import { GRID_COLUMNS } from '../config/gameConfig'
 import type { GuessFeedback } from '../lib/compare'
 import type { Pokemon } from '../types/pokemon'
 import { useMediaQuery } from '../hooks/useMediaQuery'
+import { cardTileSpan, TWO_UP } from '../lib/cardLayout'
+import { isBigText, subscribeBigText } from '../lib/display'
 import { abilityColumnFit } from '../lib/tileText'
 import { FeedbackRow, GuessCard } from './FeedbackRow'
 
 /** Tailwind's lg breakpoint (1024 px): the table from here up, cards below. */
 const TABLE_QUERY = '(min-width: 64rem)'
+/**
+ * With Larger text the table needs a quarter more width for the same words, so it starts at
+ * 1280 px (and the page widens to match, big:max-w-[80rem] in App.tsx); cards are shown below that.
+ */
+const BIG_TABLE_QUERY = '(min-width: 80rem)'
 
 /**
  * Share of the table width for each column (sums to 100). Fixed widths stop the
@@ -51,7 +58,9 @@ export function GuessGrid({ guesses, feedback, hard = false }: GuessGridProps) {
   const columns = hard ? HARD_COLUMNS : GRID_COLUMNS
   const widths = hard ? HARD_WIDTHS : COLUMN_WIDTHS
   const abilityColumn = abilityColumnFit(guesses, feedback)
-  const showTable = useMediaQuery(TABLE_QUERY)
+  const bigText = useSyncExternalStore(subscribeBigText, isBigText, () => false)
+  const twoUp = TWO_UP[bigText ? 'big' : 'normal']
+  const showTable = useMediaQuery(bigText ? BIG_TABLE_QUERY : TABLE_QUERY)
   // Captured once at mount: how many guesses were restored rather than made now.
   const [restoredCount, setRestoredCount] = useState(guesses.length)
   // Crossing the breakpoint (rotating an iPad) mounts the other layout's rows;
@@ -64,7 +73,7 @@ export function GuessGrid({ guesses, feedback, hard = false }: GuessGridProps) {
 
   if (guesses.length === 0) {
     return (
-      <div className="ds-box p-6 text-center text-[10px] leading-5 text-ds-frame">
+      <div className="ds-box p-6 text-center tx-10 leading-5 text-ds-frame">
         Make your first guess to start!
       </div>
     )
@@ -83,7 +92,7 @@ export function GuessGrid({ guesses, feedback, hard = false }: GuessGridProps) {
             <thead>
               <tr>
                 {columns.map((col) => (
-                  <th key={col} scope="col" className="p-1 text-center text-[9px] leading-3 font-normal">
+                  <th key={col} scope="col" className="p-1 text-center tx-9 leading-3 font-normal">
                     {col}
                   </th>
                 ))}
@@ -105,35 +114,30 @@ export function GuessGrid({ guesses, feedback, hard = false }: GuessGridProps) {
             Key laid out like the card's two rows of tiles (Egg Group and Ability strips label themselves).
             Phrased as a sentence it wrapped unevenly on narrow phones.
           */}
-          <div className="grid gap-x-3 min-[720px]:grid-cols-2">
-            {/* From 720px wide (iPad portrait) the cards sit two to a row, each with its own copy of the key. */}
+          <div className={`grid gap-x-3 ${twoUp.grid}`}>
+            {/* From 720px wide (iPad portrait; 900px with Larger text) the cards sit two to a row, each with its own copy of the key. */}
             {[0, 1].map((copy) => (
               <div
                 key={copy}
                 aria-hidden
-                className={`mb-2 grid-cols-12 gap-x-1 text-center text-[8px] leading-3 text-ds-frame max-[360px]:text-[7px] sm:text-[9px] sm:leading-4 ${
-                  copy ? 'hidden min-[720px]:grid' : 'grid'
+                className={`mb-2 grid-cols-12 gap-x-1 text-center tx-8 leading-3 text-ds-frame max-[360px]:tx-7 big:leading-4 sm:tx-9 sm:leading-4 ${
+                  copy ? twoUp.keyCopy : 'grid'
                 }`}
               >
-                {(hard ? HARD_KEY_TOP : KEY_TOP).map((label) => (
-                  <span key={label} className={hard ? 'col-span-4' : 'col-span-3'}>
-                    {label}
-                  </span>
-                ))}
-                {KEY_BOTTOM.map((label) => (
-                  <span key={label} className="col-span-3">
+                {[...(hard ? HARD_KEY_TOP : KEY_TOP), ...KEY_BOTTOM].map((label, i) => (
+                  <span key={label} className={cardTileSpan(i, hard)}>
                     {label}
                   </span>
                 ))}
               </div>
             ))}
           </div>
-          <ul className="grid grid-cols-1 gap-x-3 min-[720px]:grid-cols-2">
+          <ul className={`grid grid-cols-1 gap-x-3 ${twoUp.grid}`}>
             {guesses
               .map((g, i) => ({ g, f: feedback[i], i }))
               .reverse()
               .map(({ g, f, i }) => (
-                <GuessCard key={g.id} guess={g} feedback={f} hard={hard} animate={i >= restoredCount} />
+                <GuessCard key={g.id} guess={g} feedback={f} hard={hard} animate={i >= restoredCount} bigText={bigText} />
               ))}
           </ul>
         </div>

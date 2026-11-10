@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { applyCrt, isCrtOn, setCrt } from './display'
+import { applyBigText, applyCrt, isBigText, isCrtOn, setBigText, setCrt } from './display'
 
 function fakeStorage() {
   const m = new Map<string, string>()
@@ -61,5 +61,38 @@ describe('CRT display setting', () => {
     expect(isCrtOn()).toBe(true)
     expect(() => setCrt(false)).not.toThrow()
     expect(classes.has('crt')).toBe(false)
+  })
+})
+
+describe('Larger text setting', () => {
+  it('is off by default', () => {
+    expect(isBigText()).toBe(false)
+  })
+
+  it('remembers the choice and toggles the big-text class on <html>', () => {
+    setBigText(true)
+    expect(isBigText()).toBe(true)
+    expect(classes.has('big-text')).toBe(true)
+    setBigText(false)
+    expect(isBigText()).toBe(false)
+    expect(classes.has('big-text')).toBe(false)
+    applyBigText(true)
+    expect(classes.has('big-text')).toBe(true)
+  })
+
+  it('stays off when storage is unavailable', () => {
+    vi.stubGlobal('window', {
+      localStorage: {
+        getItem: () => {
+          throw new Error('blocked')
+        },
+        setItem: () => {
+          throw new Error('blocked')
+        },
+      },
+    })
+    expect(isBigText()).toBe(false)
+    expect(() => setBigText(true)).not.toThrow()
+    expect(classes.has('big-text')).toBe(true)
   })
 })

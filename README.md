@@ -27,7 +27,7 @@ src/lib/history.ts            solved-Daily history, streak maths and Endless sta
 src/hooks/useAnalytics.ts     wraps guesses with anonymous analytics
 src/hooks/useRevealEffects.ts  flip-reveal hold, tick sounds, win fanfare, cry and confetti timers
 src/hooks/useMediaQuery.ts     live CSS media-query match (GuessGrid picks table or cards with it)
-src/lib/                      dataset + search, Pokédex entry fetch (dexEntry.ts), comparison, daily seed, game rules, sound, storage, tile text fitting (tileText.ts)
+src/lib/                      dataset + search, Pokédex entry fetch (dexEntry.ts), comparison, daily seed, game rules, sound, storage, display settings (display.ts: CRT, Larger text), tile text fitting (tileText.ts), phone card layout (cardLayout.ts)
 src/config/gameConfig.ts      game settings, including which form categories are enabled
 src/config/uiConfig.ts        tile animation timing
 src/data/pokemon.json         generated dataset (committed, so the app needs no API at runtime)
@@ -110,6 +110,15 @@ Older plain saves are still read. The search box shows "You got it!" once a game
 - **CRT screen effect**: scanlines, a faint RGB phosphor mask, a vignette and a slow flicker drawn over the page
   (`html.crt body::after` in `src/index.css`). On by default; players can turn it off under **Help → Display**
   (saved per device in `localStorage['pokemondle:crt']`). The flicker stops for "reduce motion".
+- **Larger text**: an off-by-default switch under **Help → Display & sound** (saved per device in
+  `localStorage['pokemondle:big-text']`, `src/lib/display.ts`) that makes the small text a quarter bigger, so the
+  guess tiles' smallest text goes from 7px to 9px. It adds `.big-text` to `<html>` before the first paint, which sets
+  `--ts: 1.25`. Every small text size is written as `tx-N` (a utility in `src/index.css` for N px times `--ts`, rounded to
+  whole pixels so the pixel font stays crisp) and the tile font fitting (`.tile-fit`) multiplies its sizes by `--ts` too.
+  The layout breakpoints that depend on tile width move by the same quarter: table tiles grow taller, phone cards show
+  three tiles to a row under 640 px, cards sit two to a row from 900 px instead of 720 px, and the table starts at
+  1280 px instead of 1024 px (the page widens to 1280 px to give it room). The header, search box and menu buttons keep
+  their size, so they still fit in one row on a 320 px phone.
 
 - **Sound effects and volume**: original 8-bit style blips synthesised in the browser with the Web Audio API
   (`src/lib/sound.ts`; square/triangle oscillators, no audio files and nothing copied from the games; the win cry below is the only audio, and it is streamed, not bundled): a short press blip on every button, switch and radio (one document-level click listener in `sound.ts`, so new buttons get it automatically; the speaker and Guess buttons opt out with `data-no-sound`), a blip as
@@ -124,11 +133,11 @@ Older plain saves are still read. The search box shows "You got it!" once a game
 
 ### Layout on different devices
 
-- Desktop and large tablet (≥ 1024 px): all eleven columns fit on screen.
-- Phones and tablets under 1024 px: no sideways scrolling. Each guess is a compact card: sprite and name on top, then the
+- Desktop and large tablet (≥ 1024 px, or ≥ 1280 px with Larger text): all eleven columns fit on screen.
+- Phones and tablets under 1024 px (1280 px with Larger text): no sideways scrolling. Each guess is a compact card: sprite and name on top, then the
   comparison tiles in two rows of four (Type 1, Type 2, Gen, Height / Weight, Color, Evolution, Form; in Hard mode the top row is three wider tiles without Gen) and full-width Egg Group and Shared Ability strips,
-  with a small key above the list laid out in the same two rows of four as the tiles. The search box uses 16 px text so iOS doesn't
-  zoom, and every button and suggestion is at least 44 px tall for touch. From 720 px wide (iPad portrait) the cards sit two to a row,
+  with a small key above the list laid out in the same two rows of four as the tiles (rows of three under 640 px with Larger text; `cardTileSpan` in `src/lib/cardLayout.ts` sets the spans for both). The search box uses 16 px text so iOS doesn't
+  zoom, and every button and suggestion is at least 44 px tall for touch. From 720 px wide (iPad portrait; 900 px with Larger text) the cards sit two to a row,
   each column with its own key, so tablet tiles aren't stretched across the whole screen.
 - Only one of the two layouts is rendered at a time (`useMediaQuery` in GuessGrid), not both with one hidden by CSS. Rotating
   an iPad across 1024 px swaps the layout without replaying the tile flips.
@@ -159,6 +168,8 @@ asked to flag any break), and UI changes are screenshotted and measured at 320, 
    (the sprite shrinks, from 40px, to the room the name leaves, so it never crosses the bevel), and Shared Ability up to
    4 lines at 9px or 5 at 8px (`lineChars` in `tileText.ts`). The table's Shared Ability column uses one size for every
    row, the one its most demanding row needs (`abilityColumnFit`), so rows don't jump in size.
+   Write small text sizes as `tx-N`, not `text-[Npx]`, so the Larger text option scales them; only the header, search box
+   and `.ds-button` labels keep fixed `text-[Npx]` sizes, so those rows still fit at 320px.
 5. **Stepped corners and pixel font.** Boxes and buttons use stepped pixel corners (`.ds-button`, `.px-notch`) and
    Press Start 2P, self-hosted from `@fontsource/press-start-2p` (no Google Fonts request); images use `image-rendering: pixelated`.
 6. **One action colour.** The main action on a screen (Guess, New Pokémon) is a red button everywhere it appears;

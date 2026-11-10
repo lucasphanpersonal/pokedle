@@ -36,8 +36,8 @@ export function DailyStats({ date, guesses, hard = false }: DailyStatsProps) {
       : `${summary.samePercent}% of players needed ${guesses === 1 ? '1 guess' : `${guesses} guesses`} too.`
 
   return (
-    <section aria-label={hard ? "Today's stats (Hard)" : "Today's stats"} className="w-full border-t-2 border-ds-frame-light pt-3 text-[10px] leading-5">
-      <h3 className="mb-1 text-[11px]">Today&apos;s stats{hard ? ' (Hard)' : ''}</h3>
+    <section aria-label={hard ? "Today's stats (Hard)" : "Today's stats"} className="w-full border-t-2 border-ds-frame-light pt-3 tx-10 leading-5">
+      <h3 className="mb-1 tx-11">Today&apos;s stats{hard ? ' (Hard)' : ''}</h3>
       <p>
         {summary.players} {summary.players === 1 ? 'player has' : 'players have'} solved it, in{' '}
         {summary.average.toFixed(1)} guesses on average.
@@ -53,14 +53,14 @@ export function DailyStats({ date, guesses, hard = false }: DailyStatsProps) {
           </div>
         ))}
       </div>
-      <div className="flex gap-1 text-[8px] text-ds-frame" aria-hidden="true">
+      <div className="flex gap-1 tx-8 text-ds-frame" aria-hidden="true">
         {summary.bars.map((bar) => (
           <span key={bar.label} className="flex-1 text-center">
             {bar.label}
           </span>
         ))}
       </div>
-      <p className="mt-1 text-[8px] text-ds-frame">Guesses to solve. {hard ? 'Anonymous totals from Hard mode players sharing stats.' : 'Anonymous totals from players sharing stats.'}</p>
+      <p className="mt-1 tx-8 text-ds-frame">Guesses to solve. {hard ? 'Anonymous totals from Hard mode players sharing stats.' : 'Anonymous totals from players sharing stats.'}</p>
     </section>
   )
 }

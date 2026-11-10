@@ -84,7 +84,7 @@ export interface Fit {
 /**
  * Shared Ability can be three long names, so it is sized by line count as well as by its longest
  * word: the largest size (up to 9px) at which it wraps onto 4 lines, or else up to 8px on 5 lines.
- * Both fit inside the 72px table tile. Wraps at spaces only, like the browser.
+ * Both fit inside the 72px table tile (taller, in step with the text, with Larger text on). Wraps at spaces only, like the browser.
  */
 export const abilityFit = (text: string): Fit => ({ chars: lineChars(text, 4), piece: lineChars(text, 5) })
 /**

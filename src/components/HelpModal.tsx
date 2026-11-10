@@ -1,6 +1,6 @@
 import { useId, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { isBrowserDoNotTrack, isOptedOutByPlayer, setTrackingOptOut } from '../lib/analytics'
-import { isCrtOn, setCrt } from '../lib/display'
+import { isBigText, isCrtOn, setBigText, setCrt } from '../lib/display'
 import { isHardPref, setHardPref, subscribeHardPref } from '../lib/hardMode'
 import { ResultMark } from './ResultMark'
 import { VolumeBars } from './VolumeControl'
@@ -18,7 +18,7 @@ interface HelpModalProps {
 function Swatch({ result, children }: { result: 'match' | 'partial' | 'mismatch'; children: ReactNode }) {
   const color = { match: 'bg-fb-match', partial: 'bg-fb-partial text-ds-ink', mismatch: 'bg-fb-mismatch' }[result]
   return (
-    <span data-result={result} className={`${color} inline-flex h-7 w-7 shrink-0 items-center justify-center px-notch [--px:2px] text-[9px] text-white bevel`}>
+    <span data-result={result} className={`${color} inline-flex h-7 w-7 shrink-0 items-center justify-center px-notch [--px:2px] tx-9 text-white bevel`}>
       {children}
     </span>
   )
@@ -64,8 +64,8 @@ function HardModeSetting({ locked, gameHard }: { locked: boolean; gameHard: bool
   // While locked, show the mode this game is actually in, not the preference for the next one.
   const hard = locked ? gameHard : pref
   return (
-    <section className="mt-5 border-t-2 border-ds-frame-light pt-4 text-[10px] leading-5">
-      <h3 className="mb-2 text-[11px]">Difficulty</h3>
+    <section className="mt-5 border-t-2 border-ds-frame-light pt-4 tx-10 leading-5">
+      <h3 className="mb-2 tx-11">Difficulty</h3>
       <PixelSwitch
         label="Hard mode (hide Gen)"
         on={hard}
@@ -73,7 +73,7 @@ function HardModeSetting({ locked, gameHard }: { locked: boolean; gameHard: bool
         describedBy={noteId}
         onToggle={() => setHardPref(!hard)}
       />
-      <p id={noteId} className="mt-1 text-[9px] text-ds-frame">
+      <p id={noteId} className="mt-1 tx-9 text-ds-frame">
         Hides the Gen column, so you can't narrow it down by generation. The same switch is the Hard button in the header
         (under History on phones). It is fixed once you make a game's first
         guess{locked ? `: this game is in ${gameHard ? 'Hard' : 'normal'} mode, and the switch unlocks when you solve it (or give up, in Endless).` : ', and applies to the next game you start.'} Hard games
@@ -85,9 +85,10 @@ function HardModeSetting({ locked, gameHard }: { locked: boolean; gameHard: bool
 
 function DisplaySettings() {
   const [crt, setCrtState] = useState(isCrtOn)
+  const [bigText, setBigTextState] = useState(isBigText)
   return (
-    <section className="mt-5 border-t-2 border-ds-frame-light pt-4 text-[10px] leading-5">
-      <h3 className="mb-2 text-[11px]">Display &amp; sound</h3>
+    <section className="mt-5 border-t-2 border-ds-frame-light pt-4 tx-10 leading-5">
+      <h3 className="mb-2 tx-11">Display &amp; sound</h3>
       <PixelSwitch
         label="CRT screen effect"
         on={crt}
@@ -96,13 +97,22 @@ function DisplaySettings() {
           setCrtState(!crt)
         }}
       />
-      <p className="mt-1 text-[9px] text-ds-frame">Scanlines and a soft glow, like an old handheld or TV.</p>
+      <p className="mt-1 tx-9 text-ds-frame">Scanlines and a soft glow, like an old handheld or TV.</p>
+      <PixelSwitch
+        label="Larger text"
+        on={bigText}
+        onToggle={() => {
+          setBigText(!bigText)
+          setBigTextState(!bigText)
+        }}
+      />
+      <p className="mt-1 tx-9 text-ds-frame">Makes all the small text, including the guess tiles, a quarter bigger. Tiles grow taller to fit.</p>
       <div className="mt-2 flex min-h-11 items-center justify-between gap-3">
         <span>Volume</span>
         <VolumeBars />
       </div>
-      <p className="mt-1 text-[9px] text-ds-frame">Retro 8-bit blips as you press buttons and type, as tiles flip, a jingle when you win, then the answer's cry. Tap a dash or use the arrow keys to set the volume; none lit is muted. The speaker button in the header mutes and unmutes.</p>
-      <p className="mt-1 text-[9px] text-ds-frame">A short burst of confetti when you win. Players who set reduce motion don't see it.</p>
+      <p className="mt-1 tx-9 text-ds-frame">Retro 8-bit blips as you press buttons and type, as tiles flip, a jingle when you win, then the answer's cry. Tap a dash or use the arrow keys to set the volume; none lit is muted. The speaker button in the header mutes and unmutes.</p>
+      <p className="mt-1 tx-9 text-ds-frame">A short burst of confetti when you win. Players who set reduce motion don't see it.</p>
     </section>
   )
 }
@@ -122,8 +132,8 @@ function StatsToggle() {
   }
 
   return (
-    <section className="mt-5 border-t-2 border-ds-frame-light pt-4 text-[10px] leading-5">
-      <h3 className="mb-2 text-[11px]">Privacy</h3>
+    <section className="mt-5 border-t-2 border-ds-frame-light pt-4 tx-10 leading-5">
+      <h3 className="mb-2 tx-11">Privacy</h3>
       <p>
         The game records anonymous game events (guesses, results, device type, and whether Hard mode was on) with no cookies, accounts or personal
         data. Browsers that send Do Not Track or Global Privacy Control are never tracked.
@@ -140,7 +150,7 @@ function StatsToggle() {
         onToggle={toggle}
       />
       {browserBlocks && (
-        <p id={noteId} className="mt-1 text-[9px] text-ds-frame">
+        <p id={noteId} className="mt-1 tx-9 text-ds-frame">
           Off: your browser sends Do Not Track or Global Privacy Control.
         </p>
       )}
@@ -151,15 +161,15 @@ function StatsToggle() {
 export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
   return (
     <Modal title="How to play" onClose={onClose}>
-      <div className="space-y-4 text-[10px] leading-5">
+      <div className="space-y-4 tx-10 leading-5">
         <p>
           Guess the hidden Pokémon. There is no guess limit: keep going until you find it. Every Pokémon from Gen 1 to 9
           is in, including regional forms, Megas and Gigantamax.
         </p>
         <p>Start typing a name and pick from the list. Each guess shows how close it is:</p>
-        <p className="lg:hidden">
+        <p className="lg:hidden big:max-xl:block">
           On a phone each guess is a card: Type 1, Type 2, Gen and Height on top, then Weight, Color, Evolution and Form,
-          with Egg Group and Shared Ability along the bottom (Gen is left out in Hard mode). Tablets show two cards side by side, and from 1024 px wide (and on computers) a table instead.
+          with Egg Group and Shared Ability along the bottom (Gen is left out in Hard mode). Tablets show two cards side by side, and from 1024 px wide (and on computers) a table instead. With Larger text on, phones show three tiles to a row and the table starts at 1280 px.
         </p>
         <ul className="space-y-2">
           <li className="flex items-center gap-2">
@@ -219,7 +229,7 @@ export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
       <HardModeSetting locked={hardLocked} gameHard={gameHard} />
       <DisplaySettings />
       <StatsToggle />
-      <p className="mt-5 border-t-2 border-ds-frame-light pt-4 text-[9px] leading-4 text-ds-frame">
+      <p className="mt-5 border-t-2 border-ds-frame-light pt-4 tx-9 leading-4 text-ds-frame">
         Pokémondle is an unofficial fan project. It is not affiliated with, endorsed or sponsored by Nintendo, Game Freak or The
         Pokémon Company. Pokémon and all related names are trademarks of their respective owners.
       </p>

@@ -47,7 +47,7 @@ export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestSt
   const guessText = `${feedback.length} ${feedback.length === 1 ? 'guess' : 'guesses'}`
   return (
     <Modal title={gaveUp ? 'It got away!' : 'Gotcha!'} onClose={onClose}>
-      <div className="flex flex-col items-center gap-4 text-center text-[10px] leading-5">
+      <div className="flex flex-col items-center gap-4 text-center tx-10 leading-5">
         {/* The game's own pixel sprite, scaled up crisply; official artwork if a form has none. */}
         <img
           src={iconUrl(target.id)}
@@ -70,7 +70,7 @@ export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestSt
           </p>
         )}
         {hard && (
-          <p className="inline-flex items-center gap-1.5 border-2 border-ds-frame bg-ds-paper px-2 py-1 text-[9px]">
+          <p className="inline-flex items-center gap-1.5 border-2 border-ds-frame bg-ds-paper px-2 py-1 tx-9">
             <PixelStar />
             Hard mode: no Gen column
           </p>
@@ -85,7 +85,7 @@ export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestSt
         )}
 
         {mode === 'daily' && (
-          <p className="text-[10px]">
+          <p className="tx-10">
             Streak: <strong>{streak}</strong> {streak === 1 ? 'day' : 'days'} · Best: <strong>{bestStreak}</strong>
           </p>
         )}
@@ -93,7 +93,7 @@ export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestSt
         {mode === 'daily' && <DailyStats date={puzzleDate} guesses={feedback.length} hard={hard} />}
 
         {mode === 'daily' && (
-          <p className="text-[9px] text-ds-frame">
+          <p className="tx-9 text-ds-frame">
             Next daily Pokémon in <Countdown />
           </p>
         )}
