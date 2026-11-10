@@ -33,7 +33,7 @@ returns anything about the answer. Raw events are rolled up into `daily_totals` 
 Quick smoke test (should print `204`):
 ```sh
 curl -s -o /dev/null -w "%{http_code}\n" -X POST "https://<project-ref>.supabase.co/functions/v1/track" \
-  -H "Origin: http://localhost:5173" -H "Content-Type: text/plain" \
+  -H "Origin: https://pokemondle.io" -H "Content-Type: text/plain" \
   -d '{"events":[{"event":"game_started","game_id":"3fa85b3a-8158-46e3-8e84-af7319e0d0a4","mode":"endless","target_id":25,"device":"desktop"}]}'
 ```
 Delete test rows afterwards: `delete from events where game_id = '3fa85b3a-8158-46e3-8e84-af7319e0d0a4';`
@@ -42,7 +42,7 @@ Delete test rows afterwards: `delete from events where game_id = '3fa85b3a-8158-
 
 `.github/workflows/supabase-deploy.yml` runs when a change under `supabase/` is merged to `main` (or by hand from the
 Actions tab, main branch only; edits to the workflow file also trigger it). It links the project, runs `supabase db push --remote --yes`, then deploys `track` and `stats` with
-`--no-verify-jwt`. It does **not** touch function secrets such as `ALLOWED_ORIGINS`; set those by hand as above.
+`--no-verify-jwt`. It also sets `ALLOWED_ORIGINS` on every run from the list in the workflow's `env`, so change the list there: a value set by hand is overwritten by the next run. Other function secrets are not touched.
 
 One-time setup, in the repo under **Settings > Secrets and variables > Actions > New repository secret**:
 

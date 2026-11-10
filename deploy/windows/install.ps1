@@ -34,11 +34,14 @@ function Invoke-Native {
 }
 
 function Set-ServiceDefinition([string]$Name, [string]$Display, [string]$BinPath, [string]$DependsOn) {
+    # Windows PowerShell does not escape quotes inside native arguments, and sc.exe would drop them.
+    $options = @('binPath=', $BinPath.Replace('"', '\"'), 'start=', 'auto', 'obj=', $account)
+    if ($DependsOn) { $options += 'depend=', $DependsOn }
     if (Get-Service -Name $Name -ErrorAction SilentlyContinue) {
-        Invoke-Native sc.exe config $Name binPath= $BinPath start= auto obj= $account depend= $DependsOn
+        Invoke-Native sc.exe config $Name @options
     }
     else {
-        Invoke-Native sc.exe create $Name binPath= $BinPath start= auto obj= $account depend= $DependsOn DisplayName= $Display
+        Invoke-Native sc.exe create $Name @options DisplayName= $Display
     }
     Invoke-Native sc.exe failure $Name reset= 86400 actions= restart/5000/restart/5000/restart/60000
 }
@@ -48,11 +51,13 @@ foreach ($name in 'PokemondleTunnel', 'PokemondleWeb') {
 }
 
 # Folders and permissions: LOCAL SERVICE can read everything and write only site\ and logs\.
-New-Item -ItemType Directory -Force -Path "$Root\site\releases", "$Root\logs" | Out-Null
+# secrets\ is locked down before the tunnel key is copied into it.
+New-Item -ItemType Directory -Force -Path "$Root\site\releases", "$Root\logs", "$Root\secrets" | Out-Null
 Invoke-Native icacls.exe $Root /inheritance:r /grant:r "${admins}:(OI)(CI)F" "${system}:(OI)(CI)F" "${users}:(OI)(CI)RX" "${localService}:(OI)(CI)RX"
 foreach ($dir in 'site', 'logs') {
     Invoke-Native icacls.exe "$Root\$dir" /grant "${localService}:(OI)(CI)M"
 }
+Invoke-Native icacls.exe "$Root\secrets" /inheritance:r /grant:r "${admins}:(OI)(CI)F" "${system}:(OI)(CI)F" "${localService}:(OI)(CI)RX"
 
 # Caddy, pinned and checked against the project's published checksums.
 $base = "https://github.com/caddyserver/caddy/releases/download/v$CaddyVersion"
@@ -79,15 +84,14 @@ Copy-Item -Force "$deploy\Caddyfile" "$Root\Caddyfile"
 Copy-Item -Force "$deploy\cloudflared.yml" "$Root\cloudflared.yml"
 Copy-Item -Force "$PSScriptRoot\update-site.ps1" "$Root\update-site.ps1"
 $credentials = "$env:USERPROFILE\.cloudflared\$TunnelId.json"
-if (Test-Path $credentials) { Copy-Item -Force $credentials "$Root\tunnel.json" }
-if (-not (Test-Path "$Root\tunnel.json")) { throw "tunnel credentials not found at $credentials" }
-Invoke-Native icacls.exe "$Root\tunnel.json" /inheritance:r /grant:r "${admins}:F" "${system}:F" "${localService}:R"
+if (Test-Path $credentials) { Copy-Item -Force $credentials "$Root\secrets\tunnel.json" }
+if (-not (Test-Path "$Root\secrets\tunnel.json")) { throw "tunnel credentials not found at $credentials" }
 
 # The site has to exist before the web server starts serving it.
 & "$Root\update-site.ps1"
 
 # Services.
-Set-ServiceDefinition 'PokemondleWeb' 'Pokemondle web server' "`"$Root\caddy.exe`" run --config `"$Root\Caddyfile`" --adapter caddyfile" '/'
+Set-ServiceDefinition 'PokemondleWeb' 'Pokemondle web server' "`"$Root\caddy.exe`" run --config `"$Root\Caddyfile`" --adapter caddyfile" ''
 Set-ServiceDefinition 'PokemondleTunnel' 'Pokemondle Cloudflare Tunnel' "`"$Cloudflared`" --config `"$Root\cloudflared.yml`" tunnel run" 'PokemondleWeb'
 Start-Service -Name 'PokemondleWeb'
 Start-Service -Name 'PokemondleTunnel'
@@ -97,7 +101,7 @@ $action = New-ScheduledTaskAction -Execute 'powershell.exe' `
     -Argument "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$Root\update-site.ps1`""
 $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 5)
 $taskUser = New-ScheduledTaskPrincipal -UserId 'NT AUTHORITY\LOCAL SERVICE' -LogonType ServiceAccount
-$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 10)
+$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Minutes 10)
 Register-ScheduledTask -TaskName 'Pokemondle site update' -Action $action -Trigger $trigger -Principal $taskUser -Settings $settings -Force | Out-Null
 
 Get-Service -Name 'PokemondleWeb', 'PokemondleTunnel' | Format-Table Name, Status, StartType

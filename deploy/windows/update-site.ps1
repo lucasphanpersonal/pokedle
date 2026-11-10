@@ -50,15 +50,30 @@ try {
     }
 
     # [IO.Directory]::Delete removes only the junction, never the release it points at.
-    if (Test-Path $current) { [IO.Directory]::Delete($current) }
+    $previous = if (Test-Path $current) { @((Get-Item -LiteralPath $current).Target)[0] } else { $null }
+    if ($previous -eq $target) {
+        [IO.Directory]::Delete($current)
+        $previous = $null
+    }
     if (Test-Path $target) { Remove-Item -LiteralPath $target -Recurse -Force }
     Rename-Item -LiteralPath $staging -NewName $hash
-    New-Item -ItemType Junction -Path $current -Target $target | Out-Null
+
+    # Only this step can interrupt the live site, so put the old build back if it fails.
+    try {
+        if (Test-Path $current) { [IO.Directory]::Delete($current) }
+        New-Item -ItemType Junction -Path $current -Target $target | Out-Null
+    }
+    catch {
+        if ($previous -and -not (Test-Path $current)) {
+            New-Item -ItemType Junction -Path $current -Target $previous | Out-Null
+        }
+        throw
+    }
     Set-Content -Path $state -Value $hash
 
     # Keep the new build and the one before it.
     Get-ChildItem -Directory -Path $releases |
-        Where-Object { $_.Name -ne $hash } |
+        Where-Object { $_.Name -ne $hash -and $_.Name -notlike '*.tmp' } |
         Sort-Object CreationTimeUtc -Descending |
         Select-Object -Skip 1 |
         ForEach-Object { Remove-Item -LiteralPath $_.FullName -Recurse -Force }
