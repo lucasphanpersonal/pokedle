@@ -5,3 +5,8 @@ project_id = "pokedle"
 # The browser sends no Supabase JWT; abuse is handled inside the function
 # (origin allow-list, validation, per-visitor rate limit).
 verify_jwt = false
+
+[functions.stats]
+# Public read-only daily stats for the result screen; the browser sends no JWT.
+# Set here so a deploy without --no-verify-jwt can't break the panel.
+verify_jwt = false

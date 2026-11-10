@@ -1,0 +1,50 @@
+# Web server for pokemondle.io. Listens on 127.0.0.1 only; the public path is Cloudflare Tunnel.
+# Set POKEMONDLE_HOME to run it somewhere other than the Windows install folder.
+{
+	admin off
+	auto_https off
+	persist_config off
+	log {
+		output file {$POKEMONDLE_HOME:C:/ProgramData/Pokemondle}/logs/caddy.log
+		level WARN
+	}
+}
+
+(security_headers) {
+	header {
+		Content-Security-Policy "default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; connect-src 'self' https://inxvlunfwsssifvjkgtz.supabase.co https://pokeapi.co https://cloudflareinsights.com; img-src 'self' data: https://raw.githubusercontent.com; media-src https://raw.githubusercontent.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'none'"
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+}
+
+http://www.pokemondle.io:4190 {
+	bind 127.0.0.1
+	redir https://pokemondle.io{uri} permanent
+}
+
+:4190 {
+	bind 127.0.0.1
+	import security_headers
+
+	# Cloudflare forwards plain-http visits through the tunnel too.
+	@insecure header X-Forwarded-Proto http
+	redir @insecure https://pokemondle.io{uri} permanent
+
+	root * {$POKEMONDLE_HOME:C:/ProgramData/Pokemondle}/site/current
+	encode zstd gzip
+
+	# Vite hashes everything in assets/, so it can be cached forever. The page itself must not be.
+	@asset {
+		path /assets/*
+		file
+	}
+	header @asset Cache-Control "public, max-age=31536000, immutable"
+	header / Cache-Control "no-cache"
+	header /index.html Cache-Control "no-cache"
+
+	file_server
+}

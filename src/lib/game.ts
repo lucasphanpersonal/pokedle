@@ -2,8 +2,11 @@ import type { Pokemon } from '../types/pokemon'
 import { dailyPick, hashString } from './daily'
 
 export type GameMode = 'daily' | 'endless'
-/** A game ends only when the player guesses the answer. There is no guess limit. */
-export type GameStatus = 'playing' | 'won'
+/**
+ * There is no guess limit: a game ends when the player guesses the answer
+ * ('won'), or, in Endless only, when they give up ('lost').
+ */
+export type GameStatus = 'playing' | 'won' | 'lost'
 
 /**
  * Everything needed to restore a game. Stored as ids so saved games stay small
@@ -21,6 +24,8 @@ export interface SavedGame {
   guessIds: number[]
   /** Set when the first guess is made, if Hard mode (no Gen column) was on. Absent = normal. */
   hard?: true
+  /** Endless only: the player gave up and the answer was revealed. Absent = still open or won. */
+  gaveUp?: true
 }
 
 export function newDailyGame(dateKey: string, pool: Pokemon[]): SavedGame {
@@ -43,7 +48,18 @@ export function newEndlessGame(
 }
 
 export function gameStatus(game: SavedGame): GameStatus {
-  return game.guessIds.includes(game.targetId) ? 'won' : 'playing'
+  if (game.guessIds.includes(game.targetId)) return 'won'
+  return game.gaveUp ? 'lost' : 'playing'
+}
+
+/** Giving up is Endless only, and only once the game has at least one guess and is still open. */
+export function canGiveUp(game: SavedGame): boolean {
+  return game.mode === 'endless' && game.guessIds.length > 0 && gameStatus(game) === 'playing'
+}
+
+/** Ends an Endless game as given up (the answer is then revealed). Returns the same game if it can't. */
+export function giveUp(game: SavedGame): SavedGame {
+  return canGiveUp(game) ? { ...game, gaveUp: true } : game
 }
 
 export type GuessResult = 'ok' | 'duplicate' | 'game-over'
@@ -129,6 +145,8 @@ export function isValidSave(game: unknown, byId: Map<number, Pokemon>): game is 
     // Nothing may be recorded after the winning guess.
     (winAt === -1 || winAt === ids.length - 1) &&
     (g.hard === undefined || g.hard === true) &&
+    // Only an Endless game with guesses and no win can have been given up.
+    (g.gaveUp === undefined || (g.gaveUp === true && g.mode === 'endless' && winAt === -1 && ids.length > 0)) &&
     ids.every((id) => Number.isInteger(id) && byId.has(id))
   )
 }
@@ -143,6 +161,7 @@ export interface StoredGame {
   mode: GameMode
   key: string
   hard?: true
+  gaveUp?: true
   /** Scrambled answer id. */
   t: string
   guessIds: number[]

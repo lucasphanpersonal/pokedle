@@ -28,3 +28,22 @@ describe('tile text helpers', () => {
     expect(lineChars('Mega Charizard X', 1)).toBe(16)
   })
 })
+
+describe('abilityColumnFit', () => {
+  it('uses the most demanding row for the whole column, never less than any one row', async () => {
+    const { POKEDEX } = await import('./pokedex')
+    const { compareGuess } = await import('./compare')
+    const { abilityColumnFit, abilityFit } = await import('./tileText')
+    const { abilityCellText } = await import('./compare')
+    const target = POKEDEX.find((p) => p.name === 'Dusknoir')!
+    const guesses = ['Bulbasaur', 'Nidorina', 'Hydrapple'].map((n) => POKEDEX.find((p) => p.name === n)!)
+    const feedback = guesses.map((g) => compareGuess(g, target))
+    const col = abilityColumnFit(guesses, feedback)
+    for (const [i, g] of guesses.entries()) {
+      const own = abilityFit(abilityCellText(g, feedback[i].ability))
+      expect(col.chars).toBeGreaterThanOrEqual(own.chars)
+      expect(col.piece).toBeGreaterThanOrEqual(own.piece)
+    }
+    expect(abilityColumnFit([], [])).toEqual({ chars: 1, piece: 1 })
+  })
+})

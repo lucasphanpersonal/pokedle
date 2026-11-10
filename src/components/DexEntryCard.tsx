@@ -26,10 +26,10 @@ export function DexEntryCard({ target }: { target: Pokemon }) {
   return (
     <section
       aria-label={`Pokédex entry for ${target.name}`}
-      className="w-full border-2 border-ds-frame bg-ds-paper p-3 text-left text-[9px] leading-5"
+      className="w-full border-2 border-ds-frame bg-ds-paper p-3 text-left tx-9 leading-5"
     >
       <div className="flex items-baseline justify-between gap-2 border-b-2 border-dashed border-ds-frame/30 pb-1">
-        <span className="text-[10px]">
+        <span className="tx-10">
           <span className="text-ds-frame">No.</span> {formatDex(target.dexNumber)}
         </span>
         <span className="min-w-0 text-right [overflow-wrap:anywhere]">

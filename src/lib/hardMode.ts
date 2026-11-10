@@ -62,7 +62,7 @@ export function effectiveHard(game: { guessIds: number[]; hard?: boolean }, pref
   return game.guessIds.length > 0 ? game.hard === true : preference
 }
 
-/** The switch is locked while a game is in progress (has guesses and isn't solved yet). */
-export function hardLocked(game: { guessIds: number[]; targetId: number }): boolean {
-  return game.guessIds.length > 0 && !game.guessIds.includes(game.targetId)
+/** The switch is locked while a game is in progress (has guesses and isn't solved or given up yet). */
+export function hardLocked(game: { guessIds: number[]; targetId: number; gaveUp?: boolean }): boolean {
+  return game.guessIds.length > 0 && !game.guessIds.includes(game.targetId) && !game.gaveUp
 }

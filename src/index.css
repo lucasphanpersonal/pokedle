@@ -16,9 +16,35 @@
   --color-ds-red: #e04848;
   --color-ds-red-dark: #a02828;
 
-  --color-fb-match: #48b848;
+  /*
+   * Tile faces. White tile text needs at least 4.5:1 against the face (the text is 7 to 10px), so
+   * green and red are a shade deeper than the classic menu colours: #2a8530 is 4.67:1, #c84040 4.93:1.
+   * Yellow carries ink text instead (8.5:1). Each tile also gets a corner mark (ResultMark.tsx)
+   * so results are never told apart by colour alone.
+   */
+  --color-fb-match: #2a8530;
   --color-fb-partial: #e8c030;
-  --color-fb-mismatch: #d84848;
+  --color-fb-mismatch: #c84040;
+}
+
+/*
+ * Text scale. Every small text size in the app is written as tx-N (N px at normal size)
+ * and multiplied by --ts, which the "Larger text" option in Help sets to 1.25 by adding
+ * .big-text to <html> (lib/display.ts). Sizes round to whole pixels so the pixel font stays crisp.
+ */
+:root {
+  --ts: 1;
+}
+html.big-text {
+  --ts: 1.25;
+}
+
+/* big: styles that apply only with Larger text on. */
+@custom-variant big (&:where(.big-text, .big-text *));
+
+@utility tx-* {
+  font-size: calc(--value(integer) * 1px * var(--ts));
+  font-size: round(nearest, calc(--value(integer) * 1px * var(--ts)), 1px);
 }
 
 @layer base {
@@ -182,13 +208,20 @@
     --face: var(--color-fb-partial);
     text-shadow: none;
   }
+  /* The corner mark shares the tile text's shadow (none on yellow). */
+  .bevel[data-result] .result-mark {
+    filter: drop-shadow(1px 1px 0 rgb(0 0 0 / 0.4));
+  }
+  .bevel[data-result='partial'] .result-mark {
+    filter: none;
+  }
 
   /*
    * Tile text that always stays inside the tile's padding (10px a side: the 6px bevel
    * plus 4px of air). The tile sets --fs (its normal font size) and --chars (its longest
    * word) and --piece (its longest piece between hyphens; see lib/tileText.ts). The pixel
    * font is monospaced, so a word fits when font-size <= content width / chars: use that,
-   * capped at --fs. If that would be under 8px, wrap at the hyphen instead and size for the
+   * capped at --fs. Every size here is multiplied by --ts (Larger text). If that would be under 8px, wrap at the hyphen instead and size for the
    * longest piece (up to 8px). Never below 7px; any break is the last resort.
    */
   .tile-fit {
@@ -196,9 +229,9 @@
   }
   .tile-fit .fit {
     /* Whole word on one line, or (if that would drop below 8px) wrapped at its hyphen at up to 8px. */
-    --fit: max(100cqi / var(--chars), min(8px, 100cqi / var(--piece, var(--chars))));
-    font-size: max(7px, min(var(--fs), var(--fit)));
-    font-size: max(7px, min(var(--fs), round(down, var(--fit), 1px)));
+    --fit: max(100cqi / var(--chars), min(8px * var(--ts), 100cqi / var(--piece, var(--chars))));
+    font-size: max(7px * var(--ts), min(var(--fs) * var(--ts), var(--fit)));
+    font-size: round(nearest, max(7px * var(--ts), min(round(down, var(--fs) * var(--ts), 1px), round(down, var(--fit), 1px))), 1px);
     hyphens: manual;
     overflow-wrap: anywhere;
   }

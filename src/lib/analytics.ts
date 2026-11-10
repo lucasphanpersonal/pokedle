@@ -226,8 +226,8 @@ export function trackGuess(g: GameRef, guess: { guessId: number; guessNumber: nu
   }
 }
 
-/** Call when a game is won. Sent at most once per game, then flushes. */
-export function trackFinish(g: GameRef, result: 'won', guessCount: number, now: number = Date.now()): void {
+/** Call when a game is won, or given up in Endless ('lost'). Sent at most once per game, then flushes. */
+export function trackFinish(g: GameRef, result: 'won' | 'lost', guessCount: number, now: number = Date.now()): void {
   try {
     if (!isTrackingEnabled()) return
     const { key, record } = getRecord(g.mode, g.gameKey)

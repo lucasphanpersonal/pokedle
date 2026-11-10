@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Pokemon } from '../types/pokemon'
-import { decodeSave, encodeSave, applyGuess, applyGuessToGames, gameStatus, isValidSave, newDailyGame, newEndlessGame, type SavedGame } from './game'
+import { canGiveUp, decodeSave, encodeSave, applyGuess, applyGuessToGames, gameStatus, giveUp, isValidSave, newDailyGame, newEndlessGame, type SavedGame } from './game'
 
 const pool = [1, 2, 3, 4, 5].map((id) => ({ id }) as Pokemon)
 const byId = new Map(pool.map((p) => [p.id, p]))
@@ -86,6 +86,18 @@ describe('applyGuessToGames', () => {
     const out = applyGuessToGames(games('2026-11-08'), 'daily', target, '2026-11-09', pool)
     expect(out.applied).toMatchObject({ gameKey: '2026-11-09', status: 'won' })
   })
+  it('does not report a win for yesterday\'s answer guessed just after midnight', () => {
+    // The rendered (stale) game still holds yesterday's answer; the guess lands in today's game.
+    const yesterdayTarget = newDailyGame('2026-11-08', pool).targetId
+    // Pick a following day whose answer differs, so the guess really is a miss today.
+    const today = ['2026-11-09', '2026-11-10', '2026-11-11', '2026-11-12'].find(
+      (k) => newDailyGame(k, pool).targetId !== yesterdayTarget,
+    )
+    expect(today).toBeDefined()
+    const out = applyGuessToGames(games('2026-11-08'), 'daily', yesterdayTarget, today as string, pool)
+    expect(out.result).toBe('ok')
+    expect(out.applied).toMatchObject({ gameKey: today, status: 'playing' })
+  })
   it('reports nothing for rejected guesses', () => {
     const g = games('2026-11-08')
     const first = applyGuessToGames(g, 'daily', 5, '2026-11-08', pool)
@@ -128,5 +140,37 @@ describe('hard mode flag', () => {
   })
   it('rejects a corrupt hard flag', () => {
     expect(isValidSave({ ...fresh(), targetId: 1, hard: 'yes' }, byId)).toBe(false)
+  })
+})
+
+describe('giving up (Endless only)', () => {
+  const endless: SavedGame = { v: 1, mode: 'endless', key: '2026-11-09T00:00:00.000Z', targetId: 1, guessIds: [2, 3] }
+
+  it('ends an Endless game with guesses as lost, and then takes no more guesses', () => {
+    const lost = giveUp(endless)
+    expect(gameStatus(lost)).toBe('lost')
+    expect(lost.guessIds).toEqual([2, 3])
+    expect(applyGuess(lost, 1).result).toBe('game-over')
+    expect(canGiveUp(lost)).toBe(false)
+  })
+  it('is not offered for the Daily, a game with no guesses, or a won game', () => {
+    const daily: SavedGame = { ...endless, mode: 'daily', key: '2026-11-09' }
+    expect(canGiveUp(daily)).toBe(false)
+    expect(giveUp(daily)).toBe(daily)
+    const fresh = { ...endless, guessIds: [] }
+    expect(giveUp(fresh)).toBe(fresh)
+    const won = { ...endless, guessIds: [2, 1] }
+    expect(giveUp(won)).toBe(won)
+    expect(gameStatus(won)).toBe('won')
+  })
+  it('survives save and load, and rejects impossible given-up saves', () => {
+    const lost = giveUp(endless)
+    const back = decodeSave(JSON.parse(JSON.stringify(encodeSave(lost))))
+    expect(isValidSave(back, byId)).toBe(true)
+    expect(gameStatus(back as SavedGame)).toBe('lost')
+    expect(isValidSave({ ...lost, mode: 'daily' }, byId)).toBe(false)
+    expect(isValidSave({ ...lost, guessIds: [] }, byId)).toBe(false)
+    expect(isValidSave({ ...lost, guessIds: [2, 1] }, byId)).toBe(false)
+    expect(isValidSave({ ...endless, gaveUp: 'yes' }, byId)).toBe(false)
   })
 })

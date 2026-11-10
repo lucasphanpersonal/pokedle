@@ -21,33 +21,35 @@ export interface SeenGame {
 
 /**
  * Decides whether this render is the moment a game finished. Only a
- * playing -> won change within the same game counts, so a finished game
+ * playing -> won (or, in Endless, playing -> lost by giving up) change within the same game counts, so a finished game
  * seen on first mount, a mode switch or new game, and the same state seen
  * twice (StrictMode's double effect) all report nothing.
  */
-export function finishedTransition(last: SeenGame | null, current: SeenGame): 'won' | null {
+export function finishedTransition(last: SeenGame | null, current: SeenGame): 'won' | 'lost' | null {
   if (!last || last.id !== current.id) return null
   if (last.status !== 'playing' || current.status === 'playing') return null
-  return 'won'
+  return current.status
 }
 
 /**
  * Wraps submitGuess with analytics and reports game_finished when a game moves
- * from playing to won. Returns the wrapped submitGuess.
+ * from playing to won (or to lost, when an Endless game is given up). Returns the wrapped submitGuess.
  *
  * game_finished only fires on an observed transition within the same game, so
  * a finished game restored from storage on reload is never re-sent (and the
  * per-game stored flag also dedupes across StrictMode and tabs).
  */
-export function useAnalytics(game: GameView): (pokemon: Pokemon) => GuessResult {
+export function useAnalytics(game: GameView): (pokemon: Pokemon) => { result: GuessResult; applied: AppliedGuess | null } {
   const { mode, gameKey, targetPokemon, guesses, gameStatus, hard, submitGuessDetailed } = game
   useEffect(() => startAnalytics(), [])
 
   // Tagged with the game the guess was actually applied to (not the rendered
   // one), so a guess just after local midnight isn't filed under yesterday.
+  // Returns the same outcome so the UI can react to the game it landed in.
   const wrapped = useCallback(
-    (pokemon: Pokemon): GuessResult => {
-      const { result, applied } = submitGuessDetailed(pokemon)
+    (pokemon: Pokemon): { result: GuessResult; applied: AppliedGuess | null } => {
+      const outcome = submitGuessDetailed(pokemon)
+      const { result, applied } = outcome
       if (result === 'ok' && applied) {
         const ref = { mode: applied.mode, gameKey: applied.gameKey, targetId: applied.targetId, hard: applied.hard }
         trackGuess(ref, {
@@ -60,7 +62,7 @@ export function useAnalytics(game: GameView): (pokemon: Pokemon) => GuessResult 
         // transition. trackFinish is once-per-game, so the effect can't double-send.
         if (applied.status !== 'playing') trackFinish(ref, applied.status, applied.guessNumber)
       }
-      return result
+      return outcome
     },
     [submitGuessDetailed],
   )

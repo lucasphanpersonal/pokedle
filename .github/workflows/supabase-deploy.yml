@@ -1,0 +1,56 @@
+# Deploys the Supabase backend (database migrations + Edge Functions) when a change under
+# supabase/ lands on main. The site itself is published by deploy.yml.
+# One-time setup: add repo secrets SUPABASE_ACCESS_TOKEN and SUPABASE_DB_PASSWORD
+# (Settings -> Secrets and variables -> Actions). See supabase/README.md.
+name: Deploy Supabase
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/**"
+      - ".github/workflows/supabase-deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Migrations must apply in order and never run twice at once.
+concurrency:
+  group: supabase-deploy
+  cancel-in-progress: false
+
+env:
+  # Not a secret: it is already in the public function URL.
+  SUPABASE_PROJECT_REF: inxvlunfwsssifvjkgtz
+  # Not a secret either: the sites whose browsers may call the functions.
+  ALLOWED_ORIGINS: https://pokemondle.io,https://lucasphanpersonal.github.io
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Manual runs from another branch must not push its migrations to production.
+    if: github.ref == 'refs/heads/main'
+    # Secrets are scoped to this job, not the whole workflow.
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      # Pinned so a new CLI release can't run with the database secrets unreviewed; Dependabot does not update this, bump it by hand.
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 3.1.0
+      - name: Check secrets are set
+        run: |
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ] || [ -z "$SUPABASE_DB_PASSWORD" ]; then
+            echo "::error::Add the SUPABASE_ACCESS_TOKEN and SUPABASE_DB_PASSWORD repository secrets (see supabase/README.md)."
+            exit 1
+          fi
+      - run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+      # Order matters: the stats function calls a function created by a migration.
+      - run: supabase db push --remote --yes
+      # Before the deploys: functions read secrets when they start.
+      - run: supabase secrets set ALLOWED_ORIGINS="$ALLOWED_ORIGINS" --yes
+      - run: supabase functions deploy track --no-verify-jwt --yes
+      - run: supabase functions deploy stats --no-verify-jwt --yes
