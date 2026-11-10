@@ -140,7 +140,7 @@ Older plain saves are still read. The search box shows "You got it!" once a game
   zoom, and every button and suggestion is at least 44 px tall for touch. From 720 px wide (iPad portrait; 900 px with Larger text) the cards sit two to a row,
   each column with its own key, so tablet tiles aren't stretched across the whole screen.
 - Only one of the two layouts is rendered at a time (`useMediaQuery` in GuessGrid), not both with one hidden by CSS. Rotating
-  an iPad across 1024 px swaps the layout without replaying the tile flips.
+  an iPad across 1024 px (1280 px with Larger text) swaps the layout without replaying the tile flips.
 - Keyboard: type to search, ↑/↓ to move through suggestions, Enter to guess, Esc to close a dialog, ←/→ to switch Daily/Endless when that toggle is focused.
 - **Win confetti**: a ~2 second burst of pixel confetti in the game's colours, with a few Poké Balls and stars, falls over the result dialog when you win (Daily or Endless). It starts after the last tile flips, is pointer-free, and is not shown for players who set "reduce motion" (`src/components/Confetti.tsx`).
 - Animations are turned off for players who set "reduce motion".
@@ -162,7 +162,7 @@ asked to flag any break), and UI changes are screenshotted and measured at 320, 
    in one row, with one gap size per row (6px on phones, 8px from 640px up). Nothing may spill past the screen edge
    at any width from 320px.
 4. **Text stays inside the padding.** Guess-tile and button text keeps at least 10px from the edge (the 6px bevel plus
-   4px of air). Guess tiles shrink long words to fit (`.tile-fit`, down to 7px) or wrap them at a soft hyphen
+   4px of air). Guess tiles shrink long words to fit (`.tile-fit`, down to 7px, or 9px with Larger text) or wrap them at a soft hyphen
    (`src/lib/tileText.ts`), e.g. "Undis- / covered", rather than run edge to edge. Multi-line tiles are also sized by
    line count so nothing is cut off: the table's Pokémon name gets up to 3 lines under its sprite and Pokédex number
    (the sprite shrinks, from 40px, to the room the name leaves, so it never crosses the bevel), and Shared Ability up to

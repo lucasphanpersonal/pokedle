@@ -65,6 +65,8 @@ describe('CRT display setting', () => {
 })
 
 describe('Larger text setting', () => {
+  beforeEach(() => applyBigText(false))
+
   it('is off by default', () => {
     expect(isBigText()).toBe(false)
   })
@@ -91,8 +93,9 @@ describe('Larger text setting', () => {
         },
       },
     })
-    expect(isBigText()).toBe(false)
     expect(() => setBigText(true)).not.toThrow()
     expect(classes.has('big-text')).toBe(true)
+    // The page and the setting agree for this visit even though nothing could be saved.
+    expect(isBigText()).toBe(true)
   })
 })
