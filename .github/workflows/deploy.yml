@@ -43,6 +43,8 @@ jobs:
   publish-bundle:
     needs: build
     runs-on: ubuntu-latest
+    # A manual run from another branch must not go live on pokemondle.io.
+    if: github.ref == 'refs/heads/main'
     permissions:
       contents: write
     env:
