@@ -76,12 +76,12 @@ export default function App() {
         hardLocked={game.hardSwitchLocked}
         onHardLockedPress={() => setLockNoteGame(gameId)}
       />
-      <main className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-3 py-4 sm:px-5 sm:py-6">
+      <main className="mx-auto flex w-full max-w-5xl big:max-w-[80rem] flex-col gap-4 px-3 py-4 sm:px-5 sm:py-6">
         <div className="flex flex-col items-center gap-2 text-center">
-          <p className="text-[10px] sm:text-xs">
+          <p className="tx-10 sm:text-xs">
             {game.puzzleNumber !== null ? `Daily #${game.puzzleNumber}` : 'Endless mode'}
           </p>
-          <p className="text-[9px] text-ds-frame">
+          <p className="tx-9 text-ds-frame">
             {game.guesses.length} {game.guesses.length === 1 ? 'guess' : 'guesses'}
             {hard && ' · Hard mode'}
           </p>
@@ -89,7 +89,7 @@ export default function App() {
           {/* Always mounted so screen readers announce the text when it appears. */}
           <div role="status" className="contents">
             {game.hardSwitchLocked && lockNoteGame === gameId && (
-              <p className="max-w-md text-[8px] leading-4 text-ds-frame">
+              <p className="max-w-md tx-8 leading-4 text-ds-frame">
                 Hard mode is locked for this game. It applies to your next Daily or a new Endless game.
               </p>
             )}

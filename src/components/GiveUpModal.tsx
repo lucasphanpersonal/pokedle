@@ -10,7 +10,7 @@ interface GiveUpModalProps {
 export function GiveUpModal({ guesses, onConfirm, onCancel }: GiveUpModalProps) {
   return (
     <Modal title="Give up?" onClose={onCancel}>
-      <div className="flex flex-col gap-4 text-[10px] leading-5">
+      <div className="flex flex-col gap-4 tx-10 leading-5">
         <p>
           The answer will be revealed and this game ends after {guesses} {guesses === 1 ? 'guess' : 'guesses'}. It counts as
           given up in your History.
