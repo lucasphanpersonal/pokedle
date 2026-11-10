@@ -14,6 +14,7 @@ npm run preview    # serve the production build locally
 npm run test       # unit tests
 npm run test:e2e   # browser smoke test (Playwright; first run: npx playwright install chromium)
 npm run fetch-data # rebuild src/data/pokemon.json from PokéAPI
+npm run icons      # rebuild the site icons in public/ from scripts/icons/pokeball.txt
 ```
 
 ## Project layout
@@ -21,6 +22,9 @@ npm run fetch-data # rebuild src/data/pokemon.json from PokéAPI
 ```
 e2e/smoke.spec.ts             Playwright browser smoke test (load, guess, win, mode switch at 390px and 1280px)
 scripts/fetchPokemonData.ts   builds the local Pokémon dataset from PokéAPI
+scripts/makeIcons.ts          builds the tab icon, home-screen icons and manifest icons from the pixel Poké Ball
+scripts/icons/pokeball.txt    the hand-drawn Poké Ball (16x16 and 32x32 grids, one letter per colour)
+public/                       favicon.ico, apple-touch-icon.png, manifest.json and its icons (generated, committed)
 src/components/               Header, SearchBar, GuessGrid, FeedbackRow, ResultModal, HistoryModal, HelpModal, GiveUpModal, Modal
 src/hooks/usePokemondle.ts    game state (target, guesses, status), saved to localStorage (answer id scrambled, see below)
 src/lib/history.ts            solved-Daily history, streak maths and Endless stats (pure, tested)
