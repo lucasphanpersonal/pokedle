@@ -16,7 +16,7 @@ const prefersReducedMotion = () =>
 
 /**
  * The one-time "Hard mode: the Generation column is hidden!" message, drawn as an
- * in-game text box along the bottom of the screen. The text types out letter by
+ * in-game text box centred on screen over a dimmed background. The text types out letter by
  * letter; a tap, click, Enter, Space, Z/A or Escape first finishes the text, then
  * closes the box (straight away once the text is complete), like advancing dialogue.
  */
@@ -73,7 +73,7 @@ export function HardNotice({ appliesNow, onDismiss }: HardNoticeProps) {
   return createPortal(
     <div
       data-modal
-      className="fixed inset-0 z-50 flex cursor-pointer items-end justify-center bg-black/30 p-3 sm:p-4"
+      className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center bg-black/50 p-3 sm:p-4"
       onClick={() => advanceRef.current()}
     >
       <div
@@ -83,7 +83,7 @@ export function HardNotice({ appliesNow, onDismiss }: HardNoticeProps) {
         aria-label="Hard mode"
         aria-describedby={textId}
         tabIndex={-1}
-        className="ds-box pop-in relative w-full max-w-xl px-5 pt-5 pb-8 outline-none sm:px-6 sm:pt-6"
+        className="ds-box pop-in relative w-full max-w-md px-5 pt-5 pb-8 outline-none sm:px-6 sm:pt-6"
       >
         <p id={textId} className="sr-only">
           {text} Press Enter or tap to continue.
