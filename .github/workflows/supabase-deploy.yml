@@ -51,6 +51,6 @@ jobs:
       # Order matters: the stats function calls a function created by a migration.
       - run: supabase db push --remote --yes
       # Before the deploys: functions read secrets when they start.
-      - run: supabase secrets set ALLOWED_ORIGINS="$ALLOWED_ORIGINS"
+      - run: supabase secrets set ALLOWED_ORIGINS="$ALLOWED_ORIGINS" --yes
       - run: supabase functions deploy track --no-verify-jwt --yes
       - run: supabase functions deploy stats --no-verify-jwt --yes
