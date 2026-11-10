@@ -56,7 +56,8 @@ export function HistoryModal({ history, endless, onClose }: HistoryModalProps) {
                     {/* Long form names wrap rather than being cut off. */}
                     <div className="[overflow-wrap:anywhere]">{name}</div>
                     <div className="text-[9px] text-ds-frame">
-                      #{puzzleNumber(h.date)} · {h.date}
+                      {puzzleNumber(h.date) >= 1 && `#${puzzleNumber(h.date)} · `}
+                      {h.date}
                       {h.hard && (
                         <span className="ml-2 inline-flex items-center gap-1 whitespace-nowrap">
                           <PixelStar />

@@ -10,7 +10,7 @@ import {
 } from '../lib/compare'
 import { formatDex } from '../lib/dexEntry'
 import { iconUrl } from '../lib/pokedex'
-import { breakable, lineChars, longestPiece, longestWord } from '../lib/tileText'
+import { abilityFit, breakable, lineChars, longestPiece, longestWord, type Fit } from '../lib/tileText'
 import type { Pokemon } from '../types/pokemon'
 import { ResultMark } from './ResultMark'
 
@@ -21,6 +21,8 @@ interface FeedbackRowProps {
   hard?: boolean
   /** Flip the tiles in one by one (only for a guess made just now). */
   animate: boolean
+  /** Table only: one Shared Ability size for the whole column (see abilityColumnFit), so rows don't jump in size. */
+  abilityColumn?: Fit
 }
 
 type Result = MatchFeedback | NumberFeedback
@@ -28,18 +30,7 @@ type Result = MatchFeedback | NumberFeedback
 /* Beveled DS-menu block: see .bevel in index.css (light top edge, dark bottom edge), shared with every button. */
 const TILE_EDGE = 'bevel'
 
-/** Font-fit variables for a tile (see .tile-fit in index.css): base size, longest word and longest unbreakable piece. */
-interface Fit {
-  chars: number
-  piece: number
-}
 const fitOf = (...parts: (string | number)[]): Fit => ({ chars: longestWord(...parts), piece: longestPiece(...parts) })
-/**
- * Shared Ability can be three long names, so it is sized by line count as well as by its longest
- * word: the largest size (up to 9px) at which it wraps onto 4 lines, or else up to 8px on 5 lines.
- * Both fit inside the 72px table tile. Wraps at spaces only, like the browser.
- */
-const abilityFit = (text: string): Fit => ({ chars: lineChars(text, 4), piece: lineChars(text, 5) })
 /** Pass fs as null when a class sets --fs (so it can change with screen width). */
 const fit = (fs: number | null, { chars, piece }: Fit, extra?: CSSProperties): CSSProperties =>
   ({ ...extra, ...(fs === null ? {} : { '--fs': `${fs}px` }), '--chars': chars, '--piece': piece }) as CSSProperties
@@ -124,7 +115,7 @@ interface TileData {
 }
 
 /** The attribute tiles in column order (after the name), without Gen in Hard mode. */
-function buildTiles(guess: Pokemon, feedback: GuessFeedback, hard: boolean): TileData[] {
+function buildTiles(guess: Pokemon, feedback: GuessFeedback, hard: boolean, abilityColumn?: Fit): TileData[] {
   const tiles: TileData[] = [
     { label: 'Type 1', result: feedback.type1, content: breakable(guess.type1), chars: fitOf(guess.type1) },
     { label: 'Type 2', result: feedback.type2, content: breakable(guess.type2 ?? 'None'), chars: fitOf(guess.type2 ?? 'None') },
@@ -145,7 +136,7 @@ function buildTiles(guess: Pokemon, feedback: GuessFeedback, hard: boolean): Til
       label: 'Shared Ability',
       result: feedback.ability.result,
       content: abilityCellText(guess, feedback.ability),
-      chars: abilityFit(abilityCellText(guess, feedback.ability)),
+      chars: abilityColumn ?? abilityFit(abilityCellText(guess, feedback.ability)),
     },
   ]
   return hard ? tiles.filter((t) => t.label !== 'Gen') : tiles
@@ -188,7 +179,7 @@ export function GuessCard({ guess, feedback, animate, hard = false }: FeedbackRo
     )
   }
   return (
-    <li className="grid grid-cols-12 gap-1 border-t-2 border-dashed border-ds-frame/30 py-2 first:border-t-0 first:pt-0 last:pb-0">
+    <li className="grid grid-cols-12 content-start gap-1 border-t-2 border-dashed border-ds-frame/30 py-2 first:border-t-0 first:pt-0 last:pb-0 min-[720px]:[&:nth-child(2)]:border-t-0 min-[720px]:[&:nth-child(2)]:pt-0 min-[720px]:[&:nth-last-child(2):nth-child(odd)]:pb-0">
       <div
         className={`${BG[feedback.pokemon]} ${animate ? 'tile-flip' : ''} px-notch col-span-12 flex min-h-11 items-center gap-2 px-2.5 text-[9px] text-white sm:text-[10px] ${TILE_EDGE}`}
         data-result={feedback.pokemon}
@@ -222,8 +213,8 @@ export function GuessCard({ guess, feedback, animate, hard = false }: FeedbackRo
   )
 }
 
-export function FeedbackRow({ guess, feedback, animate, hard = false }: FeedbackRowProps) {
-  const tiles = buildTiles(guess, feedback, hard)
+export function FeedbackRow({ guess, feedback, animate, hard = false, abilityColumn }: FeedbackRowProps) {
+  const tiles = buildTiles(guess, feedback, hard, abilityColumn)
   return (
     <tr>
       <th scope="row" className="p-0 font-normal">
@@ -232,15 +223,16 @@ export function FeedbackRow({ guess, feedback, animate, hard = false }: Feedback
           covers the sprite; the name gets up to three full-width lines below, sized so it all fits.
         */}
         <div
-          className={`${BG[feedback.pokemon]} ${animate ? 'tile-flip' : ''} tile-fit flex h-16 w-full flex-col justify-center px-notch px-2.5 leading-[10px] text-white ${TILE_EDGE} sm:h-[72px]`}
+          className={`${BG[feedback.pokemon]} ${animate ? 'tile-flip' : ''} tile-fit flex h-16 w-full flex-col px-notch px-2.5 py-1.5 leading-[10px] text-white ${TILE_EDGE} sm:h-[72px]`}
           style={fit(8, { chars: lineChars(guess.name, 3), piece: lineChars(guess.name, 3) })}
           data-result={feedback.pokemon}
         >
-          <div className="-mt-2 -mb-1 flex items-start justify-between">
-            <img src={iconUrl(guess.id)} alt="" width={40} height={40} className="-ml-1 h-10 w-10 shrink-0 [image-rendering:pixelated]" />
-            <span className="mt-3 text-[7px] leading-none opacity-80">{formatDex(guess.dexNumber)}</span>
+          {/* The sprite row takes whatever height the name leaves (up to 40px), so big sprites never cross the bevel. */}
+          <div className="flex min-h-0 flex-1 items-end justify-between">
+            <img src={iconUrl(guess.id)} alt="" width={40} height={40} className="-ml-1 h-full max-h-10 min-h-0 w-auto shrink-0 object-contain object-bottom [image-rendering:pixelated]" />
+            <span className="mt-1.5 self-start text-[7px] leading-none opacity-80">{formatDex(guess.dexNumber)}</span>
           </div>
-          <span className="fit relative line-clamp-3 text-center">{guess.name}</span>
+          <span className="fit relative line-clamp-3 shrink-0 text-center">{guess.name}</span>
         </div>
       </th>
       {tiles.map(({ label, result, content }, i) => (

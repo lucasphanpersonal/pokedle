@@ -1,7 +1,7 @@
 import { useId, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import type { GuessResult } from '../lib/game'
 import { formatDex } from '../lib/dexEntry'
-import { iconUrl, searchPokemon } from '../lib/pokedex'
+import { findGuessedByName, iconUrl, searchPokemon } from '../lib/pokedex'
 import { playSound } from '../lib/sound'
 import type { Pokemon } from '../types/pokemon'
 
@@ -26,6 +26,8 @@ export function SearchBar({ pokedex, guessedIds, onGuess, disabled, doneText = '
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(0)
+  // True once the player moves through the list with the arrow keys, so Enter is a deliberate pick.
+  const [navigated, setNavigated] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const listId = useId()
@@ -49,6 +51,7 @@ export function SearchBar({ pokedex, guessedIds, onGuess, disabled, doneText = '
     setQuery('')
     setOpen(false)
     setActive(0)
+    setNavigated(false)
     inputRef.current?.focus()
   }
 
@@ -56,18 +59,32 @@ export function SearchBar({ pokedex, guessedIds, onGuess, disabled, doneText = '
     if (e.key === 'ArrowDown' && suggestions.length) {
       e.preventDefault()
       setOpen(true)
+      setNavigated(true)
       playSound('move')
       setActive((i) => (i + 1) % suggestions.length)
     } else if (e.key === 'ArrowUp' && suggestions.length) {
       e.preventDefault()
       setOpen(true)
+      setNavigated(true)
       playSound('move')
       setActive((i) => (i - 1 + suggestions.length) % suggestions.length)
     } else if (e.key === 'Enter') {
       e.preventDefault()
-      if (!query.trim() || !suggestions.length) playSound('error')
-      if (!query.trim()) return setMessage('Type a Pokémon name to guess.')
-      if (!suggestions.length) return setMessage('No Pokémon by that name.')
+      if (!query.trim()) {
+        playSound('error')
+        return setMessage('Type a Pokémon name to guess.')
+      }
+      // Typing the exact name of a Pokémon already guessed must not fall through to the next suggestion
+      // (e.g. "pikachu" twice would otherwise guess Pikachu Rock Star).
+      const repeat = navigated ? undefined : findGuessedByName(pokedex, guessedIds, query)
+      if (repeat) {
+        playSound('error')
+        return setMessage(`You already guessed ${repeat.name}.`)
+      }
+      if (!suggestions.length) {
+        playSound('error')
+        return setMessage('No Pokémon by that name.')
+      }
       // If the list was closed (Esc), Enter reopens it rather than guessing blind.
       if (!showList) return setOpen(true)
       choose(suggestions[active])
@@ -101,6 +118,7 @@ export function SearchBar({ pokedex, guessedIds, onGuess, disabled, doneText = '
             setQuery(e.target.value)
             setOpen(true)
             setActive(0)
+            setNavigated(false)
             setMessage(null)
           }}
           onFocus={() => setOpen(true)}

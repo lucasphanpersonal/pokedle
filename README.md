@@ -39,6 +39,8 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   with each Pokémon's id. **Endless**: a new random Pokémon on demand. Each mode keeps its own saved game.
 - **No guess limit**: a game ends when you guess the answer. The search box only accepts Pokémon picked from
   its suggestions; already guessed Pokémon are hidden from them. Matching ignores case, accents and punctuation ("flabebe" finds Flabébé).
+  Typing the full name of a Pokémon you already guessed and pressing Enter says "You already guessed …" instead of guessing
+  the next suggestion (so "pikachu" twice never guesses Pikachu Rock Star); picking a suggestion with ↑/↓ first still works.
 - **Give up (Endless only)**: after the first guess, a white **Give up** button sits under the search box. It asks
   first (`src/components/GiveUpModal.tsx`: **Keep going** or **Give up**), then ends the game as `lost`: the result
   screen, titled "It got away!", reveals the answer with its Pokédex entry and a **New Pokémon** button, and the
@@ -51,7 +53,7 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   Shared Ability lists every ability the two share (hidden abilities count). With no match it is red and lists all of
   the guess's own abilities instead.
   Guessing the exact answer always turns every tile green. (Forms with no ability data on PokéAPI, like the new Legends Z-A Megas, borrow their base species' abilities in the data script.)
-- **Hard mode**: an optional switch that hides the Gen column (table and phone cards). It is the **Hard** button in the header (on phones it sits under History), and it also appears under **Help → Difficulty**. While a game is in progress the button shows a lock note and can't be changed until that game is solved (or given up, in Endless).
+- **Hard mode**: an optional switch that hides the Gen column (table and phone cards). It is the **Hard** button in the header (on phones it sits under History), and it also appears under **Help → Difficulty**. While a game is in progress the button can't be changed until that game is solved (or given up, in Endless); it keeps its colours (no fading), and tapping it shows a one-line note under the guess count explaining the lock.
   It is a per-device preference (`localStorage['pokemondle:hard-mode']`, off by default, `src/lib/hardMode.ts`) that
   sets how the *next* game starts. Each game records its own `hard` flag when its first guess is made, so the mode
   can't change mid-game: the switch is disabled while the current game is in progress and unlocks once it is solved (or given up, in Endless).
@@ -85,7 +87,7 @@ Older plain saves are still read. The search box shows "You got it!" once a game
 - Every solved Daily is saved on the player's own device in `localStorage['pokemondle:history']` (date, answer id,
   guess count, and `hard: true` if it was a Hard mode game). No account or server is involved, so it doesn't carry over between devices or browsers.
 - The **History** button under the puzzle title shows the current streak, and opens a screen with current and best
-  streak, Dailies solved, average and fewest guesses, and a list of past Dailies (puzzle number, date, answer, guesses).
+  streak, Dailies solved, average and fewest guesses, and a list of past Dailies (puzzle number, date, answer, guesses; days before launch show only the date).
   The Daily result screen shows the streak too.
 - History also shows **Endless** stats: games played, Pokémon caught and given up, and the average and fewest guesses
   over caught games (given-up games don't count toward those two). They are kept in
@@ -126,7 +128,8 @@ Older plain saves are still read. The search box shows "You got it!" once a game
 - Phones and tablets under 1024 px: no sideways scrolling. Each guess is a compact card: sprite and name on top, then the
   comparison tiles in two rows of four (Type 1, Type 2, Gen, Height / Weight, Color, Evolution, Form; in Hard mode the top row is three wider tiles without Gen) and full-width Egg Group and Shared Ability strips,
   with a small key above the list laid out in the same two rows of four as the tiles. The search box uses 16 px text so iOS doesn't
-  zoom, and every button and suggestion is at least 44 px tall for touch.
+  zoom, and every button and suggestion is at least 44 px tall for touch. From 720 px wide (iPad portrait) the cards sit two to a row,
+  each column with its own key, so tablet tiles aren't stretched across the whole screen.
 - Only one of the two layouts is rendered at a time (`useMediaQuery` in GuessGrid), not both with one hidden by CSS. Rotating
   an iPad across 1024 px swaps the layout without replaying the tile flips.
 - Keyboard: type to search, ↑/↓ to move through suggestions, Enter to guess, Esc to close a dialog, ←/→ to switch Daily/Endless when that toggle is focused.
@@ -152,8 +155,10 @@ asked to flag any break), and UI changes are screenshotted and measured at 320, 
 4. **Text stays inside the padding.** Guess-tile and button text keeps at least 10px from the edge (the 6px bevel plus
    4px of air). Guess tiles shrink long words to fit (`.tile-fit`, down to 7px) or wrap them at a soft hyphen
    (`src/lib/tileText.ts`), e.g. "Undis- / covered", rather than run edge to edge. Multi-line tiles are also sized by
-   line count so nothing is cut off: the table's Pokémon name gets up to 3 lines under its sprite and Pokédex number,
-   and Shared Ability up to 4 lines at 9px or 5 at 8px (`lineChars` in `tileText.ts`).
+   line count so nothing is cut off: the table's Pokémon name gets up to 3 lines under its sprite and Pokédex number
+   (the sprite shrinks, from 40px, to the room the name leaves, so it never crosses the bevel), and Shared Ability up to
+   4 lines at 9px or 5 at 8px (`lineChars` in `tileText.ts`). The table's Shared Ability column uses one size for every
+   row, the one its most demanding row needs (`abilityColumnFit`), so rows don't jump in size.
 5. **Stepped corners and pixel font.** Boxes and buttons use stepped pixel corners (`.ds-button`, `.px-notch`) and
    Press Start 2P, self-hosted from `@fontsource/press-start-2p` (no Google Fonts request); images use `image-rendering: pixelated`.
 6. **One action colour.** The main action on a screen (Guess, New Pokémon) is a red button everywhere it appears;
