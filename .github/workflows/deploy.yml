@@ -34,6 +34,32 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site-bundle
+          path: dist
+
+  # pokemondle.io polls this release and installs each new build (deploy/windows/update-site.ps1).
+  publish-bundle:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: site-bundle
+          path: dist
+      - run: cd dist && zip -qr ../site.zip .
+      - name: Create the rolling release on first run
+        run: |
+          gh release view site-latest >/dev/null 2>&1 || \
+            gh release create site-latest --target main --prerelease --latest=false \
+              --title "Latest site build" --notes "Rolling build of main, installed automatically by pokemondle.io."
+      - run: gh release upload site-latest site.zip --clobber
 
   deploy:
     needs: build

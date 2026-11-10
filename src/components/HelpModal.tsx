@@ -129,6 +129,9 @@ function StatsToggle() {
         data. Browsers that send Do Not Track or Global Privacy Control are never tracked.
       </p>
       <p className="mt-2">
+        Separately, Cloudflare, which delivers the site, counts page views without cookies. The switch below does not affect that count.
+      </p>
+      <p className="mt-2">
         After you solve the Daily, the result screen shows anonymous totals for that puzzle (players who solved it, average
         guesses and how you compare). It is only shown while sharing is on.
       </p>
