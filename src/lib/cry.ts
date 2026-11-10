@@ -15,6 +15,12 @@ export function cryUrls(pokemon: Pokemon): string[] {
   return pokemon.dexNumber !== pokemon.id ? [cryUrl(pokemon.id), cryUrl(pokemon.dexNumber)] : [cryUrl(pokemon.id)]
 }
 
+/** Cries play at half the level of the blips, so they don't drown out the rest of the game. */
+const CRY_GAIN = 0.5
+
+/** Cry gain at a volume step: the same bars as everything else, halved. */
+export const cryGain = (level: number) => volumeGain(level) * CRY_GAIN
+
 let current: HTMLAudioElement | null = null
 
 /** Stop any cry that is still playing (new game, mode switch, or muted). */
@@ -28,7 +34,7 @@ export function stopCry(): void {
 // Muting mid-cry cuts it off straight away; other changes retune it live.
 subscribeSound(() => {
   if (!isSoundOn()) stopCry()
-  else if (current) current.volume = volumeGain(getVolume())
+  else if (current) current.volume = cryGain(getVolume())
 })
 
 function tryPlay(urls: string[]): void {
@@ -37,7 +43,7 @@ function tryPlay(urls: string[]): void {
   try {
     stopCry()
     const audio = new Audio(url)
-    audio.volume = volumeGain(getVolume())
+    audio.volume = cryGain(getVolume())
     // A missing cry (404, offline) moves on to the species cry, then gives up silently.
     audio.onerror = () => tryPlay(rest)
     current = audio
