@@ -86,11 +86,14 @@ export default function App() {
             {hard && ' · Hard mode'}
           </p>
           {/* Only shown once the player taps the locked Hard button, so it doesn't cost two lines every game. */}
-          {game.hardSwitchLocked && lockNoteGame === gameId && (
-            <p id="hard-lock-note" role="status" className="max-w-md text-[8px] leading-4 text-ds-frame">
-              Hard mode is locked for this game. It applies to your next Daily or a new Endless game.
-            </p>
-          )}
+          {/* Always mounted so screen readers announce the text when it appears. */}
+          <div role="status" className="contents">
+            {game.hardSwitchLocked && lockNoteGame === gameId && (
+              <p className="max-w-md text-[8px] leading-4 text-ds-frame">
+                Hard mode is locked for this game. It applies to your next Daily or a new Endless game.
+              </p>
+            )}
+          </div>
           <div className="flex flex-wrap justify-center gap-2">
             <button
               type="button"
