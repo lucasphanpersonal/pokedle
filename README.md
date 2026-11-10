@@ -199,14 +199,36 @@ Set any of them to `false` in `src/config/gameConfig.ts` to remove them from the
 
 ## Deploying
 
-The app is a fully static site with no backend. The build uses relative asset paths,
-so `dist/` works on Vercel or Netlify (build command `npm run build`, output `dist`) and on
-GitHub Pages under a sub-path.
+The app is a fully static site. The build uses relative asset paths (Vite `base: './'`), so the same
+`dist/` works at a domain root and under a sub-path.
 
-### GitHub Pages (current host)
+### pokemondle.io (main site)
 
-`.github/workflows/deploy.yml` lints, tests, builds and publishes `dist/` on every push to `main`
-(or manually from the Actions tab). The live site is https://lucasphanpersonal.github.io/pokemondle/.
+https://pokemondle.io is served from a Windows PC through a Cloudflare Tunnel, so no router ports are open and the
+home IP stays hidden. Everything lives in `deploy/`:
+
+- `Caddyfile`: a web server bound to `127.0.0.1:4190` that serves only the built site and sets the security headers
+  (CSP, HSTS, anti-framing). It also redirects `www` and plain `http` to `https://pokemondle.io`.
+- `cloudflared.yml`: the tunnel, which routes only `pokemondle.io` and `www` and returns 404 for anything else.
+- `windows/install.ps1`: one-time setup, run from an elevated PowerShell. It installs a pinned, checksum-verified Caddy
+  to `C:\ProgramData\Pokemondle`, creates the `PokemondleWeb` and `PokemondleTunnel` services (they start at boot,
+  without anyone signing in) and registers the update task. All three run as the unprivileged LOCAL SERVICE account.
+- `windows/update-site.ps1`: runs every 5 minutes, and installs a new build when there is one.
+
+Merging to `main` is all a release takes. `deploy.yml` publishes the build, once lint and tests have passed, as `site.zip` on the
+rolling `site-latest` GitHub release, and the PC picks it up within 5 minutes, checking the file's SHA-256 before switching over.
+The PC never runs `npm` or builds anything. Logs are in `C:\ProgramData\Pokemondle\logs`.
+After changing `deploy/Caddyfile` or `deploy/cloudflared.yml`, run `install.ps1` again to apply them, because merges only deliver the site.
+
+The Cloudflare side is two proxied CNAME records, `@` and `www`, pointing at `<tunnel-id>.cfargotunnel.com`, plus
+Web Analytics switched on for the site. To move to another machine, run `cloudflared tunnel create`, update the tunnel id
+in `cloudflared.yml` and `install.ps1` and those two records, then run the install there. The Caddyfile also runs on Linux or macOS with `POKEMONDLE_HOME` set.
+
+### GitHub Pages (fallback)
+
+`.github/workflows/deploy.yml` also publishes `dist/` to GitHub Pages on every push to `main`
+(or manually from the Actions tab), at https://lucasphanpersonal.github.io/pokemondle/. Saved games and stats are stored per site,
+so progress on this address does not carry over to pokemondle.io. GitHub Pages cannot set the security headers above.
 
 One-time setup: in the repo's **Settings → Pages → Build and deployment**, set **Source** to
 **GitHub Actions**. GitHub Pages needs the repository to be public on a free plan.
@@ -220,7 +242,7 @@ Anonymous player analytics run on a Supabase Edge Function. From the repo root:
 ```sh
 npx supabase link --project-ref <project-ref>   # connect this repo to your Supabase project
 npx supabase db push --remote --yes            # create the tables, views and daily roll-up job
-npx supabase secrets set ALLOWED_ORIGINS="https://lucasphanpersonal.github.io,http://localhost:5173"   # sites allowed to send events (set BEFORE deploying)
+npx supabase secrets set ALLOWED_ORIGINS="https://pokemondle.io,https://lucasphanpersonal.github.io"   # sites allowed to send events (set BEFORE deploying)
 npx supabase functions deploy track --no-verify-jwt --yes   # deploy the event-collecting function
 npx supabase functions deploy stats --no-verify-jwt --yes   # deploy the public daily-stats function
 ```
@@ -231,7 +253,7 @@ With Supabase CLI 3, `db push` targets a local database unless you pass `--remot
 The live project is `inxvlunfwsssifvjkgtz` (US); the client sends events to `https://inxvlunfwsssifvjkgtz.supabase.co/functions/v1/track`.
 
 After the one-time setup, merging a change under `supabase/` to `main` deploys the migrations and both functions automatically
-(`.github/workflows/supabase-deploy.yml`; needs the `SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD` repo secrets).
+(`.github/workflows/supabase-deploy.yml`; needs the `SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD` repo secrets). That workflow also sets `ALLOWED_ORIGINS` on every run, so change the list there. Local dev is deliberately not on it, so test games stay out of the real stats.
 
 See [supabase/README.md](supabase/README.md) for details.
 

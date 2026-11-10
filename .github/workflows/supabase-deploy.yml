@@ -23,6 +23,8 @@ concurrency:
 env:
   # Not a secret: it is already in the public function URL.
   SUPABASE_PROJECT_REF: inxvlunfwsssifvjkgtz
+  # Not a secret either: the sites whose browsers may call the functions.
+  ALLOWED_ORIGINS: https://pokemondle.io,https://lucasphanpersonal.github.io
 
 jobs:
   deploy:
@@ -47,5 +49,7 @@ jobs:
       - run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
       # Order matters: the stats function calls a function created by a migration.
       - run: supabase db push --remote --yes
+      # Before the deploys: functions read secrets when they start.
+      - run: supabase secrets set ALLOWED_ORIGINS="$ALLOWED_ORIGINS"
       - run: supabase functions deploy track --no-verify-jwt --yes
       - run: supabase functions deploy stats --no-verify-jwt --yes

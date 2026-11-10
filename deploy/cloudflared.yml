@@ -1,0 +1,15 @@
+# Cloudflare Tunnel for pokemondle.io. The tunnel id is not secret; the credentials file is
+# (install.ps1 copies it out of the user profile and locks it down, and it is never committed).
+tunnel: 1b4f45ac-3e91-40db-a003-d993f79fb54f
+credentials-file: C:\ProgramData\Pokemondle\secrets\tunnel.json
+no-autoupdate: true
+logfile: C:\ProgramData\Pokemondle\logs\cloudflared.log
+loglevel: warn
+
+# 127.0.0.1, never localhost: on Windows localhost resolves to ::1 first.
+ingress:
+  - hostname: pokemondle.io
+    service: http://127.0.0.1:4190
+  - hostname: www.pokemondle.io
+    service: http://127.0.0.1:4190
+  - service: http_status:404
