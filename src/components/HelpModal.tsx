@@ -159,7 +159,7 @@ export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
         <p>Start typing a name and pick from the list. Each guess shows how close it is:</p>
         <p className="lg:hidden">
           On a phone each guess is a card: Type 1, Type 2, Gen and Height on top, then Weight, Color, Evolution and Form,
-          with Egg Group and Shared Ability along the bottom (Gen is left out in Hard mode). Tablets from 1024 px wide and computers show a table instead.
+          with Egg Group and Shared Ability along the bottom (Gen is left out in Hard mode). Tablets show two cards side by side, and from 1024 px wide (and on computers) a table instead.
         </p>
         <ul className="space-y-2">
           <li className="flex items-center gap-2">

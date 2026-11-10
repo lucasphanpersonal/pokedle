@@ -37,6 +37,16 @@ export function searchKey(name: string): string {
 const SEARCH_KEYS: Map<Pokemon, string> = new Map(POKEDEX.map((p) => [p, searchKey(p.name)]))
 
 /**
+ * The already-guessed Pokémon whose name is exactly the query (ignoring case, accents and punctuation), if any.
+ */
+export function findGuessedByName(pokedex: readonly Pokemon[], guessedIds: readonly number[], query: string): Pokemon | undefined {
+  const q = searchKey(query)
+  if (!q) return undefined
+  const guessed = new Set(guessedIds)
+  return pokedex.find((p) => guessed.has(p.id) && searchKey(p.name) === q)
+}
+
+/**
  * Pokémon whose name matches the query: names starting with it first, then
  * names with a word starting with it, then any other match. Ties keep Pokédex order.
  */

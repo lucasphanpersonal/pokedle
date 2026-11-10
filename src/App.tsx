@@ -49,6 +49,8 @@ export default function App() {
 
   // Endless "Give up" asks first. Keyed by game, so switching modes or starting a new game drops a pending ask.
   const [giveUpAsk, setGiveUpAsk] = useState<string | null>(null)
+  // Game whose locked Hard button was tapped: shows the "locked" note for that game only.
+  const [lockNoteGame, setLockNoteGame] = useState<string | null>(null)
   const showGiveUp = giveUpAsk === gameId && game.canGiveUp
   const confirmGiveUp = () => {
     setGiveUpAsk(null)
@@ -72,6 +74,7 @@ export default function App() {
         onHelp={() => setShowHelp(true)}
         hard={hard}
         hardLocked={game.hardSwitchLocked}
+        onHardLockedPress={() => setLockNoteGame(gameId)}
       />
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-3 py-4 sm:px-5 sm:py-6">
         <div className="flex flex-col items-center gap-2 text-center">
@@ -82,11 +85,15 @@ export default function App() {
             {game.guesses.length} {game.guesses.length === 1 ? 'guess' : 'guesses'}
             {hard && ' · Hard mode'}
           </p>
-          {game.hardSwitchLocked && (
-            <p id="hard-lock-note" className="max-w-md text-[8px] leading-4 text-ds-frame">
-              Hard mode is locked for this game. It applies to your next Daily or a new Endless game.
-            </p>
-          )}
+          {/* Only shown once the player taps the locked Hard button, so it doesn't cost two lines every game. */}
+          {/* Always mounted so screen readers announce the text when it appears. */}
+          <div role="status" className="contents">
+            {game.hardSwitchLocked && lockNoteGame === gameId && (
+              <p className="max-w-md text-[8px] leading-4 text-ds-frame">
+                Hard mode is locked for this game. It applies to your next Daily or a new Endless game.
+              </p>
+            )}
+          </div>
           <div className="flex flex-wrap justify-center gap-2">
             <button
               type="button"
@@ -96,7 +103,12 @@ export default function App() {
               History · Streak {stats.currentStreak}
             </button>
             {/* Phones have no room for this in the header; wide screens show it there. */}
-            <HardToggle hard={hard} hardLocked={game.hardSwitchLocked} className="inline-flex sm:hidden" />
+            <HardToggle
+              hard={hard}
+              hardLocked={game.hardSwitchLocked}
+              onLockedPress={() => setLockNoteGame(gameId)}
+              className="inline-flex sm:hidden"
+            />
           </div>
         </div>
 

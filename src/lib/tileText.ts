@@ -1,3 +1,6 @@
+import { abilityCellText, type GuessFeedback } from './compare'
+import type { Pokemon } from '../types/pokemon'
+
 /**
  * Helpers that keep guess-tile text inside the tile's padding (clear of the bevel).
  *
@@ -71,4 +74,30 @@ export function lineChars(text: string, maxLines: number): number {
   let cap = Math.max(1, ...words.map((w) => w.length))
   while (lines(cap) > Math.max(1, maxLines)) cap++
   return cap
+}
+
+/** Font-fit variables for a tile (see .tile-fit in index.css): base size, longest word and longest unbreakable piece. */
+export interface Fit {
+  chars: number
+  piece: number
+}
+/**
+ * Shared Ability can be three long names, so it is sized by line count as well as by its longest
+ * word: the largest size (up to 9px) at which it wraps onto 4 lines, or else up to 8px on 5 lines.
+ * Both fit inside the 72px table tile. Wraps at spaces only, like the browser.
+ */
+export const abilityFit = (text: string): Fit => ({ chars: lineChars(text, 4), piece: lineChars(text, 5) })
+/**
+ * The table's Shared Ability column uses the size its most demanding row needs, for every row, so
+ * "Overgrow, Chlorophyll" and "Poison Point, Rivalry, Hustle" sit at the same size. A smaller size
+ * only ever needs fewer lines, so every row still fits.
+ */
+export function abilityColumnFit(guesses: readonly Pokemon[], feedback: readonly GuessFeedback[]): Fit {
+  return guesses.reduce<Fit>(
+    (acc, g, i) => {
+      const f = abilityFit(abilityCellText(g, feedback[i].ability))
+      return { chars: Math.max(acc.chars, f.chars), piece: Math.max(acc.piece, f.piece) }
+    },
+    { chars: 1, piece: 1 },
+  )
 }

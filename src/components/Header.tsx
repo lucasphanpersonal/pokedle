@@ -10,9 +10,10 @@ interface HeaderProps {
   hard: boolean
   /** The game in progress has guesses, so Hard mode can't change until it is solved (or given up). */
   hardLocked: boolean
+  onHardLockedPress?: () => void
 }
 
-export function Header({ mode, onModeChange, onHelp, hard, hardLocked }: HeaderProps) {
+export function Header({ mode, onModeChange, onHelp, hard, hardLocked, onHardLockedPress }: HeaderProps) {
   return (
     <header className="ds-titlebar px-2 py-2 sm:px-5 sm:py-3">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-1 sm:gap-2">
@@ -52,7 +53,7 @@ export function Header({ mode, onModeChange, onHelp, hard, hardLocked }: HeaderP
               </button>
             ))}
           </div>
-          <HardToggle hard={hard} hardLocked={hardLocked} className="hidden sm:inline-flex" />
+          <HardToggle hard={hard} hardLocked={hardLocked} onLockedPress={onHardLockedPress} className="hidden sm:inline-flex" />
           {/* Bars live in the header from 760px wide up; on phones they are in Help (the header is full). */}
           <div className="ds-button bevel-paper hidden h-11 items-center gap-1 pr-2 text-ds-ink min-[760px]:flex">
             {/* Transparent so the group's own bevel shows through around the speaker. */}

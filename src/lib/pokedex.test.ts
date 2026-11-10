@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { POKEDEX, searchKey, searchPokemon } from './pokedex'
+import { POKEDEX, findGuessedByName, searchKey, searchPokemon } from './pokedex'
 
 describe('searchKey', () => {
   it('strips accents, case and punctuation', () => {
@@ -25,5 +25,19 @@ describe('searchPokemon', () => {
   it('returns nothing for an empty query and respects the limit', () => {
     expect(names('  ')).toEqual([])
     expect(searchPokemon(POKEDEX, 'a', 5)).toHaveLength(5)
+  })
+})
+
+describe('findGuessedByName', () => {
+  const pikachu = POKEDEX.find((p) => p.name === 'Pikachu')!
+  const mime = POKEDEX.find((p) => p.name === 'Mr. Mime')!
+  it('finds an already-guessed Pokémon typed in full', () => {
+    expect(findGuessedByName(POKEDEX, [pikachu.id], 'pikachu')?.id).toBe(pikachu.id)
+    expect(findGuessedByName(POKEDEX, [mime.id], 'mr mime')?.id).toBe(mime.id)
+  })
+  it('ignores partial names and Pokémon not yet guessed', () => {
+    expect(findGuessedByName(POKEDEX, [pikachu.id], 'pika')).toBeUndefined()
+    expect(findGuessedByName(POKEDEX, [], 'pikachu')).toBeUndefined()
+    expect(findGuessedByName(POKEDEX, [pikachu.id], '  ')).toBeUndefined()
   })
 })
