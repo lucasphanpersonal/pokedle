@@ -24,7 +24,16 @@ const EMPTY_BARS: DailyStatsSummary['bars'] = Array.from({ length: HISTOGRAM_CAP
 function Stat({ label, value, fade }: { label: string; value: string; fade: boolean }) {
   return (
     <div className="border-2 border-ds-frame bg-ds-paper px-1 py-2 text-center">
-      <div className={`text-sm leading-5 ${fade ? 'fade-in' : 'text-ds-frame'}`}>{value}</div>
+      <div className={`tx-14 leading-5 ${fade ? 'fade-in' : 'text-ds-frame'}`}>
+        {value === '-' ? (
+          <>
+            <span aria-hidden="true">-</span>
+            <span className="sr-only">not counted yet</span>
+          </>
+        ) : (
+          value
+        )}
+      </div>
       <div className="tx-9 leading-4 text-ds-frame">{label}</div>
     </div>
   )
@@ -96,13 +105,13 @@ export function DailyStats({ date, guesses }: DailyStatsProps) {
       </div>
       {/* One message, two lines' room held for it (three on phones with Larger text), announced when it changes. */}
       <p
-        key={line}
         role="status"
-        className={`mt-2 flex min-h-[calc(40px*var(--ts))] items-center justify-center big:max-sm:min-h-[calc(60px*var(--ts))] ${
-          ready ? 'fade-in' : 'text-ds-frame'
-        }`}
+        className="mt-2 flex min-h-[calc(40px*var(--ts))] items-center justify-center big:max-sm:min-h-[calc(60px*var(--ts))]"
       >
-        {line}
+        {/* The live region stays put so each new message is announced; only the inner text is swapped (and fades in). */}
+        <span key={line} className={ready ? 'fade-in' : 'text-ds-frame'}>
+          {line}
+        </span>
       </p>
       <div className="mt-2 flex h-16 items-end gap-1 border-b-2 border-ds-frame-light" aria-hidden="true">
         {bars.map((bar) => (
