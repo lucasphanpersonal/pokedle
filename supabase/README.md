@@ -93,6 +93,9 @@ select * from streak_share order by day desc;                -- share of finishe
 select * from daily_totals order by day desc;                -- rolled-up history (older than 6 months)
 ```
 Use the editor's **Save** to keep them as saved queries. The views are not readable with the anon key.
+
+For ready-made, commented queries (today's players/wins/losses, last 30 days, guess distribution, most-guessed and hardest Pokémon, devices)
+see [queries/stats.sql](queries/stats.sql). Paste one query at a time into the SQL Editor and **Save** it. They are read-only `SELECT`s, with days in America/New_York.
 `target_id` and `guess_id` are National Dex numbers.
 
 The `stats` function (`GET /functions/v1/stats?date=YYYY-MM-DD[&hard=1]`, same `ALLOWED_ORIGINS` as `track`) serves this
