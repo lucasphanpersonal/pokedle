@@ -125,7 +125,21 @@ html.big-text {
   }
 }
 
+/* Numbers arriving in a panel whose space was already held for them (DailyStats): no movement, just a stepped fade. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @layer components {
+  .fade-in {
+    animation: fade-in 240ms steps(4) both;
+  }
+
   .tile-flip {
     animation: tile-flip 450ms ease-out both;
   }
@@ -334,6 +348,7 @@ html.crt body {
 @media (prefers-reduced-motion: reduce) {
   .tile-flip,
   .pop-in,
+  .fade-in,
   .text-advance,
   html.crt body::after {
     animation: none;
