@@ -177,9 +177,9 @@ Older plain saves are still read. The search box shows "You got it!" once a game
 - **Catch and escape** (`src/components/CaptureScene.tsx`, timings in `src/lib/capture.ts`): when a game ends, a small
   battle screen (light banded field, grass platform, in-game text box, the same width as the result dialog) plays before the
   result screen. **Win**: once the last row has flipped, the Poké Ball drops onto the platform, shakes three times, clicks
-  shut and three pixel stars pop out ("Gotcha! Pikachu was caught!"), about 2.7 s. **Give up** (Daily and Endless): the
-  ball shakes twice, the lid flips open in a white flash, the answer's sprite pops out as a white shape, takes its
-  colours and hops off the right edge ("The wild Pikachu fled!"), about 2.9 s. A tap, click or any key skips it (the skip
+  shut and three pixel stars pop out ("Gotcha! Pikachu was caught!"), about 4.7 s. **Give up** (Daily and Endless): the
+  ball also shakes three times, then the lid flips open in a white flash, the answer's sprite pops out as a white shape, takes its
+  colours and hops off the right edge ("The wild Pikachu fled!"), about 5.5 s. Each shake takes about a second (a rock, then a rest), at the games' pace, and its rattle lands on the tilts. A tap, click or any key skips it (the skip
   only skips: it never also closes or presses anything on the result screen). The ball is the same hand-drawn drawing as
   the tab icon (`scripts/icons/pokeball.txt`, via `src/lib/pokeballArt.ts`); the stars, platform and flash are drawn in
   code, and only the Pokémon's sprite comes from PokéAPI. The sprite starts loading when the scene starts; if it hasn't

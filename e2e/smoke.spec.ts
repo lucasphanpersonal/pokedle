@@ -168,7 +168,7 @@ test('Endless Gens: the answer comes only from the chosen generations', async ({
   await page.getByRole('button', { name: 'Give up' }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Give up' }).click()
   // The ball bursts first; then the result screen. Escape closes it.
-  await expect(page.getByRole('dialog')).toContainText('It got away!')
+  await expect(page.getByRole('dialog')).toContainText('It got away!', { timeout: 10_000 })
   await page.keyboard.press('Escape')
   await page.getByRole('button', { name: 'Gens · 1/9' }).click()
   await expect(page.getByRole('dialog', { name: 'Endless Gens' })).toBeVisible()
@@ -203,7 +203,7 @@ test('giving up the Daily asks first, ends the game and is listed in History', a
   const scene = page.locator('[data-capture="escape"]')
   await expect(scene).toContainText('Oh no! The Pokémon broke free!')
   const result = page.getByRole('dialog')
-  await expect(result).toContainText('It got away!')
+  await expect(result).toContainText('It got away!', { timeout: 10_000 })
   await expect(scene).toHaveCount(0)
   await expect(result).toContainText(answer)
 

@@ -51,8 +51,8 @@ interface CaptureSceneProps {
 
 /**
  * The moment a game ends, like a catch in the games. Win: the Poké Ball drops, shakes three times,
- * clicks shut and gives off stars. Give up: it shakes twice, bursts open and the answer's sprite pops
- * out and runs off. About three seconds; a tap, click or any key skips it. App only shows it when the
+ * clicks shut and gives off stars. Give up: it shakes three times too, then bursts open and the answer's sprite pops
+ * out and runs off. About 5 seconds at the games' pace; a tap, click or any key skips it. App only shows it when the
  * player hasn't asked for reduced motion. The art is original: the site's own pixel ball and stars;
  * the Pokémon's sprite comes from PokéAPI and is simply left out if it hasn't loaded in time.
  */
@@ -98,7 +98,7 @@ export function CaptureScene({ kind, pokemon, onDone }: CaptureSceneProps) {
     at(DROP_MS * 0.55, () => playSound('bounce'))
     at(DROP_MS * 0.86, () => playSound('bounce', -5))
     at(DROP_MS, () => setPhase('shake'))
-    for (let i = 0; i < timeline.shakes; i++) at(DROP_MS + i * SHAKE_MS + 50, () => playSound('wobble'))
+    for (let i = 0; i < timeline.shakes; i++) at(DROP_MS + i * SHAKE_MS, () => playSound('wobble'))
     if (kind === 'catch') {
       at(timeline.settle, () => {
         setPhase('click')

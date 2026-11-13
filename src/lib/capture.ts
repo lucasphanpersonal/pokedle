@@ -2,15 +2,16 @@
 export type CaptureKind = 'catch' | 'escape'
 
 /** Timings (ms). Keep the CSS animation lengths in index.css (.capture-*) in step. */
-export const DROP_MS = 450
-export const SHAKE_MS = 520
-/** Three shakes and a click for a catch; the ball bursts on the second shake when it fails. */
-const SHAKES: Record<CaptureKind, number> = { catch: 3, escape: 2 }
+export const DROP_MS = 700
+/** One shake: a rock left and right in the first ~40%, then a rest, at about the games' pace. */
+export const SHAKE_MS = 1000
+/** Three shakes either way, as in the games; then a click (caught) or a burst (broke free). */
+const SHAKES: Record<CaptureKind, number> = { catch: 3, escape: 3 }
 /** How long the stars stay after the click before the result screen. */
-const CLICK_HOLD_MS = 700
+const CLICK_HOLD_MS = 1000
 /** Burst until the Pokémon starts to run, then the run itself. */
-const BURST_HOLD_MS = 600
-const FLEE_MS = 800
+const BURST_HOLD_MS = 800
+const FLEE_MS = 1000
 
 /** When each beat of a scene starts: shakes after the drop, then the click or burst (`settle`), the run, and the end. */
 export function captureTimeline(kind: CaptureKind): { shakes: number; settle: number; flee?: number; end: number } {

@@ -387,7 +387,7 @@ html.crt body {
 
 /*
  * Catch and escape scenes (components/CaptureScene.tsx). Lengths match the timings there:
- * drop 450ms, each shake 520ms, then a click with stars (catch) or a burst, pop and run (give up).
+ * drop 700ms, each shake 1000ms (three either way), then a click with stars (catch) or a burst, pop and run (give up).
  */
 @keyframes capture-drop {
   0% {
@@ -416,20 +416,20 @@ html.crt body {
 }
 
 
-/* One rock left and right, then a rest; repeated once per shake. */
+/* One rock left (10%), right (25%), settle (35%), then a rest; once per shake. The 'wobble' sound's clicks land on these. */
 @keyframes capture-shake {
   0%,
-  62%,
+  42%,
   100% {
     transform: rotate(0deg);
   }
-  14% {
+  10% {
     transform: rotate(-22deg);
   }
-  34% {
+  25% {
     transform: rotate(16deg);
   }
-  50% {
+  35% {
     transform: rotate(-7deg);
   }
 }
@@ -517,7 +517,7 @@ html.crt body {
 }
 
 .capture-drop {
-  animation: capture-drop 450ms both;
+  animation: capture-drop 700ms both;
 }
 /* A light battle field in bands (like the page's sky) with a grass platform, as in the DS games. */
 .capture-field {
@@ -539,7 +539,7 @@ html.crt body {
 }
 .capture-shake {
   transform-origin: 50% 92%;
-  animation: capture-shake 520ms ease-in-out var(--shakes) both;
+  animation: capture-shake 1000ms ease-in-out var(--shakes) both;
 }
 .capture-click {
   transform-origin: 50% 100%;
@@ -561,7 +561,7 @@ html.crt body {
   animation: capture-pop 420ms ease-out both;
 }
 .capture-flee {
-  animation: capture-flee 800ms ease-in both;
+  animation: capture-flee 1000ms ease-in both;
 }
 .capture-fade {
   animation: capture-fade 500ms ease-in 250ms both;
