@@ -211,7 +211,7 @@ export default function App() {
       {showHistory && (
         <HistoryModal history={game.history} endless={game.endlessRecord} onClose={() => setShowHistory(false)} />
       )}
-      {showGens && mode === 'endless' && (
+      {showGens && mode === 'endless' && !game.hardSwitchLocked && (
         <GensModal
           gens={game.endlessGens}
           counts={GEN_COUNTS}

@@ -134,6 +134,13 @@ test('Endless Gens: the answer comes only from the chosen generations', async ({
   await page.getByRole('button', { name: 'Gens · 1/9' }).click({ force: true }) // aria-disabled, but still tappable
   await expect(page.getByText(/Gens are locked for this game/)).toBeVisible()
   await expect(page.getByRole('dialog')).toHaveCount(0)
+  // Giving up ends the game, which unlocks the picker again.
+  await page.getByRole('button', { name: 'Give up' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Give up' }).click()
+  await page.keyboard.press('Escape') // close the "It got away!" result
+  await page.getByRole('button', { name: 'Gens · 1/9' }).click()
+  await expect(page.getByRole('dialog', { name: 'Endless Gens' })).toBeVisible()
+  await page.keyboard.press('Escape')
   await page.reload()
   await page.getByRole('radio', { name: 'endless' }).click()
   await expect(page.getByText('Endless · Gen 4')).toBeVisible()

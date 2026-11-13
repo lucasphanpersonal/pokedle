@@ -59,7 +59,7 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   filtered: any Pokémon can still be guessed. The choice is a per-device preference
   (`localStorage['pokemondle:endless-gens']`, a sorted list, all nine by default, `src/lib/gens.ts`) kept in sync
   across tabs. Like Hard mode, the button is **locked while a game is in progress** (it has guesses and isn't solved
-  or given up): it keeps its look but is `aria-disabled`, and tapping it shows a one-line note under the guess count
+  or given up): it keeps its bevel but its label greys and it is `aria-disabled`, and tapping it shows a one-line note under the guess count
   ("Gens are locked for this game, which was drawn from …") instead of opening the picker. Before the first guess a
   change redraws the answer at once; once the game is solved or given up the picker opens again and the change
   applies from the next **New Pokémon**. Each game records the Gens it was
