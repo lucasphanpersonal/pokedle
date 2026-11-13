@@ -68,17 +68,17 @@ export function notesFor(name: SoundName, pitch = 0): Note[] {
     case 'bounce':
       // The ball tapping the ground as it lands.
       return [n(-5, 0, 0.03, 'triangle', 0.22), n(-12, 0.025, 0.03, 'triangle', 0.16)]
-    case 'wobble':
-      // One shake, played as it starts: a click-clack as the ball tips left (0.1 s), right (0.25 s) and
-      // settles (0.35 s), over a low knock. Lands on the tilts of .capture-shake in index.css (10%, 25%, 35% of 1 s).
+    case 'wobble': {
+      // One shake, played as it starts: a low, warbling "wob-wob" whose pitch follows the ball, dipping
+      // as it tips left (0.1 s), rising as it tips right (0.25 s), easing back as it settles (0.35 s).
+      // Matches .capture-shake in index.css (10%, 25%, 35% of 1 s). Notes overlap so it glides, not clicks.
+      const curve = [-14, -17, -20, -22, -21, -18, -15, -14, -16, -19, -20, -19, -18]
+      const step = 0.035
       return [
-        n(-19, 0.08, 0.06, 'triangle', 0.2),
-        n(2, 0.1, 0.025, 'square', 0.09),
-        n(-3, 0.125, 0.02, 'square', 0.07),
-        n(6, 0.25, 0.025, 'square', 0.09),
-        n(1, 0.275, 0.02, 'square', 0.07),
-        n(-1, 0.35, 0.025, 'square', 0.06),
+        ...curve.map((semi, i) => n(semi, i * step, step + 0.015, 'square', 0.06)),
+        ...curve.map((semi, i) => n(semi - 12, i * step, step + 0.015, 'triangle', 0.18)),
       ]
+    }
     case 'click':
       // The ball locking shut, then the stars twinkling.
       return [

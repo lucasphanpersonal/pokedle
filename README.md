@@ -155,7 +155,7 @@ Older plain saves are still read. The search box shows "You got it!" once a game
   (`src/lib/sound.ts`; square/triangle oscillators, no audio files and nothing copied from the games; the cry below is the only streamed audio, and nothing is bundled): a short press blip on every button, switch and radio (one document-level click listener in `sound.ts`, so new buttons get it automatically; the speaker and Guess buttons opt out with `data-no-sound`), a blip as
   you type, a tick as you move through suggestions, a two-note chime on a guess, a rising tick as each tile flips
   (timed from `useRevealEffects` to match the flip animation), a low buzz for a bad or duplicate guess and a fanfare when
-  you win, then the answer's cry after the fanfare; during the catch and escape scene, a falling whoosh as the Poké Ball is thrown, two taps as it bounces, a click-clack rattle on each shake, a click and
+  you win, then the answer's cry after the fanfare; during the catch and escape scene, a falling whoosh as the Poké Ball is thrown, two taps as it bounces, a low "wob-wob" on each shake that dips and rises with the tilts, a click and
   twinkle when it catches, a pop when it bursts and a quick run down the scale as the Pokémon flees. Volume is a Nintendo-style row of 5 equal dashes (empty white when off, green when lit) (`src/components/VolumeControl.tsx`; none lit is muted, default 5): tap a dash (the 4th lights the first 4) or use the arrow keys, Home and End. The dashes sit in the header from 760px wide up and always in **Help → Display & sound**; the speaker button mutes and restores the last level. The level scales the blips and the win cry (the cry at half strength; iOS Safari ignores volume on the cry), and is saved per
   device in `localStorage['pokemondle:volume']` (the old `pokemondle:sound` on/off setting is migrated: off becomes 0). The audio context is created on the first tap or keypress, as
   browsers (including iOS Safari) require. Typing and menu blips still play with "reduce motion"; only the tile ticks and the catch/escape sounds are skipped (that scene is not shown).
@@ -179,7 +179,7 @@ Older plain saves are still read. The search box shows "You got it!" once a game
   result screen. **Win**: once the last row has flipped, the Poké Ball drops onto the platform, shakes three times, clicks
   shut and three pixel stars pop out ("Gotcha! Pikachu was caught!"), about 4.7 s. **Give up** (Daily and Endless): the
   ball also shakes three times, then the lid flips open in a white flash, the answer's sprite pops out as a white shape, takes its
-  colours and hops off the right edge ("The wild Pikachu fled!"), about 5.5 s. Each shake takes about a second (a rock, then a rest), at the games' pace, and its rattle lands on the tilts. A tap, click or any key skips it (the skip
+  colours and hops off the right edge ("The wild Pikachu fled!"), about 5.5 s. Each shake takes about a second (a rock, then a rest), at the games' pace, and its wobble sound follows the tilts. A tap, click or any key skips it (the skip
   only skips: it never also closes or presses anything on the result screen). The ball is the same hand-drawn drawing as
   the tab icon (`scripts/icons/pokeball.txt`, via `src/lib/pokeballArt.ts`); the stars, platform and flash are drawn in
   code, and only the Pokémon's sprite comes from PokéAPI. The sprite starts loading when the scene starts; if it hasn't
