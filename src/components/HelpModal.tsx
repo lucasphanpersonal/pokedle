@@ -227,8 +227,9 @@ export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
         <p>
           In Endless, the <strong>Gens</strong> button beside History (under it on phones) chooses which generations the Pokémon can come from: switch
           each of Gen 1 to 9 on or off, or use All and None (at least one must stay on). Forms count by their debut, so
-          Megas are Gen 6. You can still guess any Pokémon. A change picks a new Pokémon if you haven't guessed yet;
-          otherwise it applies from your next one. The Daily always uses every Gen.
+          Megas are Gen 6. You can still guess any Pokémon. Like Hard mode, Gens are locked while a game is in progress (tap the
+          button to see why): change them before your first guess, or after you catch the Pokémon or give up, and they apply
+          to your next one. The Daily always uses every Gen.
         </p>
         <p>
           Solve the Daily each day to build a <strong>streak</strong>; missing a day resets it. The History button lists every

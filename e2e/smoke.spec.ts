@@ -130,6 +130,10 @@ test('Endless Gens: the answer comes only from the chosen generations', async ({
   // Guesses from other Gens are still allowed, and the choice survives a reload.
   await guess(page, 'Bulbasaur')
   await expect.poll(async () => (await savedGame(page, 'endless'))?.guessIds).toHaveLength(1)
+  // Once the game has a guess the button is locked: tapping it explains why instead of opening the picker.
+  await page.getByRole('button', { name: 'Gens · 1/9' }).click({ force: true }) // aria-disabled, but still tappable
+  await expect(page.getByText(/Gens are locked for this game/)).toBeVisible()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
   await page.reload()
   await page.getByRole('radio', { name: 'endless' }).click()
   await expect(page.getByText('Endless · Gen 4')).toBeVisible()
