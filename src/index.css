@@ -320,7 +320,7 @@ html.crt body {
   text-shadow: 0 0 1px rgb(255 255 255 / 0.12);
 }
 
-/* The ▼ "more" arrow at the end of in-game text (HardNotice): steps up and down. */
+/* The ▼ "more" arrow at the end of in-game text (HintPrompt): steps up and down. */
 @keyframes text-advance {
   50% {
     transform: translateY(3px);

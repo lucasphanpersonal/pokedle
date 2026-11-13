@@ -23,3 +23,11 @@ export function saveJson(key: string, value: unknown): void {
     // Progress just won't persist; the game still works.
   }
 }
+
+export function removeKey(key: string): void {
+  try {
+    window.localStorage.removeItem(PREFIX + key)
+  } catch {
+    // Nothing to tidy up.
+  }
+}

@@ -1,17 +1,14 @@
-import { useId, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { useId, useState, type ReactNode } from 'react'
 import { isBrowserDoNotTrack, isOptedOutByPlayer, setTrackingOptOut } from '../lib/analytics'
 import { isBigText, isCrtOn, setBigText, setCrt } from '../lib/display'
-import { isHardPref, setHardPref, subscribeHardPref } from '../lib/hardMode'
+import { HINT_AFTER_GUESSES } from '../lib/game'
+import { PixelBulb } from './PixelBulb'
 import { ResultMark } from './ResultMark'
 import { VolumeBars } from './VolumeControl'
 import { Modal } from './Modal'
 
 interface HelpModalProps {
   onClose: () => void
-  /** The current game is in progress, so Hard mode can't be switched until it is solved (or given up). */
-  hardLocked: boolean
-  /** The current game's own mode, shown while the switch is locked. */
-  gameHard: boolean
 }
 
 /** A tiny guess tile; data-result gives it the same coloured bevel as the grid. */
@@ -54,32 +51,6 @@ function PixelSwitch({ label, on, disabled, describedBy, onToggle }: {
         </span>
       </span>
     </button>
-  )
-}
-
-/** Hard mode switch: hides the Gen column. Fixed per game once its first guess is made. */
-function HardModeSetting({ locked, gameHard }: { locked: boolean; gameHard: boolean }) {
-  const noteId = useId()
-  const pref = useSyncExternalStore(subscribeHardPref, isHardPref, () => false)
-  // While locked, show the mode this game is actually in, not the preference for the next one.
-  const hard = locked ? gameHard : pref
-  return (
-    <section className="mt-5 border-t-2 border-ds-frame-light pt-4 tx-10 leading-5">
-      <h3 className="mb-2 tx-11">Difficulty</h3>
-      <PixelSwitch
-        label="Hard mode (hide Gen)"
-        on={hard}
-        disabled={locked}
-        describedBy={noteId}
-        onToggle={() => setHardPref(!hard)}
-      />
-      <p id={noteId} className="mt-1 tx-9 text-ds-frame">
-        Hides the Gen column, so you can't narrow it down by generation. The same switch is the Hard button in the header
-        (under History on phones). It is fixed once you make a game's first
-        guess{locked ? `: this game is in ${gameHard ? 'Hard' : 'normal'} mode, and the switch unlocks when you solve it (or give up, in Endless).` : ', and applies to the next game you start.'} Hard games
-        are marked in History and get their own Daily stats, compared only with other Hard players.
-      </p>
-    </section>
   )
 }
 
@@ -135,16 +106,16 @@ function StatsToggle() {
     <section className="mt-5 border-t-2 border-ds-frame-light pt-4 tx-10 leading-5">
       <h3 className="mb-2 tx-11">Privacy</h3>
       <p>
-        The game records anonymous game events (guesses, results, device type, and whether Hard mode was on) with no cookies, accounts or personal
+        The game records anonymous game events (guesses, results, device type, and whether you took the Gen hint) with no cookies, accounts or personal
         data. Browsers that send Do Not Track or Global Privacy Control are never tracked.
       </p>
       <p className="mt-2">
         Separately, Cloudflare, which delivers the site, counts page views without cookies. The switch below does not affect that count.
       </p>
       <p className="mt-2">
-        After you solve the Daily, the result screen shows anonymous totals for that puzzle (players who solved it, average
-        guesses and how you compare). Each network counts once a day, so a household on one Wi-Fi counts as one
-        player. It is only shown while sharing is on.
+        After you solve the Daily, the result screen always shows anonymous totals for that puzzle (players who solved it,
+        average guesses, how you compare and how many took the Gen hint), even if you are the first. Each network counts
+        once a day, so a household on one Wi-Fi counts as one player. It is only shown while sharing is on.
       </p>
       <PixelSwitch
         label="Share anonymous stats"
@@ -162,7 +133,7 @@ function StatsToggle() {
   )
 }
 
-export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
+export function HelpModal({ onClose }: HelpModalProps) {
   return (
     <Modal title="How to play" onClose={onClose}>
       <div className="space-y-4 tx-10 leading-5">
@@ -172,8 +143,8 @@ export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
         </p>
         <p>Start typing a name and pick from the list. Each guess shows how close it is:</p>
         <p className="lg:hidden big:max-xl:block">
-          On a phone each guess is a card: Type 1, Type 2, Gen and Height on top, then Weight, Color, Evolution and Form,
-          with Egg Group and Shared Ability along the bottom (Gen is left out in Hard mode). Tablets show two cards side by side, and from 1024 px wide (and on computers) a table instead. With Larger text on, phones show three tiles to a row and the table starts at 1280 px.
+          On a phone each guess is a card: Type 1, Type 2 and Height on top, then Weight, Color, Evolution and Form,
+          with Egg Group and Shared Ability along the bottom. Tablets show two cards side by side, and from 1024 px wide (and on computers) a table instead. With Larger text on, phones show three tiles to a row and the table starts at 1280 px.
         </p>
         <ul className="space-y-2">
           <li className="flex items-center gap-2">
@@ -198,8 +169,8 @@ export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
         </p>
         <dl className="space-y-2">
           <div>
-            <dt className="inline">Gen, Height, Weight, Evolution: </dt>
-            <dd className="inline">arrows point toward the answer. In Hard mode Gen is hidden. Evolution is the stage in its line (Pichu 1, Pikachu 2, Raichu 3).</dd>
+            <dt className="inline">Height, Weight, Evolution: </dt>
+            <dd className="inline">arrows point toward the answer. Evolution is the stage in its line (Pichu 1, Pikachu 2, Raichu 3).</dd>
           </div>
           <div>
             <dt className="inline">Form: </dt>
@@ -225,11 +196,18 @@ export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
           reveals the answer (it asks first). Your progress is saved on this device.
         </p>
         <p>
-          In Endless, the <strong>Gens</strong> button beside History (under it on phones) chooses which generations the Pokémon can come from: switch
+          In Endless, the <strong>Gens</strong> button beside History chooses which generations the Pokémon can come from: switch
           each of Gen 1 to 9 on or off, or use All and None (at least one must stay on). Forms count by their debut, so
-          Megas are Gen 6. You can still guess any Pokémon. Like Hard mode, Gens are locked while a game is in progress (tap the
+          Megas are Gen 6. You can still guess any Pokémon. Gens are locked while a game is in progress (tap the
           button to see why): change them before your first guess, or after you catch the Pokémon or give up, and they apply
           to your next one. The Daily always uses every Gen.
+        </p>
+        <p>
+          <span className="inline-flex items-center gap-1.5 align-middle"><PixelBulb /><strong>Gen hint:</strong></span> the
+          guesses never show a Pokémon's generation. After {HINT_AFTER_GUESSES} guesses you are offered a hint that tells you
+          which Gen the answer is from. It's up to you: say Not now and a Gen hint button stays beside History for
+          the rest of the game. A hinted win still counts as a win and keeps your streak; History marks it with a bulb and
+          shows how many of your wins needed no hint.
         </p>
         <p>
           Solve the Daily each day to build a <strong>streak</strong>; missing a day resets it. The History button lists every
@@ -237,7 +215,6 @@ export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
         </p>
         <p className="hidden lg:block">Keyboard: type to search, ↑/↓ to pick, Enter to guess, Esc to close.</p>
       </div>
-      <HardModeSetting locked={hardLocked} gameHard={gameHard} />
       <DisplaySettings />
       <StatsToggle />
       <p className="mt-5 border-t-2 border-ds-frame-light pt-4 tx-9 leading-4 text-ds-frame">
