@@ -186,12 +186,10 @@ export default function App() {
                 )}
                 {/* Once taken, the hint button stays in its place pressed in (the "on" look) and shows the Gen. */}
                 {showHint && (
-                  <p
-                    aria-label={`Hint: the answer is from Gen ${game.targetPokemon.generation}`}
-                    className="ds-button bevel-paper bevel-pressed inline-flex h-11 items-center gap-1.5 whitespace-nowrap px-3 text-[9px] sm:px-4 sm:text-[10px]"
-                  >
+                  <p className="ds-button bevel-paper bevel-pressed inline-flex h-11 items-center gap-1.5 whitespace-nowrap px-3 text-[9px] sm:px-4 sm:text-[10px]">
                     <PixelBulb />
-                    Hint · Gen {game.targetPokemon.generation}
+                    <span aria-hidden="true">Hint · Gen {game.targetPokemon.generation}</span>
+                    <span className="sr-only">Hint: the answer is from Gen {game.targetPokemon.generation}</span>
                   </p>
                 )}
               </div>
