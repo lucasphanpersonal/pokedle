@@ -50,18 +50,19 @@ export function parseDailyStats(body: unknown, hard = false): DailyStats | null 
 }
 
 /** Turns the histogram into the numbers shown on screen. Null when nobody has solved it. */
-export function summarize(stats: DailyStats, yourGuesses: number): DailyStatsSummary | null {
+/** `yourGuesses` is null when you gave up: nothing is then compared with your result. */
+export function summarize(stats: DailyStats, yourGuesses: number | null): DailyStatsSummary | null {
   const entries = Object.entries(stats.histogram).map(([g, c]) => [Number(g), c] as const)
   const players = entries.reduce((sum, [, c]) => sum + c, 0)
   if (players <= 0) return null
   const totalGuesses = entries.reduce((sum, [g, c]) => sum + g * c, 0)
-  const slower = entries.filter(([g]) => g > yourGuesses).reduce((sum, [, c]) => sum + c, 0)
-  const same = stats.histogram[yourGuesses] ?? 0
+  const slower = entries.filter(([g]) => yourGuesses !== null && g > yourGuesses).reduce((sum, [, c]) => sum + c, 0)
+  const same = yourGuesses === null ? 0 : (stats.histogram[yourGuesses] ?? 0)
   const bars = Array.from({ length: HISTOGRAM_CAP }, (_, i) => {
     const guesses = i + 1
     const last = guesses === HISTOGRAM_CAP
     const count = entries.filter(([g]) => (last ? g >= guesses : g === guesses)).reduce((sum, [, c]) => sum + c, 0)
-    const isYou = last ? yourGuesses >= guesses : yourGuesses === guesses
+    const isYou = yourGuesses !== null && (last ? yourGuesses >= guesses : yourGuesses === guesses)
     return { label: last ? `${guesses}+` : String(guesses), count, isYou }
   })
   return {

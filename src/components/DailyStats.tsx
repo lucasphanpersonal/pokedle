@@ -7,7 +7,8 @@ const FETCH_DELAY_MS = 1500
 interface DailyStatsProps {
   /** Daily puzzle date, YYYY-MM-DD. */
   date: string
-  guesses: number
+  /** Your guess count, or null if you gave up (then no rank line and no highlighted bar). */
+  guesses: number | null
   /** Show the Hard mode stats (only other Hard players) instead of the normal ones. */
   hard?: boolean
 }
@@ -31,7 +32,9 @@ export function DailyStats({ date, guesses, hard = false }: DailyStatsProps) {
   if (!summary) return null
   const max = Math.max(...summary.bars.map((b) => b.count), 1)
   const rank =
-    summary.fasterThanPercent > 0
+    guesses === null
+      ? null
+      : summary.fasterThanPercent > 0
       ? `You were faster than ${summary.fasterThanPercent}% of players.`
       : `${summary.samePercent}% of players needed ${guesses === 1 ? '1 guess' : `${guesses} guesses`} too.`
 
@@ -42,7 +45,7 @@ export function DailyStats({ date, guesses, hard = false }: DailyStatsProps) {
         {summary.players} {summary.players === 1 ? 'player has' : 'players have'} solved it, in{' '}
         {summary.average.toFixed(1)} guesses on average.
       </p>
-      <p className="text-ds-frame">{rank}</p>
+      {rank && <p className="text-ds-frame">{rank}</p>}
       <div className="mt-2 flex h-16 items-end gap-1" aria-hidden="true">
         {summary.bars.map((bar) => (
           <div key={bar.label} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
