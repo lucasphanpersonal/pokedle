@@ -304,7 +304,7 @@ The game sends events to the `track` function only when `VITE_TRACK_URL` is set.
 game sends `game_finished` with `result: 'won'`, or `'lost'` when a game (Daily or Endless) is given up. A given-up
 Daily counts toward the public Daily stats' players-finished total and solve rate, but not the guesses-to-solve chart.
 
-Players can switch off "Share anonymous stats" in the Help screen (the "?" button), which also explains that only
+Players can switch off "Share anonymous stats" in the Help screen (the "?" button), which also briefly explains that only
 anonymous game events (guesses, results, device type, and whether the Gen hint was taken) are recorded. Players are opted out automatically if their browser sends Global Privacy Control (`navigator.globalPrivacyControl`)
 or Do Not Track, or if `localStorage['pokemondle:analytics-opt-out']` is `'true'` (`setTrackingOptOut()` in
 `src/lib/analytics.ts` sets it, and the Help switch calls it; the choice is also held in memory for the session if
