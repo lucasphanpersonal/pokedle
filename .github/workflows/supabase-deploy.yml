@@ -36,7 +36,7 @@ jobs:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # Pinned so a new CLI release can't run with the database secrets unreviewed; Dependabot does not update this, bump it by hand.
       - uses: supabase/setup-cli@v3
         with:
