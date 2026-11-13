@@ -17,24 +17,24 @@ type Phase = 'drop' | 'shake' | 'click' | 'burst' | 'flee'
 
 /** Where the stars (catch) and sparks (escape) fly to, from the top of the ball. */
 const STARS = [
-  { dx: -72, dy: -24 },
-  { dx: 0, dy: -50 },
-  { dx: 72, dy: -24 },
+  { dx: -40, dy: -14 },
+  { dx: 0, dy: -34 },
+  { dx: 40, dy: -14 },
 ]
 const SPARKS = [
-  { dx: -80, dy: -10 },
-  { dx: -56, dy: -64 },
-  { dx: 0, dy: -88 },
-  { dx: 56, dy: -64 },
-  { dx: 80, dy: -10 },
+  { dx: -52, dy: -6 },
+  { dx: -36, dy: -40 },
+  { dx: 0, dy: -56 },
+  { dx: 36, dy: -40 },
+  { dx: 52, dy: -6 },
 ]
 
 const STAR = ballPaths(STAR_ART, 0, STAR_ART.length, STAR_PALETTE)
 
-/** The 9x9 pixel star, drawn at 3x. */
+/** The 9x9 pixel star, drawn at 2x like the ball. */
 function PixelStar() {
   return (
-    <svg viewBox="0 0 9 9" width="27" height="27" shapeRendering="crispEdges" aria-hidden="true" className="block">
+    <svg viewBox="0 0 9 9" width="18" height="18" shapeRendering="crispEdges" aria-hidden="true" className="block">
       {STAR.map((p) => (
         <path key={p.color} fill={p.color} d={p.d} />
       ))}
@@ -126,12 +126,24 @@ export function CaptureScene({ kind, pokemon, onDone }: CaptureSceneProps) {
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return
       e.preventDefault()
+      // The result screen focuses its close button straight after; some browsers would click it on this key's
+      // release (Space), so swallow that one keyup.
+      const swallowUp = (up: KeyboardEvent) => {
+        if (up.key !== e.key) return
+        up.preventDefault()
+        up.stopPropagation()
+        document.removeEventListener('keyup', swallowUp, true)
+      }
+      document.addEventListener('keyup', swallowUp, true)
+      window.setTimeout(() => document.removeEventListener('keyup', swallowUp, true), 1000)
       onDoneRef.current()
     }
     document.addEventListener('keydown', onKey, true)
     return () => {
       document.removeEventListener('keydown', onKey, true)
-      if (!document.querySelector('[data-modal]')) root?.removeAttribute('inert')
+      // Let go of #root so focus can go back; the result screen, mounting next, makes it inert again and then
+      // remembers the right element to return focus to.
+      root?.removeAttribute('inert')
       previouslyFocused?.focus?.()
     }
   }, [])
@@ -159,18 +171,18 @@ export function CaptureScene({ kind, pokemon, onDone }: CaptureSceneProps) {
     >
       {/* One handheld screen: the battle field on top, the text box below, the same width as the result screen that follows. */}
       <div className="ds-box pop-in w-full max-w-md overflow-hidden">
-        <div aria-hidden="true" className="capture-field relative h-60 overflow-hidden sm:h-72">
+        <div aria-hidden="true" className="capture-field relative h-64 overflow-hidden">
           {/* The grass platform the ball lands on. */}
-          <div className="capture-platform absolute bottom-6 left-1/2 h-10 w-56 -translate-x-1/2 sm:w-64" />
+          <div className="capture-platform absolute bottom-6 left-1/2 h-8 w-36 -translate-x-1/2" />
 
           {/* Ball: drop, then shake (the lid opens on a burst); faded out while the Pokémon runs. */}
-          <div className={`absolute bottom-10 left-1/2 -ml-16 sm:-ml-20 ${phase === 'flee' ? 'capture-fade' : ''}`}>
+          <div className={`absolute bottom-10 left-1/2 -ml-8 ${phase === 'flee' ? 'capture-fade' : ''}`}>
             <div className="capture-drop">
               <div
                 className={phase === 'shake' ? 'capture-shake' : phase === 'click' ? 'capture-click' : ''}
                 style={{ '--shakes': timeline.shakes } as CSSProperties}
               >
-                <svg viewBox="0 0 32 32" shapeRendering="crispEdges" className="block h-32 w-32 overflow-visible sm:h-40 sm:w-40">
+                <svg viewBox="0 0 32 32" shapeRendering="crispEdges" className="block h-16 w-16 overflow-visible">
                   <g>
                     {BASE.map((p) => (
                       <path key={p.color} fill={p.color} d={p.d} />
@@ -191,7 +203,7 @@ export function CaptureScene({ kind, pokemon, onDone }: CaptureSceneProps) {
             STARS.map((s, i) => (
               <div
                 key={i}
-                className="capture-star absolute bottom-[150px] left-1/2 -ml-[13px] sm:bottom-[182px]"
+                className="capture-star absolute bottom-[100px] left-1/2 -ml-[9px]"
                 style={{ '--dx': `${s.dx}px`, '--dy': `${s.dy}px` } as CSSProperties}
               >
                 <PixelStar />
@@ -201,11 +213,11 @@ export function CaptureScene({ kind, pokemon, onDone }: CaptureSceneProps) {
           {/* Escape: a flash and sparks as the ball bursts. */}
           {opened && (
             <>
-              <div className="capture-flash absolute bottom-14 left-1/2 -ml-16 h-32 w-32 rounded-full bg-ds-paper sm:bottom-16 sm:-ml-20 sm:h-40 sm:w-40" />
+              <div className="capture-flash absolute bottom-8 left-1/2 -ml-10 h-20 w-20 rounded-full bg-ds-paper" />
               {SPARKS.map((s, i) => (
                 <div
                   key={i}
-                  className="capture-star absolute bottom-32 left-1/2 -ml-2 h-4 w-4 border-2 border-ds-ink bg-ds-paper sm:bottom-40"
+                  className="capture-star absolute bottom-[84px] left-1/2 -ml-1.5 h-3 w-3 border-2 border-ds-ink bg-ds-paper"
                   style={{ '--dx': `${s.dx}px`, '--dy': `${s.dy}px` } as CSSProperties}
                 />
               ))}
@@ -214,7 +226,7 @@ export function CaptureScene({ kind, pokemon, onDone }: CaptureSceneProps) {
 
           {/* Escape: the Pokémon pops out as a white shape, takes its colours, then runs off to the right. */}
           {opened && sprite && (
-            <div className="absolute bottom-20 left-1/2 -ml-24 sm:bottom-24">
+            <div className="absolute bottom-14 left-1/2 -ml-24">
               <div className={phase === 'flee' ? 'capture-flee' : ''}>
                 <img
                   src={sprite}

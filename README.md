@@ -152,7 +152,7 @@ Older plain saves are still read. The search box shows "You got it!" once a game
   their size, so they still fit in one row on a 320 px phone.
 
 - **Sound effects and volume**: original 8-bit style blips synthesised in the browser with the Web Audio API
-  (`src/lib/sound.ts`; square/triangle oscillators, no audio files and nothing copied from the games; the win cry below is the only audio, and it is streamed, not bundled): a short press blip on every button, switch and radio (one document-level click listener in `sound.ts`, so new buttons get it automatically; the speaker and Guess buttons opt out with `data-no-sound`), a blip as
+  (`src/lib/sound.ts`; square/triangle oscillators, no audio files and nothing copied from the games; the cry below is the only streamed audio, and nothing is bundled): a short press blip on every button, switch and radio (one document-level click listener in `sound.ts`, so new buttons get it automatically; the speaker and Guess buttons opt out with `data-no-sound`), a blip as
   you type, a tick as you move through suggestions, a two-note chime on a guess, a rising tick as each tile flips
   (timed from `useRevealEffects` to match the flip animation), a low buzz for a bad or duplicate guess and a fanfare when
   you win, then the answer's cry after the fanfare; during the catch and escape scene, a knock per shake of the Poké Ball, a click and
