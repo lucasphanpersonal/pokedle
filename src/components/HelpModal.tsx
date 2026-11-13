@@ -142,8 +142,8 @@ function StatsToggle() {
         Separately, Cloudflare, which delivers the site, counts page views without cookies. The switch below does not affect that count.
       </p>
       <p className="mt-2">
-        After you solve the Daily, the result screen shows anonymous totals for that puzzle (players who solved it, average
-        guesses and how you compare). Each network counts once a day, so a household on one Wi-Fi counts as one
+        After you finish the Daily (solved or given up), the result screen shows anonymous totals for that puzzle (players who solved it, average
+        guesses and, if you solved it, how you compare). Each network counts once a day, so a household on one Wi-Fi counts as one
         player. It is only shown while sharing is on.
       </p>
       <PixelSwitch
@@ -221,7 +221,7 @@ export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
         </p>
         <p>
           <strong>Daily</strong> is the same Pokémon for everyone, new each day at midnight. <strong>Endless</strong> gives you a
-          fresh Pokémon whenever you like. Stuck? After your first guess, <strong>Give up</strong> (the last button beside History)
+          fresh Pokémon whenever you like. Stuck? After your first guess, <strong>Give up</strong> (the last button beside History, under it on phones)
           reveals the answer (it asks first). Giving up the Daily ends it for the day and resets your streak. Your progress is saved on this device.
         </p>
         <p>

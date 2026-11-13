@@ -150,10 +150,13 @@ test('Endless Gens: the answer comes only from the chosen generations', async ({
 test('giving up the Daily asks first, ends the game and is listed in History', async ({ page }) => {
   await page.goto('/')
   const giveUp = page.getByRole('button', { name: 'Give up' })
-  // Shown but unavailable before the first guess.
-  await expect(giveUp).toBeDisabled()
+  // Shown but locked before the first guess: a tap explains why instead of asking.
+  await expect(giveUp).toHaveAttribute('aria-disabled', 'true')
+  await giveUp.click({ force: true }) // Playwright treats aria-disabled as not clickable; a real tap still lands
+  await expect(page.getByText('Give up unlocks after your first guess.')).toBeVisible()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
   await guess(page, await nonAnswer(page, 'daily', ['Oddish', 'Paras']))
-  await expect(giveUp).toBeEnabled()
+  await expect(giveUp).not.toHaveAttribute('aria-disabled')
 
   await giveUp.click()
   const ask = page.getByRole('dialog')
@@ -171,7 +174,7 @@ test('giving up the Daily asks first, ends the game and is listed in History', a
   // The loss survives a reload, and History lists it.
   await page.reload()
   await expect(guessBox(page)).toBeDisabled()
-  await expect(giveUp).toBeDisabled()
+  await expect(giveUp).toHaveAttribute('aria-disabled', 'true')
   await page.keyboard.press('Escape')
   await page.getByRole('button', { name: /History/ }).click()
   await expect(page.getByRole('dialog')).toContainText('Gave up')

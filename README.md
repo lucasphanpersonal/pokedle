@@ -47,8 +47,9 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   the next suggestion (so "pikachu" twice never guesses Pikachu Rock Star); picking a suggestion with ↑/↓ first still works.
 - **Give up (Daily and Endless)**: a white **Give up** button is the last one in the menu row under the puzzle title
   (after History and, in Endless, Gens; on phones History has its own row, with Gens, Hard and Give up under it). It is kept away from the search
-  box on purpose, so the most-tapped control never sits next to one that ends the game, and it is always shown but
-  greyed out until the first guess, so nothing moves when it becomes available. It asks first
+  box on purpose, so the most-tapped control never sits next to one that ends the game, and it is always shown, so nothing moves
+  when it becomes available: before the first guess it is locked like Hard and Gens (same colours, grey label, and a
+  tap shows "Give up unlocks after your first guess." under the guess count). It asks first
   (`src/components/GiveUpModal.tsx`: **Keep going** or **Give up**), then ends the game as `lost`: the result screen,
   titled "It got away!", reveals the answer with its Pokédex entry (plus **New Pokémon** in Endless). For the Daily the
   dialog warns that it can't be replayed and names the streak that ends: a given-up Daily is listed in History as
@@ -96,8 +97,8 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
 - **Results**: after the last tile flips, a dialog shows the answer's artwork, how many guesses it took and a
   **Pokédex entry card** (number, category such as "Mouse Pokémon", height, weight and English flavor text). Number,
   height and weight come from the local dataset; category and text are fetched from PokéAPI's `pokemon-species`
-  endpoint only when the game ends, on a win or an Endless give up (cached per session), with a graceful message if offline (`src/lib/dexEntry.ts`). On the
-  Daily it also shows **Today's stats**: players who solved it, the average guesses, how you rank and a small guesses
+  endpoint only when the game ends, on a win or a give up (cached per session), with a graceful message if offline (`src/lib/dexEntry.ts`). On the
+  Daily it also shows **Today's stats**: players who solved it, the average guesses, how you rank (not shown after a give up) and a small guesses
   histogram (see [Public daily stats](#public-daily-stats)). Endless shows a **New Pokémon** button instead.
 
 ### Saved games

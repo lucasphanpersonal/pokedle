@@ -56,7 +56,7 @@ export default function App() {
   // "Give up" (Daily and Endless) asks first. Keyed by game, so switching modes or starting a new game drops a pending ask.
   const [giveUpAsk, setGiveUpAsk] = useState<string | null>(null)
   // Which locked button (Hard or Gens) was tapped, and in which game: shows that "locked" note for that game only.
-  const [lockNote, setLockNote] = useState<{ game: string; what: 'hard' | 'gens' } | null>(null)
+  const [lockNote, setLockNote] = useState<{ game: string; what: 'hard' | 'gens' | 'giveup' } | null>(null)
   const showGiveUp = giveUpAsk === gameId && game.canGiveUp
   const confirmGiveUp = () => {
     setGiveUpAsk(null)
@@ -95,7 +95,7 @@ export default function App() {
             {game.guesses.length} {game.guesses.length === 1 ? 'guess' : 'guesses'}
             {hard && ' · Hard mode'}
           </p>
-          {/* Only shown once the player taps a locked Hard or Gens button, so it doesn't cost two lines every game. */}
+          {/* Only shown once the player taps a locked Hard, Gens or Give up button, so it doesn't cost two lines every game. */}
           {/* Always mounted so screen readers announce the text when it appears. */}
           <div role="status" className="contents">
             {game.hardSwitchLocked && lockNote?.game === gameId && lockNote.what === 'hard' && (
@@ -109,10 +109,13 @@ export default function App() {
                 or give up, and they apply to your next Pokémon.
               </p>
             )}
+            {!game.canGiveUp && game.gameStatus === 'playing' && lockNote?.game === gameId && lockNote.what === 'giveup' && (
+              <p className="max-w-md tx-8 leading-4 text-ds-frame">Give up unlocks after your first guess.</p>
+            )}
           </div>
           {/*
             Game menu, with Give up last (rightmost). Give up lives here, away from the guess box, so it is never
-            next to the thing you tap most, and it is always shown (greyed out until the first guess) so nothing
+            next to the thing you tap most, and it is always shown (locked, with a note on tap, until the first guess) so nothing
             jumps when it becomes available. Phones: History on its own row, then the game's controls (Gens, Hard,
             Give up). Wider screens use one row and show Hard in the header.
           */}
@@ -154,10 +157,17 @@ export default function App() {
               />
               <button
                 type="button"
-                disabled={!game.canGiveUp}
-                onClick={() => setGiveUpAsk(gameId)}
-                title={game.canGiveUp ? 'Reveal the answer and end this game' : 'Available after your first guess'}
-                className="ds-button bevel-paper h-11 whitespace-nowrap px-3 text-[9px] disabled:opacity-40 sm:px-4 sm:text-[10px]"
+                // Locked like Hard and Gens (same look, focusable, explains itself on tap) rather than faded, so it keeps its contrast.
+                // After the game ends it stays, locked, so the row doesn't shift; a tap then does nothing.
+                onClick={() => {
+                  if (game.canGiveUp) setGiveUpAsk(gameId)
+                  else setLockNote({ game: gameId, what: 'giveup' })
+                }}
+                aria-disabled={!game.canGiveUp || undefined}
+                title={game.canGiveUp ? 'Reveal the answer and end this game' : 'Give up unlocks after your first guess'}
+                className={`ds-button bevel-paper h-11 whitespace-nowrap px-3 text-[9px] sm:px-4 sm:text-[10px] ${
+                  game.canGiveUp ? '' : 'cursor-not-allowed text-ds-frame'
+                }`}
               >
                 Give up
               </button>
