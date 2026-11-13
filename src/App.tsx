@@ -51,10 +51,10 @@ export default function App() {
   const finished = game.gameStatus !== 'playing'
   const showResult = finished && !revealing && dismissedResult !== gameId
 
-  // Endless "Give up" asks first. Keyed by game, so switching modes or starting a new game drops a pending ask.
+  // "Give up" (Daily and Endless) asks first. Keyed by game, so switching modes or starting a new game drops a pending ask.
   const [giveUpAsk, setGiveUpAsk] = useState<string | null>(null)
-  // The game in which the locked Gens button was tapped: shows the "locked" note for that game only.
-  const [lockNote, setLockNote] = useState<string | null>(null)
+  // Which locked button (Gens or Give up) was tapped, and in which game: shows that "locked" note for that game only.
+  const [lockNote, setLockNote] = useState<{ game: string; what: 'gens' | 'giveup' } | null>(null)
   const showGiveUp = giveUpAsk === gameId && game.canGiveUp
   const confirmGiveUp = () => {
     setGiveUpAsk(null)
@@ -112,57 +112,85 @@ export default function App() {
               Hint: it&apos;s from Gen {game.targetPokemon.generation}
             </p>
           )}
-          {/* Only shown once the player taps the locked Gens button, so it doesn't cost two lines every game. */}
+          {/* Only shown once the player taps the locked Gens or Give up button, so it doesn't cost two lines every game. */}
           {/* Always mounted so screen readers announce the text when it appears. */}
           <div role="status" className="contents">
-            {mode === 'endless' && game.inProgress && lockNote === gameId && (
+            {mode === 'endless' && game.inProgress && lockNote?.game === gameId && lockNote.what === 'gens' && (
               <p className="max-w-md tx-8 leading-4 text-ds-frame">
                 Gens are locked for this game, which was drawn from {gensLabel(game.gameGens)}. Change them after you catch it
                 or give up, and they apply to your next Pokémon.
               </p>
             )}
+            {!game.canGiveUp && game.gameStatus === 'playing' && lockNote?.game === gameId && lockNote.what === 'giveup' && (
+              <p className="max-w-md tx-8 leading-4 text-ds-frame">Give up unlocks after your first guess.</p>
+            )}
           </div>
-          {/* On phones Endless can have three buttons, too many for one row: History sits above Gens and Gen hint. */}
-          <div className={`flex justify-center gap-2 ${mode === 'endless' && canHint ? 'flex-col items-center sm:flex-row' : 'flex-wrap'}`}>
-            <button
-              type="button"
-              onClick={() => setShowHistory(true)}
-              className="ds-button bevel-paper h-11 px-3 text-[9px] sm:px-4 sm:text-[10px]"
-            >
-              History · Streak {stats.currentStreak}
-            </button>
+          {/*
+            Game menu. Give up lives here, away from the guess box, so the thing you tap most is never next to the
+            one that ends the game. It is always shown (locked, with a note on tap, until the first guess) so nothing
+            jumps when it becomes available. Phones: History and Give up, then Gens and Gen hint when there are any.
+            Wider screens: one row, Give up last.
+          */}
+          <div className="flex flex-col items-center justify-center gap-2 sm:flex-row">
             <div className="flex justify-center gap-2 sm:contents">
-              {mode === 'endless' && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (game.inProgress) setLockNote(gameId)
-                    else setShowGens(true)
-                  }}
-                  aria-disabled={game.inProgress || undefined}
-                  title={
-                    game.inProgress
-                      ? 'Gens are locked for this game. Change them after you catch it or give up.'
-                      : `Endless picks from: ${gensLabel(game.endlessGens)}`
-                  }
-                  className={`ds-button bevel-paper h-11 px-3 text-[9px] sm:px-4 sm:text-[10px] ${
-                    game.inProgress ? 'cursor-not-allowed text-ds-frame' : ''
-                  }`}
-                >
-                  Gens · {isAllGens(game.endlessGens) ? 'All' : `${game.endlessGens.length}/9`}
-                </button>
-              )}
-              {canHint && (
-                <button
-                  type="button"
-                  onClick={() => setHintPromptOpen(gameId)}
-                  className="ds-button bevel-paper inline-flex h-11 items-center gap-1.5 px-3 text-[9px] sm:px-4 sm:text-[10px]"
-                >
-                  <PixelBulb />
-                  Gen hint
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setShowHistory(true)}
+                className="ds-button bevel-paper h-11 whitespace-nowrap px-3 text-[9px] sm:px-4 sm:text-[10px]"
+              >
+                History · Streak {stats.currentStreak}
+              </button>
+              <button
+                type="button"
+                // Locked like Gens (same look, focusable, explains itself on tap) rather than faded, so it keeps its contrast.
+                // After the game ends it stays, locked, so the row doesn't shift; a tap then does nothing.
+                onClick={() => {
+                  if (game.canGiveUp) setGiveUpAsk(gameId)
+                  else setLockNote({ game: gameId, what: 'giveup' })
+                }}
+                aria-disabled={!game.canGiveUp || undefined}
+                title={game.canGiveUp ? 'Reveal the answer and end this game' : 'Give up unlocks after your first guess'}
+                className={`ds-button bevel-paper h-11 whitespace-nowrap px-3 text-[9px] sm:order-last sm:px-4 sm:text-[10px] ${
+                  game.canGiveUp ? '' : 'cursor-not-allowed text-ds-frame'
+                }`}
+              >
+                Give up
+              </button>
             </div>
+            {(mode === 'endless' || canHint) && (
+              <div className="flex justify-center gap-2 sm:contents">
+                {mode === 'endless' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (game.inProgress) setLockNote({ game: gameId, what: 'gens' })
+                      else setShowGens(true)
+                    }}
+                    aria-disabled={game.inProgress || undefined}
+                    title={
+                      game.inProgress
+                        ? 'Gens are locked for this game. Change them after you catch it or give up.'
+                        : `Endless picks from: ${gensLabel(game.endlessGens)}`
+                    }
+                    className={`ds-button bevel-paper h-11 whitespace-nowrap px-3 text-[9px] sm:px-4 sm:text-[10px] ${
+                      game.inProgress ? 'cursor-not-allowed text-ds-frame' : ''
+                    }`}
+                  >
+                    Gens · {isAllGens(game.endlessGens) ? 'All' : `${game.endlessGens.length}/9`}
+                  </button>
+                )}
+                {canHint && (
+                  <button
+                    type="button"
+                    onClick={() => setHintPromptOpen(gameId)}
+                    className="ds-button bevel-paper inline-flex h-11 items-center gap-1.5 whitespace-nowrap px-3 text-[9px] sm:px-4 sm:text-[10px]"
+                  >
+                    <PixelBulb />
+                    Gen hint
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -175,14 +203,6 @@ export default function App() {
             doneText={game.gameStatus === 'lost' ? 'It got away!' : undefined}
           />
         </div>
-
-        {game.canGiveUp && (
-          <div className="flex justify-center">
-            <button type="button" onClick={() => setGiveUpAsk(gameId)} className="ds-button bevel-paper px-4 text-[10px]">
-              Give up
-            </button>
-          </div>
-        )}
 
         {finished && !revealing && (
           <div className="flex flex-wrap justify-center gap-2">
@@ -221,7 +241,7 @@ export default function App() {
       )}
       {confetti && <Confetti onDone={endConfetti} />}
       {showGiveUp && (
-        <GiveUpModal guesses={game.guesses.length} onConfirm={confirmGiveUp} onCancel={() => setGiveUpAsk(null)} />
+        <GiveUpModal mode={mode} guesses={game.guesses.length} streak={stats.currentStreak} onConfirm={confirmGiveUp} onCancel={() => setGiveUpAsk(null)} />
       )}
       {showHistory && (
         <HistoryModal history={game.history} endless={game.endlessRecord} onClose={() => setShowHistory(false)} />

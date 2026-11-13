@@ -7,7 +7,8 @@ const FETCH_DELAY_MS = 1500
 interface DailyStatsProps {
   /** Daily puzzle date, YYYY-MM-DD. */
   date: string
-  guesses: number
+  /** Your guess count, or null if you gave up (then nothing is compared with your result). */
+  guesses: number | null
 }
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
@@ -45,15 +46,22 @@ export function DailyStats({ date, guesses }: DailyStatsProps) {
   } else {
     // Nobody counted yet means your own result hasn't reached the server: count it here so the chart shows your bar.
     const { stats } = result
+    // A give up has no bar, so it only adds to the finished count.
     const counted =
-      stats.finished === 0 ? { ...stats, histogram: { [guesses]: 1 }, finished: 1 } : stats
+      stats.finished === 0
+        ? { ...stats, histogram: guesses === null ? {} : { [guesses]: 1 }, finished: 1 }
+        : stats
     const summary = summarize(counted, guesses)
     const max = Math.max(...summary.bars.map((b) => b.count), 1)
     // Only claim "first" when the server counted nobody (your result was added above); one counted player may be someone else.
     const first = stats.finished === 0
     body = (
       <>
-        {first ? (
+        {first && guesses === null ? (
+          <p>Nobody has solved today&apos;s Pokémon yet. Check back later to see how other players do.</p>
+        ) : summary.players === 0 ? (
+          <p>Nobody has solved today&apos;s Pokémon yet.</p>
+        ) : first ? (
           <>
             <p>You&apos;re the first to solve today&apos;s Pokémon!</p>
             <p className="text-ds-frame">Check back later to see how other players do.</p>
@@ -64,11 +72,13 @@ export function DailyStats({ date, guesses }: DailyStatsProps) {
               {plural(summary.players, 'player has', 'players have')} solved it, in{' '}
               {(summary.average ?? 0).toFixed(1)} guesses on average.
             </p>
-            <p className="text-ds-frame">
-              {summary.fasterThanPercent > 0
-                ? `You were faster than ${summary.fasterThanPercent}% of players.`
-                : `${summary.samePercent}% of players needed ${plural(guesses, 'guess', 'guesses')} too.`}
-            </p>
+            {guesses !== null && (
+              <p className="text-ds-frame">
+                {summary.fasterThanPercent > 0
+                  ? `You were faster than ${summary.fasterThanPercent}% of players.`
+                  : `${summary.samePercent}% of players needed ${plural(guesses, 'guess', 'guesses')} too.`}
+              </p>
+            )}
           </>
         )}
         {(summary.gaveUp > 0 || (!first && summary.hintPercent !== null)) && (
@@ -96,7 +106,7 @@ export function DailyStats({ date, guesses }: DailyStatsProps) {
             </span>
           ))}
         </div>
-        <p className="mt-1 tx-8 text-ds-frame">Guesses to solve; yours is green and underlined. {footnote}</p>
+        <p className="mt-1 tx-8 text-ds-frame">Guesses to solve{guesses === null ? '.' : '; yours is green and underlined.'} {footnote}</p>
       </>
     )
   }

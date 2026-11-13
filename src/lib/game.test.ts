@@ -163,7 +163,7 @@ describe('saves from when Hard mode existed', () => {
   })
 })
 
-describe('giving up (Endless only)', () => {
+describe('giving up', () => {
   const endless: SavedGame = { v: 1, mode: 'endless', key: '2026-11-09T00:00:00.000Z', targetId: 1, guessIds: [2, 3] }
 
   it('ends an Endless game with guesses as lost, and then takes no more guesses', () => {
@@ -173,10 +173,15 @@ describe('giving up (Endless only)', () => {
     expect(applyGuess(lost, 1).result).toBe('game-over')
     expect(canGiveUp(lost)).toBe(false)
   })
-  it('is not offered for the Daily, a game with no guesses, or a won game', () => {
+  it('also ends a Daily with guesses as lost', () => {
     const daily: SavedGame = { ...endless, mode: 'daily', key: '2026-11-09' }
-    expect(canGiveUp(daily)).toBe(false)
-    expect(giveUp(daily)).toBe(daily)
+    expect(canGiveUp(daily)).toBe(true)
+    const lost = giveUp(daily)
+    expect(gameStatus(lost)).toBe('lost')
+    expect(applyGuess(lost, 1).result).toBe('game-over')
+    expect(isValidSave(decodeSave(JSON.parse(JSON.stringify(encodeSave(lost)))), byId)).toBe(true)
+  })
+  it('is not offered for a game with no guesses, or a won game', () => {
     const fresh = { ...endless, guessIds: [] }
     expect(giveUp(fresh)).toBe(fresh)
     const won = { ...endless, guessIds: [2, 1] }
@@ -188,7 +193,6 @@ describe('giving up (Endless only)', () => {
     const back = decodeSave(JSON.parse(JSON.stringify(encodeSave(lost))))
     expect(isValidSave(back, byId)).toBe(true)
     expect(gameStatus(back as SavedGame)).toBe('lost')
-    expect(isValidSave({ ...lost, mode: 'daily' }, byId)).toBe(false)
     expect(isValidSave({ ...lost, guessIds: [] }, byId)).toBe(false)
     expect(isValidSave({ ...lost, guessIds: [2, 1] }, byId)).toBe(false)
     expect(isValidSave({ ...endless, gaveUp: 'yes' }, byId)).toBe(false)

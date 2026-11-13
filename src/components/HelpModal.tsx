@@ -113,9 +113,10 @@ function StatsToggle() {
         Separately, Cloudflare, which delivers the site, counts page views without cookies. The switch below does not affect that count.
       </p>
       <p className="mt-2">
-        After you solve the Daily, the result screen always shows anonymous totals for that puzzle (players who solved it,
-        average guesses, how you compare and how many took the Gen hint), even if you are the first. Each network counts
-        once a day, so a household on one Wi-Fi counts as one player. It is only shown while sharing is on.
+        After you finish the Daily (solved or given up), the result screen always shows anonymous totals for that puzzle
+        (players who solved it, average guesses, how many gave up or took the Gen hint, and, if you solved it, how you
+        compare), even if you are the first. Each network counts once a day, so a household on one Wi-Fi counts as one
+        player. It is only shown while sharing is on.
       </p>
       <PixelSwitch
         label="Share anonymous stats"
@@ -192,11 +193,11 @@ export function HelpModal({ onClose }: HelpModalProps) {
         </p>
         <p>
           <strong>Daily</strong> is the same Pokémon for everyone, new each day at midnight. <strong>Endless</strong> gives you a
-          fresh Pokémon whenever you like. Stuck in Endless? After your first guess, <strong>Give up</strong> under the search box
-          reveals the answer (it asks first). Your progress is saved on this device.
+          fresh Pokémon whenever you like. Stuck? After your first guess, <strong>Give up</strong> (beside History)
+          reveals the answer (it asks first). Giving up the Daily ends it for the day and resets your streak. Your progress is saved on this device.
         </p>
         <p>
-          In Endless, the <strong>Gens</strong> button beside History chooses which generations the Pokémon can come from: switch
+          In Endless, the <strong>Gens</strong> button beside History (under it on phones) chooses which generations the Pokémon can come from: switch
           each of Gen 1 to 9 on or off, or use All and None (at least one must stay on). Forms count by their debut, so
           Megas are Gen 6. You can still guess any Pokémon. Gens are locked while a game is in progress (tap the
           button to see why): change them before your first guess, or after you catch the Pokémon or give up, and they apply
@@ -205,13 +206,13 @@ export function HelpModal({ onClose }: HelpModalProps) {
         <p>
           <span className="inline-flex items-center gap-1.5 align-middle"><PixelBulb /><strong>Gen hint:</strong></span> the
           guesses never show a Pokémon's generation. After {HINT_AFTER_GUESSES} guesses you are offered a hint that tells you
-          which Gen the answer is from. It's up to you: say Not now and a Gen hint button stays beside History for
+          which Gen the answer is from. It's up to you: say Not now and a Gen hint button stays beside History (under it on phones) for
           the rest of the game. A hinted win still counts as a win and keeps your streak; History marks it with a bulb and
           shows how many of your wins needed no hint.
         </p>
         <p>
-          Solve the Daily each day to build a <strong>streak</strong>; missing a day resets it. The History button lists every
-          Daily you've solved, with your streaks and totals, plus your Endless stats: games played, caught and given up, and your average and fewest guesses. It is saved on this device only and doesn't carry over to other devices.
+          Solve the Daily each day to build a <strong>streak</strong>; missing a day or giving up resets it. The History button lists every
+          Daily you've finished, with your streaks and totals, plus your Endless stats: games played, caught and given up, and your average and fewest guesses. It is saved on this device only and doesn't carry over to other devices.
         </p>
         <p className="hidden lg:block">Keyboard: type to search, ↑/↓ to pick, Enter to guess, Esc to close.</p>
       </div>

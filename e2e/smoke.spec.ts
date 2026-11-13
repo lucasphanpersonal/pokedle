@@ -147,6 +147,39 @@ test('Endless Gens: the answer comes only from the chosen generations', async ({
   expect(gens.get((await savedGame(page, 'endless'))!.targetId)).toBe(4)
 })
 
+test('giving up the Daily asks first, ends the game and is listed in History', async ({ page }) => {
+  await page.goto('/')
+  const giveUp = page.getByRole('button', { name: 'Give up' })
+  // Shown but locked before the first guess: a tap explains why instead of asking.
+  await expect(giveUp).toHaveAttribute('aria-disabled', 'true')
+  await giveUp.click({ force: true }) // Playwright treats aria-disabled as not clickable; a real tap still lands
+  await expect(page.getByText('Give up unlocks after your first guess.')).toBeVisible()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await guess(page, await nonAnswer(page, 'daily', ['Oddish', 'Paras']))
+  await expect(giveUp).not.toHaveAttribute('aria-disabled')
+
+  await giveUp.click()
+  const ask = page.getByRole('dialog')
+  await expect(ask).toContainText("can't play it again")
+  await ask.getByRole('button', { name: 'Keep going' }).click()
+  await expect(guessBox(page)).toBeEnabled()
+
+  await giveUp.click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Give up' }).click()
+  const answer = names.get((await savedGame(page, 'daily'))!.targetId)!
+  const result = page.getByRole('dialog')
+  await expect(result).toContainText('It got away!')
+  await expect(result).toContainText(answer)
+
+  // The loss survives a reload, and History lists it.
+  await page.reload()
+  await expect(guessBox(page)).toBeDisabled()
+  await expect(giveUp).toHaveAttribute('aria-disabled', 'true')
+  await page.keyboard.press('Escape')
+  await page.getByRole('button', { name: /History/ }).click()
+  await expect(page.getByRole('dialog')).toContainText('Gave up')
+})
+
 test('Gen hint: offered after 5 guesses, optional, and shown for the rest of the game', async ({ page }) => {
   // Reduced motion: the hint text appears at once, so one Enter closes it.
   await page.emulateMedia({ reducedMotion: 'reduce' })

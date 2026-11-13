@@ -1,7 +1,8 @@
 /**
  * Player history and streaks. Kept only on this device (localStorage), one
- * entry per solved Daily. A game has no guess limit, so a Daily is either
- * solved or still open; a day that is never solved simply has no entry.
+ * entry per finished Daily: solved, or given up (`lost`). A game has no guess
+ * limit, so a Daily is either finished or still open; a day that is simply
+ * never finished has no entry.
  */
 import { dayNumber, localDateKey } from './daily'
 
@@ -14,6 +15,8 @@ export interface HistoryEntry {
   guesses: number
   /** True if the Gen hint was taken. Absent = solved without it. */
   hinted?: true
+  /** True if the player gave up (a loss: it ends the streak). `guesses` is how many they made. Absent = solved. */
+  lost?: true
 }
 
 export interface HistoryStats {
@@ -21,6 +24,8 @@ export interface HistoryStats {
   currentStreak: number
   bestStreak: number
   solved: number
+  /** Dailies given up. */
+  gaveUp: number
   averageGuesses: number | null
   fewestGuesses: number | null
   /** Share of solves (0-100, rounded) made without the Gen hint; null until something is solved. */
@@ -52,20 +57,23 @@ export function parseHistory(raw: unknown): HistoryEntry[] {
     if (isEntry(item) && !byDate.has(item.date)) {
       const entry: HistoryEntry = { date: item.date, targetId: item.targetId, guesses: item.guesses }
       if (item.hinted === true) entry.hinted = true
+      if (item.lost === true) entry.lost = true
       byDate.set(item.date, entry)
     }
   }
   return [...byDate.values()].sort((a, b) => (a.date < b.date ? 1 : -1))
 }
 
-/** Adds (or keeps the existing) entry for a date. Returns the same array if nothing changed. */
+/** Adds (or keeps the existing) entry for a date: a solve, or a give up (`lost`). Returns the same array if nothing changed. */
 export function recordSolve(history: HistoryEntry[], entry: HistoryEntry): HistoryEntry[] {
   if (history.some((e) => e.date === entry.date)) return history
   return parseHistory([entry, ...history])
 }
 
 export function computeStats(history: HistoryEntry[], today: string = localDateKey()): HistoryStats {
-  const days = [...new Set(history.map((e) => dayNumber(e.date)))].sort((a, b) => a - b)
+  // Only solved days build a streak; a given-up day is a miss like any other.
+  const solvedEntries = history.filter((e) => e.lost !== true)
+  const days = [...new Set(solvedEntries.map((e) => dayNumber(e.date)))].sort((a, b) => a - b)
 
   let best = 0
   let run = 0
@@ -77,16 +85,19 @@ export function computeStats(history: HistoryEntry[], today: string = localDateK
   // The streak is still alive if the latest solve was today or yesterday.
   const last = days[days.length - 1]
   const todayNum = dayNumber(today)
-  const current = last !== undefined && last >= todayNum - 1 ? trailingRun(days) : 0
+  // Giving up today ends the streak straight away, instead of waiting for the day to pass.
+  const gaveUpToday = history.some((e) => e.lost === true && e.date === today)
+  const current = !gaveUpToday && last !== undefined && last >= todayNum - 1 ? trailingRun(days) : 0
 
-  const total = history.reduce((sum, e) => sum + e.guesses, 0)
+  const total = solvedEntries.reduce((sum, e) => sum + e.guesses, 0)
   return {
     currentStreak: current,
     bestStreak: best,
-    solved: history.length,
-    averageGuesses: history.length ? total / history.length : null,
-    fewestGuesses: history.length ? Math.min(...history.map((e) => e.guesses)) : null,
-    noHintPercent: noHintPercent(history.length, history.filter((e) => e.hinted).length),
+    solved: solvedEntries.length,
+    gaveUp: history.length - solvedEntries.length,
+    averageGuesses: solvedEntries.length ? total / solvedEntries.length : null,
+    fewestGuesses: solvedEntries.length ? Math.min(...solvedEntries.map((e) => e.guesses)) : null,
+    noHintPercent: noHintPercent(solvedEntries.length, solvedEntries.filter((e) => e.hinted).length),
   }
 }
 

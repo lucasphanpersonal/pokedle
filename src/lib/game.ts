@@ -5,7 +5,7 @@ import { isAllGens, parseGens, poolForGens, sameGens } from './gens'
 export type GameMode = 'daily' | 'endless'
 /**
  * There is no guess limit: a game ends when the player guesses the answer
- * ('won'), or, in Endless only, when they give up ('lost').
+ * ('won'), or when they give up ('lost', in either mode).
  */
 export type GameStatus = 'playing' | 'won' | 'lost'
 
@@ -25,7 +25,7 @@ export interface SavedGame {
   guessIds: number[]
   /** The player took the Gen hint (offered after HINT_AFTER_GUESSES guesses). Absent = no hint. */
   hinted?: true
-  /** Endless only: the player gave up and the answer was revealed. Absent = still open or won. */
+  /** The player gave up and the answer was revealed (a loss). Absent = still open or won. */
   gaveUp?: true
   /** Endless only: the Gens the answer was drawn from, sorted. Absent = all nine. */
   gens?: number[]
@@ -93,12 +93,12 @@ export function gameStatus(game: SavedGame): GameStatus {
   return game.gaveUp ? 'lost' : 'playing'
 }
 
-/** Giving up is Endless only, and only once the game has at least one guess and is still open. */
+/** A game can be given up once it has at least one guess and is still open (Daily and Endless). */
 export function canGiveUp(game: SavedGame): boolean {
-  return game.mode === 'endless' && game.guessIds.length > 0 && gameStatus(game) === 'playing'
+  return game.guessIds.length > 0 && gameStatus(game) === 'playing'
 }
 
-/** Ends an Endless game as given up (the answer is then revealed). Returns the same game if it can't. */
+/** Ends a game as given up (the answer is then revealed). Returns the same game if it can't. */
 export function giveUp(game: SavedGame): SavedGame {
   return canGiveUp(game) ? { ...game, gaveUp: true } : game
 }
@@ -194,8 +194,8 @@ export function isValidSave(game: unknown, byId: Map<number, Pokemon>): game is 
     // Nothing may be recorded after the winning guess.
     (winAt === -1 || winAt === ids.length - 1) &&
     (g.hinted === undefined || g.hinted === true) &&
-    // Only an Endless game with guesses and no win can have been given up.
-    (g.gaveUp === undefined || (g.gaveUp === true && g.mode === 'endless' && winAt === -1 && ids.length > 0)) &&
+    // Only a game with guesses and no win can have been given up.
+    (g.gaveUp === undefined || (g.gaveUp === true && winAt === -1 && ids.length > 0)) &&
     // Only an Endless game records its Gens, and its answer must come from them.
     (g.gens === undefined ||
       (g.mode === 'endless' &&

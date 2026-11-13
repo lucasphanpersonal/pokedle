@@ -67,3 +67,13 @@ describe('summarize', () => {
     expect(s.bars.every((b) => b.count === 0)).toBe(true)
   })
 })
+
+describe('summarize when you gave up', () => {
+  it('compares nothing with your result', () => {
+    const s = summarize({ histogram: { 3: 4, 5: 2 }, finished: 7, hinted: null }, null)
+    expect(s.fasterThanPercent).toBe(0)
+    expect(s.samePercent).toBe(0)
+    expect(s.bars.some((b) => b.isYou)).toBe(false)
+    expect(s.gaveUp).toBe(1)
+  })
+})

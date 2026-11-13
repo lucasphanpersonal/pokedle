@@ -19,7 +19,7 @@ interface ResultModalProps {
   bestStreak: number
   /** The Gen hint was taken in this game. */
   hinted: boolean
-  /** The player gave up (Endless): the answer is revealed instead of caught. */
+  /** The player gave up (Daily or Endless): the answer is revealed instead of caught. */
   gaveUp?: boolean
   onClose: () => void
   onNewGame?: () => void
@@ -87,10 +87,11 @@ export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestSt
         {mode === 'daily' && (
           <p className="tx-10">
             Streak: <strong>{streak}</strong> {streak === 1 ? 'day' : 'days'} · Best: <strong>{bestStreak}</strong>
+            {gaveUp && <span className="mt-1 block text-ds-frame">Giving up ends your streak.</span>}
           </p>
         )}
 
-        {mode === 'daily' && <DailyStats date={puzzleDate} guesses={feedback.length} />}
+        {mode === 'daily' && <DailyStats date={puzzleDate} guesses={gaveUp ? null : feedback.length} />}
 
         {mode === 'daily' && (
           <p className="tx-9 text-ds-frame">
