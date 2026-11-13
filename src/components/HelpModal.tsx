@@ -207,7 +207,7 @@ export function HelpModal({ onClose }: HelpModalProps) {
           <span className="inline-flex items-center gap-1.5 align-middle"><PixelBulb /><strong>Gen hint:</strong></span> the
           guesses never show a Pokémon's generation. After {HINT_AFTER_GUESSES} guesses you are offered a hint that tells you
           which Gen the answer is from. It's up to you: say Not now and a Gen hint button stays beside History (under it on phones) for
-          the rest of the game. A hinted win still counts as a win and keeps your streak; History marks it with a bulb and
+          the rest of the game. Once you take it, that button stays pressed in and shows the Gen. A hinted win still counts as a win and keeps your streak; History marks it with a bulb and
           shows how many of your wins needed no hint.
         </p>
         <p>

@@ -64,6 +64,7 @@ export default function App() {
   // The Gen hint. It is pointless when the answer can only come from one Gen (an Endless game limited to one).
   const hintUseful = game.gameGens.length > 1
   const canHint = game.canTakeHint && hintUseful
+  const showHint = game.hinted && hintUseful
   // It pops up once per game, after the guess that makes it available has flipped in; after that it is a button.
   // Remembered per mode (the game it was last offered in), so switching modes doesn't offer it again.
   const [hintOffered, setHintOffered] = useState<Record<string, unknown>>(() => {
@@ -106,12 +107,6 @@ export default function App() {
           <p className="tx-9 text-ds-frame">
             {game.guesses.length} {game.guesses.length === 1 ? 'guess' : 'guesses'}
           </p>
-          {game.hinted && (
-            <p className="inline-flex items-center gap-1.5 border-2 border-ds-frame bg-ds-paper px-2 py-1 tx-9">
-              <PixelBulb />
-              Hint: it&apos;s from Gen {game.targetPokemon.generation}
-            </p>
-          )}
           {/* Only shown once the player taps the locked Gens or Give up button, so it doesn't cost two lines every game. */}
           {/* Always mounted so screen readers announce the text when it appears. */}
           <div role="status" className="contents">
@@ -157,7 +152,7 @@ export default function App() {
                 Give up
               </button>
             </div>
-            {(mode === 'endless' || canHint) && (
+            {(mode === 'endless' || canHint || showHint) && (
               <div className="flex justify-center gap-2 sm:contents">
                 {mode === 'endless' && (
                   <button
@@ -188,6 +183,16 @@ export default function App() {
                     <PixelBulb />
                     Gen hint
                   </button>
+                )}
+                {/* Once taken, the hint button stays in its place pressed in (the "on" look) and shows the Gen. */}
+                {showHint && (
+                  <p
+                    aria-label={`Hint: the answer is from Gen ${game.targetPokemon.generation}`}
+                    className="ds-button bevel-paper bevel-pressed inline-flex h-11 items-center gap-1.5 whitespace-nowrap px-3 text-[9px] sm:px-4 sm:text-[10px]"
+                  >
+                    <PixelBulb />
+                    Hint · Gen {game.targetPokemon.generation}
+                  </p>
                 )}
               </div>
             )}
