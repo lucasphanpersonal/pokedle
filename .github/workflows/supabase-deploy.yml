@@ -38,7 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       # Pinned so a new CLI release can't run with the database secrets unreviewed; Dependabot does not update this, bump it by hand.
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@v3
         with:
           version: 3.1.0
       - name: Check secrets are set
