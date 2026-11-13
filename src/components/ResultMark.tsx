@@ -49,13 +49,22 @@ export type MarkKind = keyof typeof ART
  * Pinned in a tile's top-right corner, just under the light top bevel (8px down, clear of the stepped
  * corner) and 3px from the right (its last column overlaps the 4px side shade), so it ends 10px from the edge and never meets the tile text.
  */
-export function ResultMark({ kind, className = 'absolute right-[3px] top-2' }: { kind: MarkKind; className?: string }) {
+export function ResultMark({
+  kind,
+  className = 'absolute right-[3px] top-2',
+  scale = 1,
+}: {
+  kind: MarkKind
+  className?: string
+  /** CSS pixels per art pixel (the dialog close button draws the cross at 2, so 14px). */
+  scale?: number
+}) {
   return (
     <svg
       aria-hidden="true"
       viewBox="0 0 7 7"
-      width={7}
-      height={7}
+      width={7 * scale}
+      height={7 * scale}
       shapeRendering="crispEdges"
       className={`result-mark pointer-events-none ${className}`}
     >

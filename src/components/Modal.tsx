@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { ResultMark } from './ResultMark'
 
 interface ModalProps {
   title: string
@@ -8,7 +9,8 @@ interface ModalProps {
 }
 
 /**
- * DS-style dialog box: closes on Escape, backdrop tap, or the X button.
+ * DS-style dialog box: closes on Escape, backdrop tap, or the close button
+ * (a white bevelled menu button holding the pixel-art cross, like every other button).
  * Rendered outside #root, which is made inert while open, so keyboard and
  * screen-reader focus can't wander to the page behind it.
  */
@@ -59,9 +61,9 @@ export function Modal({ title, onClose, children }: ModalProps) {
             type="button"
             onClick={() => onCloseRef.current()}
             aria-label="Close"
-            className="ds-focus -m-2 flex h-11 w-11 shrink-0 items-center justify-center text-sm"
+            className="ds-button bevel-paper flex h-11 w-11 shrink-0 items-center justify-center text-ds-ink"
           >
-            ✕
+            <ResultMark kind="mismatch" scale={2} className="" />
           </button>
         </div>
         {children}

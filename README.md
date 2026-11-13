@@ -175,8 +175,9 @@ asked to flag any break), and UI changes are screenshotted and measured at 320, 
 1. **One bevel for everything.** Every button, toggle and guess tile uses the shared `.bevel` style in
    `src/index.css` (`.ds-button` includes it): 2px dark outline, 6px light top edge, 6px dark bottom edge, 4px shaded
    sides. Pick the face colour with `.bevel-paper` (white), `.bevel-red`, `.bevel-green`, or `data-result` on tiles.
-   Never hand-roll a `box-shadow` or `border` bevel on a single control. The only exceptions are pixel icons that
-   are not menu buttons: a dialog's ✕ close icon and the small on/off switch graphics in Help.
+   Never hand-roll a `box-shadow` or `border` bevel on a single control. A dialog's close button is a 44px
+   `.ds-button bevel-paper` square holding the pixel-art cross (`ResultMark` drawn at 2px per art pixel), like the
+   header's ? button. The only exception is the small on/off switch graphics in Help, which are not menu buttons.
 2. **Pressed means the inverse bevel.** A selected or "on" control (the chosen Daily/Endless side, Hard when on, a chosen Gen in the Endless Gens picker) adds
    `.bevel-pressed`: same edges, dark on top and light at the bottom. The edges stay the same size, so labels sit at
    the same height whether a control is up or down.
@@ -196,7 +197,8 @@ asked to flag any break), and UI changes are screenshotted and measured at 320, 
    Press Start 2P, self-hosted from `@fontsource/press-start-2p` (no Google Fonts request); images use `image-rendering: pixelated`.
 6. **One action colour.** The main action on a screen (Guess, New Pokémon) is a red button everywhere it appears;
    secondary actions (See results, History) are white.
-7. **Dialog headers.** A dialog's title is vertically centred on its ✕ close button.
+7. **Dialog headers.** A dialog's title is vertically centred on its close button, which sits the same distance from
+   the box's top and right edges.
 8. **Readable colours, never colour alone.** White text needs at least 4.5:1 against its face, so the tile green is
    `#2a8530` (4.67:1) and red `#c84040` (4.93:1); yellow tiles use dark ink text. Every result also has a non-colour
    cue: the ✓ / ~ / ✕ corner mark (7×7 pixel art, 8px from the top and ending 10px from the right edge, so it never
