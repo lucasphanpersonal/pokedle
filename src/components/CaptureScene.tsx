@@ -254,7 +254,8 @@ export function CaptureScene({ kind, pokemon, onDone }: CaptureSceneProps) {
           <p aria-live="polite" className="min-h-10 text-xs leading-5">
             {caption}
           </p>
-          <p className="mt-1 tx-8 text-ds-frame">Tap or press any key to skip</p>
+          {/* Skipping still works by tap or any key; the hint is only read out, not shown. */}
+          <p className="sr-only">Tap or press any key to skip</p>
         </div>
       </div>
     </div>,
