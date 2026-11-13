@@ -141,8 +141,17 @@ test('Endless Gens: the answer comes only from the chosen generations', async ({
   // Giving up ends the game, which unlocks the picker again (and Give up disappears).
   await page.getByRole('button', { name: 'Give up' }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Give up' }).click()
+  // The result screen's History opens over it and Escape returns to it.
+  await page.getByRole('dialog').getByRole('button', { name: 'History' }).click()
+  await expect(page.getByRole('dialog', { name: 'History' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog')).toContainText('It got away!')
   await page.keyboard.press('Escape') // close the "It got away!" result
   await expect(page.getByRole('button', { name: 'Give up' })).toHaveCount(0)
+  // The guess box now holds See results and New Pokémon in place of Guess.
+  await expect(page.getByRole('button', { name: 'See results' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'New Pokémon' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Guess', exact: true })).toHaveCount(0)
   await page.getByRole('button', { name: 'Gens', exact: true }).click()
   await expect(page.getByRole('dialog', { name: 'Endless Gens' }).getByRole('button', { name: 'Gen 4' })).toBeEnabled()
   await page.keyboard.press('Escape')

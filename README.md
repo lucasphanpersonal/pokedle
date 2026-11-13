@@ -208,8 +208,9 @@ asked to flag any break), and UI changes are screenshotted and measured at 320, 
    and `.ds-button` labels keep fixed `text-[Npx]` sizes, so those rows still fit at 320px.
 5. **Stepped corners and pixel font.** Boxes and buttons use stepped pixel corners (`.ds-button`, `.px-notch`) and
    Press Start 2P, self-hosted from `@fontsource/press-start-2p` (no Google Fonts request); images use `image-rendering: pixelated`.
-6. **One action colour.** The main action on a screen (Guess, New Pokémon) is a red button everywhere it appears;
-   secondary actions (See results, History) are white.
+6. **One action colour.** Each spot has one red main action: Guess while playing, then See results in the guess box
+   once a Daily is over, or New Pokémon in Endless (where See results beside it turns white). Secondary actions
+   (History, Gens, Give up) are white.
 7. **Dialog headers.** A dialog's title is vertically centred on its close button, which sits the same distance from
    the box's top and right edges.
 8. **Readable colours, never colour alone.** White text needs at least 4.5:1 against its face, so the tile green is

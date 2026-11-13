@@ -17,13 +17,11 @@ interface GensModalProps {
 }
 
 /**
- * Endless mode's Gen picker. Mid-game it is view-only (locked): the tiles show the game's Gens but can't be
- * changed, All/None are gone and OK just closes.
- *
  * Endless mode's Gen picker: nine on/off tiles plus All and None. Like every toggle in the game, an
  * "on" tile is green and pressed in (inverse bevel) and an "off" tile is white and raised, so on/off
  * never depends on colour alone. The choice is saved with OK; closing the box any other way keeps the
- * old one. At least one Gen must be on.
+ * old one. At least one Gen must be on. Mid-game it is view-only (locked): the tiles show the game's Gens
+ * but can't be changed, All/None are gone and OK just closes.
  */
 export function GensModal({ gens, locked = false, counts, gameStarted, onSave, onClose }: GensModalProps) {
   // Compared with the choice the box opened with, so OK with nothing touched never overwrites a change made in another tab.
@@ -90,9 +88,10 @@ export function GensModal({ gens, locked = false, counts, gameStarted, onSave, o
         </p>
         <p className="tx-9 text-ds-frame">
           Forms count by their debut: Megas are Gen 6, Alolan forms Gen 7.{' '}
-          {gameStarted
-            ? 'The game on screen keeps its Pokémon. A change applies from your next one.'
-            : 'A change picks a new Pokémon.'}
+          {!locked &&
+            (gameStarted
+              ? 'The game on screen keeps its Pokémon. A change applies from your next one.'
+              : 'A change picks a new Pokémon.')}
         </p>
         <button
           type="button"

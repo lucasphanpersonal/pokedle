@@ -117,10 +117,10 @@ export default function App() {
           {/*
             Game menu: Gens (Endless), the Gen hint and Give up. Give up sits beside the hint, away from the guess box,
             so the thing you tap most is never next to the one that ends the game. It is shown all game (locked, with a
-            note on tap, until the first guess) and gone once the game is over. History and the streak are not here:
+            note on tap, until the first guess) and gone once the game is over and its tiles have flipped. History and the streak are not here:
             they belong to the end of a game, so they live on the result screen. The row wraps on narrow phones.
           */}
-          {(mode === 'endless' || canHint || showHint || game.gameStatus === 'playing') && (
+          {(mode === 'endless' || canHint || showHint || game.gameStatus === 'playing' || revealing) && (
             <div className="flex flex-wrap items-center justify-center gap-2">
               {mode === 'endless' && (
                 <button
@@ -155,7 +155,8 @@ export default function App() {
                   <span className="sr-only">Hint: the answer is from Gen {game.targetPokemon.generation}</span>
                 </p>
               )}
-              {game.gameStatus === 'playing' && (
+              {/* Kept (locked) while the last guess's tiles flip, so the row doesn't vanish mid-reveal. */}
+              {(game.gameStatus === 'playing' || revealing) && (
                 <button
                   type="button"
                   // Locked (same look, focusable, explains itself on tap) rather than faded, so it keeps its contrast.
