@@ -68,7 +68,7 @@ function DisplaySettings() {
           setCrtState(!crt)
         }}
       />
-      <p className="mt-1 tx-9 text-ds-frame">Scanlines and a soft glow, like an old handheld or TV.</p>
+      <p className="mt-1 tx-9 text-ds-frame">Scanlines and a soft glow, like an old handheld.</p>
       <PixelSwitch
         label="Larger text"
         on={bigText}
@@ -77,13 +77,10 @@ function DisplaySettings() {
           setBigTextState(!bigText)
         }}
       />
-      <p className="mt-1 tx-9 text-ds-frame">Makes all the small text, including the guess tiles, a quarter bigger. Tiles grow taller to fit.</p>
       <div className="mt-2 flex min-h-11 items-center justify-between gap-3">
         <span>Volume</span>
         <VolumeBars />
       </div>
-      <p className="mt-1 tx-9 text-ds-frame">Retro 8-bit blips as you press buttons and type, as tiles flip, a whoosh, bounces and a low wobble as the Poké Ball lands and shakes, a jingle when you win, then the answer's cry (it also cries as it escapes when you give up). Tap a dash or use the arrow keys to set the volume; none lit is muted. The speaker button in the header mutes and unmutes.</p>
-      <p className="mt-1 tx-9 text-ds-frame">When a game ends, a Poké Ball shakes and clicks shut if you won, or bursts open and lets the Pokémon run off if you gave up. Tap or press any key to skip it. Then a short burst of confetti if you won. Players who set reduce motion don't see these.</p>
     </section>
   )
 }
@@ -106,17 +103,9 @@ function StatsToggle() {
     <section className="mt-5 border-t-2 border-ds-frame-light pt-4 tx-10 leading-5">
       <h3 className="mb-2 tx-11">Privacy</h3>
       <p>
-        The game records anonymous game events (guesses, results, device type, and whether you took the Gen hint) with no cookies, accounts or personal
-        data. Browsers that send Do Not Track or Global Privacy Control are never tracked.
-      </p>
-      <p className="mt-2">
-        Separately, Cloudflare, which delivers the site, counts page views without cookies. The switch below does not affect that count.
-      </p>
-      <p className="mt-2">
-        After you finish the Daily (solved or given up), the result screen always shows anonymous totals for that puzzle
-        (players who solved it, average guesses, how many gave up or took the Gen hint, and, if you solved it, how you
-        compare), even if you are the first. Each network counts once a day, so a household on one Wi-Fi counts as one
-        player. It is only shown while sharing is on.
+        The game records anonymous game events (guesses, results, device type, Gen hint use) with no cookies, accounts or
+        personal data. They power the Daily stats on the result screen, shown while this is on. Do Not Track and Global Privacy Control are always respected. Cloudflare also counts page views, which this
+        switch doesn't affect.
       </p>
       <PixelSwitch
         label="Share anonymous stats"
@@ -138,83 +127,58 @@ export function HelpModal({ onClose }: HelpModalProps) {
   return (
     <Modal title="How to play" onClose={onClose}>
       <div className="space-y-4 tx-10 leading-5">
-        <p>
-          Guess the hidden Pokémon. There is no guess limit: keep going until you find it. Every Pokémon from Gen 1 to 9
-          is in, including regional forms, Megas and Gigantamax.
-        </p>
-        <p>Start typing a name and pick from the list. Each guess shows how close it is:</p>
-        <p className="lg:hidden big:max-xl:block">
-          On a phone each guess is a card: Type 1, Type 2 and Height on top, then Weight, Color, Evolution and Form,
-          with Egg Group and Shared Ability along the bottom. Tablets show two cards side by side, and from 1024 px wide (and on computers) a table instead. With Larger text on, phones show three tiles to a row and the table starts at 1280 px.
-        </p>
+        <p>Guess the hidden Pokémon. Every Pokémon from Gen 1 to 9 is in, forms included, and there's no guess limit.</p>
         <ul className="space-y-2">
           <li className="flex items-center gap-2">
-            <Swatch result="match"><ResultMark kind="match" className="" /></Swatch> Exact match
+            <Swatch result="match"><ResultMark kind="match" className="" /></Swatch> Match
           </li>
           <li className="flex items-center gap-2">
-            <Swatch result="partial"><ResultMark kind="partial" className="" /></Swatch> Partly right (a type in the other slot, or one shared egg group)
+            <Swatch result="partial"><ResultMark kind="partial" className="" /></Swatch> Partly right
           </li>
           <li className="flex items-center gap-2">
             <Swatch result="mismatch"><ResultMark kind="mismatch" className="" /></Swatch> No match
           </li>
           <li className="flex items-center gap-2">
-            <Swatch result="mismatch">▲</Swatch> The answer is higher
+            <Swatch result="mismatch">▲</Swatch> Answer is higher
           </li>
           <li className="flex items-center gap-2">
-            <Swatch result="mismatch">▼</Swatch> The answer is lower
+            <Swatch result="mismatch">▼</Swatch> Answer is lower
           </li>
         </ul>
-        <p>
-          The small mark in each tile's corner says the same as its colour (✓ match, ~ partly right, ✕ no match), so you
-          never have to tell red from green.
-        </p>
+        <p>The ✓ ~ ✕ in a tile's corner means the same as its colour.</p>
         <dl className="space-y-2">
           <div>
-            <dt className="inline">Height, Weight, Evolution: </dt>
-            <dd className="inline">arrows point toward the answer. Evolution is the stage in its line (Pichu 1, Pikachu 2, Raichu 3).</dd>
+            <dt className="inline">Types: </dt>
+            <dd className="inline">yellow if the type is in the other slot.</dd>
+          </div>
+          <div>
+            <dt className="inline">Evolution: </dt>
+            <dd className="inline">stage in its line (Pichu 1, Pikachu 2, Raichu 3).</dd>
           </div>
           <div>
             <dt className="inline">Form: </dt>
-            <dd className="inline">green if the guess and the answer are the same kind of form (Base, Mega, Regional, Gigantamax and so on), otherwise red. The tile names the guess's own form.</dd>
+            <dd className="inline">green if the same kind (Base, Mega, Regional…).</dd>
           </div>
           <div>
             <dt className="inline">Egg Group: </dt>
-            <dd className="inline">green if your guess and the answer have exactly the same egg groups, yellow if they share at least one (say, Monster and Dragon against Dragon alone), red if none. Legendaries and other Pokémon that can't breed are "Undiscovered", and forms share their species' groups.</dd>
+            <dd className="inline">yellow if at least one is shared.</dd>
           </div>
           <div>
             <dt className="inline">Shared Ability: </dt>
-            <dd className="inline">green with the shared ability names if your guess and the answer share any ability (hidden ones count). Otherwise it is red and lists all of the guess's own abilities, since none of them is the answer's. Guessing the answer itself always makes every tile green.</dd>
+            <dd className="inline">green with the abilities you share (hidden ones count); red lists the guess's own.</dd>
           </div>
         </dl>
         <p>
-          The small <strong>#025</strong> next to each name is its Pokédex number. It is only a label and not a clue
-          (forms use their species' number, so Alolan Raichu is #026). When you catch the answer you also get its full
-          Pokédex entry.
+          <span className="inline-flex items-center gap-1.5 align-middle"><PixelBulb /><strong>Gen hint:</strong></span> after{' '}
+          {HINT_AFTER_GUESSES} guesses you can reveal the answer's Gen. A hinted win still counts.
         </p>
         <p>
-          <strong>Daily</strong> is the same Pokémon for everyone, new each day at midnight. <strong>Endless</strong> gives you a
-          fresh Pokémon whenever you like. Stuck? After your first guess, <strong>Give up</strong> (beside History)
-          reveals the answer (it asks first). Giving up the Daily ends it for the day and resets your streak. Your progress is saved on this device.
+          <strong>Daily:</strong> one Pokémon for everyone, new at midnight. Solve it every day for a streak; missing a day
+          or giving up resets it.
         </p>
         <p>
-          In Endless, the <strong>Gens</strong> button beside History (under it on phones) chooses which generations the Pokémon can come from: switch
-          each of Gen 1 to 9 on or off, or use All and None (at least one must stay on). Forms count by their debut, so
-          Megas are Gen 6. You can still guess any Pokémon. Gens are locked while a game is in progress (tap the
-          button to see why): change them before your first guess, or after you catch the Pokémon or give up, and they apply
-          to your next one. The Daily always uses every Gen.
+          <strong>Endless:</strong> play as many as you like. <strong>Gens</strong> picks which generations the answer comes from.
         </p>
-        <p>
-          <span className="inline-flex items-center gap-1.5 align-middle"><PixelBulb /><strong>Gen hint:</strong></span> the
-          guesses never show a Pokémon's generation. After {HINT_AFTER_GUESSES} guesses you are offered a hint that tells you
-          which Gen the answer is from. It's up to you: say Not now and a Gen hint button stays beside History (under it on phones) for
-          the rest of the game. A hinted win still counts as a win and keeps your streak; History marks it with a bulb and
-          shows how many of your wins needed no hint.
-        </p>
-        <p>
-          Solve the Daily each day to build a <strong>streak</strong>; missing a day or giving up resets it. The History button lists every
-          Daily you've finished, with your streaks and totals, plus your Endless stats: games played, caught and given up, and your average and fewest guesses. It is saved on this device only and doesn't carry over to other devices.
-        </p>
-        <p className="hidden lg:block">Keyboard: type to search, ↑/↓ to pick, Enter to guess, Esc to close.</p>
       </div>
       <DisplaySettings />
       <StatsToggle />

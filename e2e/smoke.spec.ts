@@ -249,7 +249,7 @@ test('Gen hint: offered after 5 guesses, optional, and shown for the rest of the
   await expect(prompt).toContainText(`from Gen ${gen}`)
   await page.keyboard.press('Enter')
   await expect(prompt).toHaveCount(0)
-  await expect(page.getByText(`Hint: it's from Gen ${gen}`)).toBeVisible()
+  await expect(page.getByText(`Hint: the answer is from Gen ${gen}`)).toBeAttached()
   await expect(hintButton).toHaveCount(0)
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pokemondle:daily') ?? '{}').hinted)).toBe(true)
 })
