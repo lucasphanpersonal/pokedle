@@ -399,7 +399,7 @@ html.crt body {
     animation-timing-function: ease-out;
   }
   72% {
-    transform: translateY(-18px);
+    transform: translateY(-8px);
     animation-timing-function: ease-in;
   }
   86% {
@@ -407,7 +407,7 @@ html.crt body {
     animation-timing-function: ease-out;
   }
   93% {
-    transform: translateY(-5px);
+    transform: translateY(-3px);
     animation-timing-function: ease-in;
   }
   100% {
@@ -457,7 +457,7 @@ html.crt body {
 
 @keyframes capture-lid {
   to {
-    transform: translate(-3px, -6px) rotate(-40deg);
+    transform: translate(-1px, -3px) rotate(-40deg);
   }
 }
 
@@ -550,7 +550,7 @@ html.crt body {
 }
 .capture-lid {
   transform-box: view-box;
-  transform-origin: 3px 16px;
+  transform-origin: 1px 8px;
   animation: capture-lid 220ms ease-out both;
 }
 .capture-flash {

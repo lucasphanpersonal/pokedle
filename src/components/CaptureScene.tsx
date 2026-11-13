@@ -8,33 +8,36 @@ import { iconUrl, spriteUrl } from '../lib/pokedex'
 import { playSound } from '../lib/sound'
 import type { Pokemon } from '../types/pokemon'
 
-/** The same hand-drawn ball as the tab icon, split at the band so the lid can open. */
-const { grid32 } = parseBallArt(ballArt)
-const LID = ballPaths(grid32, 0, 16)
-const BASE = ballPaths(grid32, 16, 32)
+/**
+ * The same hand-drawn ball as the tab icon, split at the band so the lid can open. Its 16x16 drawing
+ * at 1x: small next to the Pokémon, as in the games' battle screens.
+ */
+const { grid16 } = parseBallArt(ballArt)
+const LID = ballPaths(grid16, 0, 8)
+const BASE = ballPaths(grid16, 8, 16)
 
 type Phase = 'drop' | 'shake' | 'click' | 'burst' | 'flee'
 
 /** Where the stars (catch) and sparks (escape) fly to, from the top of the ball. */
 const STARS = [
-  { dx: -40, dy: -14 },
-  { dx: 0, dy: -34 },
-  { dx: 40, dy: -14 },
+  { dx: -18, dy: -6 },
+  { dx: 0, dy: -18 },
+  { dx: 18, dy: -6 },
 ]
 const SPARKS = [
-  { dx: -52, dy: -6 },
-  { dx: -36, dy: -40 },
-  { dx: 0, dy: -56 },
-  { dx: 36, dy: -40 },
-  { dx: 52, dy: -6 },
+  { dx: -26, dy: -3 },
+  { dx: -18, dy: -20 },
+  { dx: 0, dy: -28 },
+  { dx: 18, dy: -20 },
+  { dx: 26, dy: -3 },
 ]
 
 const STAR = ballPaths(STAR_ART, 0, STAR_ART.length, STAR_PALETTE)
 
-/** The 9x9 pixel star, drawn at 2x like the ball. */
+/** The 9x9 pixel star, drawn at 1x like the ball. */
 function PixelStar() {
   return (
-    <svg viewBox="0 0 9 9" width="18" height="18" shapeRendering="crispEdges" aria-hidden="true" className="block">
+    <svg viewBox="0 0 9 9" width="9" height="9" shapeRendering="crispEdges" aria-hidden="true" className="block">
       {STAR.map((p) => (
         <path key={p.color} fill={p.color} d={p.d} />
       ))}
@@ -181,13 +184,13 @@ export function CaptureScene({ kind, pokemon, onDone }: CaptureSceneProps) {
           <div className="capture-platform absolute bottom-6 left-1/2 h-8 w-36 -translate-x-1/2" />
 
           {/* Ball: drop, then shake (the lid opens on a burst); faded out while the Pokémon runs. */}
-          <div className={`absolute bottom-10 left-1/2 -ml-8 ${phase === 'flee' ? 'capture-fade' : ''}`}>
+          <div className={`absolute bottom-9 left-1/2 -ml-2 ${phase === 'flee' ? 'capture-fade' : ''}`}>
             <div className="capture-drop">
               <div
                 className={phase === 'shake' ? 'capture-shake' : phase === 'click' ? 'capture-click' : ''}
                 style={{ '--shakes': timeline.shakes } as CSSProperties}
               >
-                <svg viewBox="0 0 32 32" shapeRendering="crispEdges" className="block h-16 w-16 overflow-visible">
+                <svg viewBox="0 0 16 16" shapeRendering="crispEdges" className="block h-4 w-4 overflow-visible">
                   <g>
                     {BASE.map((p) => (
                       <path key={p.color} fill={p.color} d={p.d} />
@@ -208,7 +211,7 @@ export function CaptureScene({ kind, pokemon, onDone }: CaptureSceneProps) {
             STARS.map((s, i) => (
               <div
                 key={i}
-                className="capture-star absolute bottom-[100px] left-1/2 -ml-[9px]"
+                className="capture-star absolute bottom-[50px] left-1/2 -ml-1"
                 style={{ '--dx': `${s.dx}px`, '--dy': `${s.dy}px` } as CSSProperties}
               >
                 <PixelStar />
@@ -218,20 +221,21 @@ export function CaptureScene({ kind, pokemon, onDone }: CaptureSceneProps) {
           {/* Escape: a flash and sparks as the ball bursts. */}
           {opened && (
             <>
-              <div className="capture-flash absolute bottom-8 left-1/2 -ml-10 h-20 w-20 rounded-full bg-ds-paper" />
+              <div className="capture-flash absolute bottom-6 left-1/2 -ml-5 h-10 w-10 rounded-full bg-ds-paper" />
               {SPARKS.map((s, i) => (
                 <div
                   key={i}
-                  className="capture-star absolute bottom-[84px] left-1/2 -ml-1.5 h-3 w-3 border-2 border-ds-ink bg-ds-paper"
+                  className="capture-star absolute bottom-[48px] left-1/2 -ml-1 h-2 w-2 border border-ds-ink bg-ds-paper"
                   style={{ '--dx': `${s.dx}px`, '--dy': `${s.dy}px` } as CSSProperties}
                 />
               ))}
             </>
           )}
 
-          {/* Escape: the Pokémon pops out as a white shape, takes its colours, then runs off to the right. */}
+          {/* Escape: the Pokémon pops out as a white shape, takes its colours, then runs off to the right.
+              PokéAPI sprites have empty rows below the feet, so bottom-5 stands them on the platform, not under it. */}
           {opened && sprite && (
-            <div className="absolute bottom-14 left-1/2 -ml-24">
+            <div className="absolute bottom-5 left-1/2 -ml-24">
               <div className={phase === 'flee' ? 'capture-flee' : ''}>
                 <img
                   src={sprite}
