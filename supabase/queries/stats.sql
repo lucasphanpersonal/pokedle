@@ -94,7 +94,7 @@ order by guess_count nulls last;
 
 
 -- =====================================================================================
--- Q5 Most-guessed Pokémon: top 25 by Dex number
+-- Q5 Most-guessed Pokémon: top 25 by times guessed (dex_number identifies the Pokémon)
 -- times_guessed = every guess; opening_guesses = how many of those were guess #1 of a game.
 -- =====================================================================================
 select
