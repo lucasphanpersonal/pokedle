@@ -1,4 +1,4 @@
-import { useId, useMemo, useRef, useState, type KeyboardEvent } from 'react'
+import { useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import type { GuessResult } from '../lib/game'
 import { formatDex } from '../lib/dexEntry'
 import { findGuessedByName, iconUrl, searchPokemon } from '../lib/pokedex'
@@ -13,6 +13,10 @@ interface SearchBarProps {
   disabled?: boolean
   /** Placeholder shown while disabled (the game is over). */
   doneText?: string
+  /** Once the game is over: a button that takes the Guess button's place (See results). */
+  doneAction?: ReactNode
+  /** The done buttons need the whole box on phones (Endless has two), so the done text hides there. */
+  doneWide?: boolean
 }
 
 const MAX_SUGGESTIONS = 8
@@ -22,7 +26,8 @@ const MAX_SUGGESTIONS = 8
  * can be submitted. Keyboard: type, ↑/↓ to move, Enter to guess, Esc to close.
  * Touch: tap a suggestion.
  */
-export function SearchBar({ pokedex, guessedIds, onGuess, disabled, doneText = 'You got it!' }: SearchBarProps) {
+export function SearchBar({ pokedex, guessedIds, onGuess, disabled, doneText = 'You got it!', doneAction, doneWide }: SearchBarProps) {
+  const done = disabled && !!doneAction
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(0)
@@ -95,7 +100,7 @@ export function SearchBar({ pokedex, guessedIds, onGuess, disabled, doneText = '
 
   return (
     <div className="relative">
-      <div className="ds-box flex items-center gap-2 p-2 pl-4">
+      <div className={`ds-box flex items-center gap-2 p-2 pl-4 ${done && doneWide ? 'max-sm:pl-2' : ''}`}>
         <input
           ref={inputRef}
           type="text"
@@ -125,19 +130,23 @@ export function SearchBar({ pokedex, guessedIds, onGuess, disabled, doneText = '
           onBlur={() => setOpen(false)}
           onKeyDown={onKeyDown}
           // 16px on phones stops iOS Safari zooming into the field.
-          className="min-h-11 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-[11px] placeholder:text-ds-frame max-[360px]:placeholder:text-[9px] sm:text-xs"
+          className={`${done && doneWide ? 'max-sm:hidden ' : ''}min-h-11 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-[11px] placeholder:text-ds-frame max-[360px]:placeholder:text-[9px] sm:text-xs`}
         />
-        <button
-          type="button"
-          disabled={disabled || !showList || !suggestions[active]}
-          // Keep focus (and the open list) in the input when the button is pressed.
-          onMouseDown={(e) => e.preventDefault()}
-          data-no-sound
-          onClick={() => showList && suggestions[active] && choose(suggestions[active])}
-          className="ds-button bevel-red px-3 text-[10px] text-ds-paper disabled:opacity-40"
-        >
-          Guess
-        </button>
+        {done ? (
+          <div className={`flex shrink-0 gap-2 ${doneWide ? 'max-sm:flex-1 max-sm:justify-center' : ''}`}>{doneAction}</div>
+        ) : (
+          <button
+            type="button"
+            disabled={disabled || !showList || !suggestions[active]}
+            // Keep focus (and the open list) in the input when the button is pressed.
+            onMouseDown={(e) => e.preventDefault()}
+            data-no-sound
+            onClick={() => showList && suggestions[active] && choose(suggestions[active])}
+            className="ds-button bevel-red px-3 text-[10px] text-ds-paper disabled:opacity-40"
+          >
+            Guess
+          </button>
+        )}
       </div>
 
       {showList && (

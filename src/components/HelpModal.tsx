@@ -174,7 +174,7 @@ export function HelpModal({ onClose }: HelpModalProps) {
         </p>
         <p>
           <strong>Daily:</strong> one Pokémon for everyone, new at midnight. Solve it every day for a streak; missing a day
-          or giving up resets it.
+          or giving up resets it. Your streak and History are on the result screen.
         </p>
         <p>
           <strong>Endless:</strong> play as many as you like. <strong>Gens</strong> picks which generations the answer comes from.

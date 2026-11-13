@@ -80,7 +80,7 @@ test('guessing, winning, and surviving a reload', async ({ page }) => {
 
   // Progress is saved: after a reload the finished game is still there.
   await page.reload()
-  await expect(guessBox(page)).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'See results' })).toBeVisible()
 })
 
 test('reduced motion: no catch scene, the result shows straight away', async ({ page }) => {
@@ -140,9 +140,9 @@ test('Endless Gens: the answer comes only from the chosen generations', async ({
   const gens = new Map((pokedex as { id: number; generation: number }[]).map((p) => [p.id, p.generation]))
   await page.goto('/')
   // The picker is Endless only.
-  await expect(page.getByRole('button', { name: /^Gens · / })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Gens', exact: true })).toHaveCount(0)
   await page.getByRole('radio', { name: 'endless' }).click()
-  await page.getByRole('button', { name: 'Gens · All' }).click()
+  await page.getByRole('button', { name: 'Gens', exact: true }).click()
 
   const dialog = page.getByRole('dialog', { name: 'Endless Gens' })
   await dialog.getByRole('button', { name: 'None' }).click()
@@ -153,25 +153,38 @@ test('Endless Gens: the answer comes only from the chosen generations', async ({
   await dialog.getByRole('button', { name: 'OK' }).click()
 
   await expect(page.getByText('Endless · Gen 4')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Gens · 1/9' })).toBeVisible()
   // No guesses yet, so the answer was redrawn from Gen 4 straight away.
   await expect.poll(async () => gens.get((await savedGame(page, 'endless'))!.targetId)).toBe(4)
 
   // Guesses from other Gens are still allowed, and the choice survives a reload.
   await guess(page, 'Bulbasaur')
   await expect.poll(async () => (await savedGame(page, 'endless'))?.guessIds).toHaveLength(1)
-  // Once the game has a guess the button is locked: tapping it explains why instead of opening the picker.
-  await page.getByRole('button', { name: 'Gens · 1/9' }).click({ force: true }) // aria-disabled, but still tappable
-  await expect(page.getByText(/Gens are locked for this game/)).toBeVisible()
+  // Once the game has a guess the picker only shows the game's Gens: the tiles can't change and All/None are gone.
+  await page.getByRole('button', { name: 'Gens', exact: true }).click()
+  const locked = page.getByRole('dialog', { name: 'Endless Gens' })
+  await expect(locked).toContainText('This game was drawn from these generations')
+  await expect(locked.getByRole('button', { name: 'Gen 4' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(locked.getByRole('button', { name: 'Gen 4' })).toBeDisabled()
+  await expect(locked.getByRole('button', { name: 'All', exact: true })).toHaveCount(0)
+  await locked.getByRole('button', { name: 'OK' }).click()
   await expect(page.getByRole('dialog')).toHaveCount(0)
-  // Giving up ends the game, which unlocks the picker again.
+  // Giving up ends the game, which unlocks the picker again (and Give up disappears).
   await page.getByRole('button', { name: 'Give up' }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Give up' }).click()
-  // The ball bursts first; then the result screen. Escape closes it.
+  // The ball bursts first; then the result screen. Its History opens over it and Escape returns to it.
   await expect(page.getByRole('dialog')).toContainText('It got away!', { timeout: 10_000 })
+  await page.getByRole('dialog').getByRole('button', { name: 'History' }).click()
+  await expect(page.getByRole('dialog', { name: 'History' })).toBeVisible()
   await page.keyboard.press('Escape')
-  await page.getByRole('button', { name: 'Gens · 1/9' }).click()
-  await expect(page.getByRole('dialog', { name: 'Endless Gens' })).toBeVisible()
+  await expect(page.getByRole('dialog')).toContainText('It got away!')
+  await page.keyboard.press('Escape') // close the "It got away!" result
+  await expect(page.getByRole('button', { name: 'Give up' })).toHaveCount(0)
+  // The guess box now holds See results and New Pokémon in place of Guess.
+  await expect(page.getByRole('button', { name: 'See results' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'New Pokémon' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Guess', exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Gens', exact: true }).click()
+  await expect(page.getByRole('dialog', { name: 'Endless Gens' }).getByRole('button', { name: 'Gen 4' })).toBeEnabled()
   await page.keyboard.press('Escape')
   await page.reload()
   await page.getByRole('radio', { name: 'endless' }).click()
@@ -181,6 +194,8 @@ test('Endless Gens: the answer comes only from the chosen generations', async ({
 
 test('giving up the Daily asks first, ends the game and is listed in History', async ({ page }) => {
   await page.goto('/')
+  // History and the streak live on the result screen, not the play page.
+  await expect(page.getByRole('button', { name: /History|Streak/ })).toHaveCount(0)
   const giveUp = page.getByRole('button', { name: 'Give up' })
   // Shown but locked before the first guess: a tap explains why instead of asking.
   await expect(giveUp).toHaveAttribute('aria-disabled', 'true')
@@ -207,13 +222,20 @@ test('giving up the Daily asks first, ends the game and is listed in History', a
   await expect(scene).toHaveCount(0)
   await expect(result).toContainText(answer)
 
-  // The loss survives a reload, and History lists it.
+  // The loss survives a reload: the result screen comes back, its History lists it, and closing History returns to it.
   await page.reload()
   await expect(guessBox(page)).toBeDisabled()
-  await expect(giveUp).toHaveAttribute('aria-disabled', 'true')
+  await expect(giveUp).toHaveCount(0) // gone once the game is over
+  await page.getByRole('dialog').getByRole('button', { name: 'History' }).click()
+  const history = page.getByRole('dialog', { name: 'History' })
+  await expect(history).toContainText('Gave up')
   await page.keyboard.press('Escape')
-  await page.getByRole('button', { name: /History/ }).click()
-  await expect(page.getByRole('dialog')).toContainText('Gave up')
+  await expect(page.getByRole('dialog')).toContainText('It got away!')
+  // Closed for good, the See results button in the guess box reopens the result screen and with it History.
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await page.getByRole('button', { name: 'See results' }).click()
+  await expect(page.getByRole('dialog').getByRole('button', { name: 'History' })).toBeVisible()
 })
 
 test('Gen hint: offered after 5 guesses, optional, and shown for the rest of the game', async ({ page }) => {

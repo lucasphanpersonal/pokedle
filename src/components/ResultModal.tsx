@@ -22,6 +22,8 @@ interface ResultModalProps {
   /** The player gave up (Daily or Endless): the answer is revealed instead of caught. */
   gaveUp?: boolean
   onClose: () => void
+  /** Opens History (past Dailies, streaks and Endless stats), which lives here rather than on the play page. */
+  onHistory: () => void
   onNewGame?: () => void
 }
 
@@ -42,8 +44,8 @@ function Countdown() {
   return <span className="tabular-nums">{text}</span>
 }
 
-/** End-of-game screen: the answer's artwork, guess count, streak, daily stats and New Pokémon. */
-export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestStreak, hinted, gaveUp, onClose, onNewGame }: ResultModalProps) {
+/** End-of-game screen: the answer's artwork, guess count, streak, History, daily stats and New Pokémon. */
+export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestStreak, hinted, gaveUp, onClose, onHistory, onNewGame }: ResultModalProps) {
   const guessText = `${feedback.length} ${feedback.length === 1 ? 'guess' : 'guesses'}`
   return (
     <Modal title={gaveUp ? 'It got away!' : 'Gotcha!'} onClose={onClose}>
@@ -78,18 +80,23 @@ export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestSt
 
         <DexEntryCard key={target.id} target={target} />
 
-        {onNewGame && (
-          <button type="button" onClick={onNewGame} className="ds-button bevel-red px-4 text-[10px] text-ds-paper">
-            New Pokémon
-          </button>
-        )}
-
         {mode === 'daily' && (
           <p className="tx-10">
             Streak: <strong>{streak}</strong> {streak === 1 ? 'day' : 'days'} · Best: <strong>{bestStreak}</strong>
             {gaveUp && <span className="mt-1 block text-ds-frame">Giving up ends your streak.</span>}
           </p>
         )}
+
+        <div className="flex flex-wrap justify-center gap-2">
+          <button type="button" onClick={onHistory} className="ds-button bevel-paper px-4 text-[10px]">
+            History
+          </button>
+          {onNewGame && (
+            <button type="button" onClick={onNewGame} className="ds-button bevel-red px-4 text-[10px] text-ds-paper">
+              New Pokémon
+            </button>
+          )}
+        </div>
 
         {mode === 'daily' && <DailyStats date={puzzleDate} guesses={gaveUp ? null : feedback.length} />}
 
