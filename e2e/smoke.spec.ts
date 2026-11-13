@@ -110,9 +110,9 @@ test('Endless Gens: the answer comes only from the chosen generations', async ({
   const gens = new Map((pokedex as { id: number; generation: number }[]).map((p) => [p.id, p.generation]))
   await page.goto('/')
   // The picker is Endless only.
-  await expect(page.getByRole('button', { name: /Endless Gens/ })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /^Gens · / })).toHaveCount(0)
   await page.getByRole('radio', { name: 'endless' }).click()
-  await page.getByRole('button', { name: 'Endless Gens: All Gens' }).click()
+  await page.getByRole('button', { name: 'Gens · All' }).click()
 
   const dialog = page.getByRole('dialog', { name: 'Endless Gens' })
   await dialog.getByRole('button', { name: 'None' }).click()
@@ -123,7 +123,7 @@ test('Endless Gens: the answer comes only from the chosen generations', async ({
   await dialog.getByRole('button', { name: 'OK' }).click()
 
   await expect(page.getByText('Endless · Gen 4')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Endless Gens: Gen 4' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Gens · 1/9' })).toBeVisible()
   // No guesses yet, so the answer was redrawn from Gen 4 straight away.
   await expect.poll(async () => gens.get((await savedGame(page, 'endless'))!.targetId)).toBe(4)
 

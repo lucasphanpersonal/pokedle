@@ -83,6 +83,7 @@ export function matchEndlessToGens(
   now: Date = new Date(),
 ): SavedGame {
   if (game.guessIds.length > 0) return game
+  if (sameGens(gameGens(game, all), isAllGens(gens) ? all : gens)) return game
   const fresh = newEndlessGameForGens(pool, gens, random, undefined, now)
   return sameGens(gameGens(game, all), gameGens(fresh, all)) ? game : fresh
 }

@@ -118,7 +118,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setShowGens(true)}
-                  aria-label={`Endless Gens: ${gensLabel(game.endlessGens)}`}
+                  title={`Endless picks from: ${gensLabel(game.endlessGens)}`}
                   className="ds-button bevel-paper h-11 px-3 text-[9px] sm:px-4 sm:text-[10px]"
                 >
                   Gens · {isAllGens(game.endlessGens) ? 'All' : `${game.endlessGens.length}/9`}

@@ -21,12 +21,14 @@ interface GensModalProps {
  * old one. At least one Gen must be on.
  */
 export function GensModal({ gens, counts, gameStarted, onSave, onClose }: GensModalProps) {
+  // Compared with the choice the box opened with, so OK with nothing touched never overwrites a change made in another tab.
+  const [opened] = useState<readonly number[]>(gens)
   const [draft, setDraft] = useState<readonly number[]>(gens)
   const toggle = (gen: number) =>
     setDraft((d) => (d.includes(gen) ? d.filter((g) => g !== gen) : [...d, gen].sort((a, b) => a - b)))
   const total = draft.reduce((sum, g) => sum + (counts[g - 1] ?? 0), 0)
   const empty = draft.length === 0
-  const changed = !sameGens(draft, gens)
+  const changed = !sameGens(draft, opened)
 
   return (
     <Modal title="Endless Gens" onClose={onClose}>
