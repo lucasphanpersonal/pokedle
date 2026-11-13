@@ -1,5 +1,6 @@
 import type { Pokemon } from '../types/pokemon'
 import { dailyPick, hashString } from './daily'
+import { isAllGens, parseGens, poolForGens, sameGens } from './gens'
 
 export type GameMode = 'daily' | 'endless'
 /**
@@ -26,6 +27,8 @@ export interface SavedGame {
   hard?: true
   /** Endless only: the player gave up and the answer was revealed. Absent = still open or won. */
   gaveUp?: true
+  /** Endless only: the Gens the answer was drawn from, sorted. Absent = all nine. */
+  gens?: number[]
 }
 
 export function newDailyGame(dateKey: string, pool: Pokemon[]): SavedGame {
@@ -45,6 +48,44 @@ export function newEndlessGame(
     target = pool[(pool.indexOf(target) + 1) % pool.length]
   }
   return { v: SAVE_VERSION, mode: 'endless', key: now.toISOString(), targetId: target.id, guessIds: [] }
+}
+
+/** The Gens a game's answer was drawn from (every Gen unless the save says otherwise). */
+export const gameGens = (game: Pick<SavedGame, 'gens'>, all: readonly number[]): readonly number[] => game.gens ?? all
+
+/**
+ * A new Endless game whose answer comes only from `gens` (see lib/gens.ts). The choice is
+ * recorded on the game unless it is all nine. If no Pokémon is left in those Gens (only
+ * possible if the dataset is cut down), it falls back to the whole pool.
+ */
+export function newEndlessGameForGens(
+  pool: Pokemon[],
+  gens: readonly number[],
+  random: () => number = Math.random,
+  avoidId?: number,
+  now: Date = new Date(),
+): SavedGame {
+  const filtered = isAllGens(gens) ? pool : poolForGens(pool, gens)
+  if (filtered.length === 0 || filtered.length === pool.length) return newEndlessGame(pool, random, avoidId, now)
+  return { ...newEndlessGame(filtered, random, avoidId, now), gens: [...gens] }
+}
+
+/**
+ * Brings an Endless game with no guesses in line with the chosen Gens by drawing a new answer.
+ * A game with guesses (in progress or finished) is left alone: the choice then applies to the next one.
+ */
+export function matchEndlessToGens(
+  game: SavedGame,
+  pool: Pokemon[],
+  gens: readonly number[],
+  all: readonly number[],
+  random: () => number = Math.random,
+  now: Date = new Date(),
+): SavedGame {
+  if (game.guessIds.length > 0) return game
+  if (sameGens(gameGens(game, all), isAllGens(gens) ? all : gens)) return game
+  const fresh = newEndlessGameForGens(pool, gens, random, undefined, now)
+  return sameGens(gameGens(game, all), gameGens(fresh, all)) ? game : fresh
 }
 
 export function gameStatus(game: SavedGame): GameStatus {
@@ -147,6 +188,12 @@ export function isValidSave(game: unknown, byId: Map<number, Pokemon>): game is 
     (g.hard === undefined || g.hard === true) &&
     // Only an Endless game with guesses and no win can have been given up.
     (g.gaveUp === undefined || (g.gaveUp === true && g.mode === 'endless' && winAt === -1 && ids.length > 0)) &&
+    // Only an Endless game records its Gens, and its answer must come from them.
+    (g.gens === undefined ||
+      (g.mode === 'endless' &&
+        parseGens(g.gens) !== null &&
+        sameGens(parseGens(g.gens) as number[], g.gens) &&
+        g.gens.includes((byId.get(g.targetId) as Pokemon).generation))) &&
     ids.every((id) => Number.isInteger(id) && byId.has(id))
   )
 }
@@ -162,6 +209,7 @@ export interface StoredGame {
   key: string
   hard?: true
   gaveUp?: true
+  gens?: number[]
   /** Scrambled answer id. */
   t: string
   guessIds: number[]

@@ -20,18 +20,18 @@ npm run icons      # rebuild the site icons in public/ from scripts/icons/pokeba
 ## Project layout
 
 ```
-e2e/smoke.spec.ts             Playwright browser smoke test (load, guess, win, mode switch at 390px and 1280px)
+e2e/smoke.spec.ts             Playwright browser smoke test (load, guess, win, mode switch, Endless Gens at 390px and 1280px)
 scripts/fetchPokemonData.ts   builds the local Pokémon dataset from PokéAPI
 scripts/makeIcons.ts          builds the tab icon, home-screen icons and manifest icons from the pixel Poké Ball
 scripts/icons/pokeball.txt    the hand-drawn Poké Ball (16x16 and 32x32 grids, one letter per colour)
 public/                       favicon.ico, apple-touch-icon.png, manifest.json and its icons (generated, committed)
-src/components/               Header, SearchBar, GuessGrid, FeedbackRow, ResultModal, HistoryModal, HelpModal, GiveUpModal, Modal
+src/components/               Header, SearchBar, GuessGrid, FeedbackRow, ResultModal, HistoryModal, HelpModal, GiveUpModal, GensModal, Modal
 src/hooks/usePokemondle.ts    game state (target, guesses, status), saved to localStorage (answer id scrambled, see below)
 src/lib/history.ts            solved-Daily history, streak maths and Endless stats (pure, tested)
 src/hooks/useAnalytics.ts     wraps guesses with anonymous analytics
 src/hooks/useRevealEffects.ts  flip-reveal hold, tick sounds, win fanfare, cry and confetti timers
 src/hooks/useMediaQuery.ts     live CSS media-query match (GuessGrid picks table or cards with it)
-src/lib/                      dataset + search, Pokédex entry fetch (dexEntry.ts), comparison, daily seed, game rules, sound, storage, display settings (display.ts: CRT, Larger text), tile text fitting (tileText.ts), phone card layout (cardLayout.ts)
+src/lib/                      dataset + search, Pokédex entry fetch (dexEntry.ts), comparison, daily seed, game rules, Endless Gen filter (gens.ts), sound, storage, display settings (display.ts: CRT, Larger text), tile text fitting (tileText.ts), phone card layout (cardLayout.ts)
 src/config/gameConfig.ts      game settings, including which form categories are enabled
 src/config/uiConfig.ts        tile animation timing
 src/data/pokemon.json         generated dataset (committed, so the app needs no API at runtime)
@@ -49,6 +49,20 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   first (`src/components/GiveUpModal.tsx`: **Keep going** or **Give up**), then ends the game as `lost`: the result
   screen, titled "It got away!", reveals the answer with its Pokédex entry and a **New Pokémon** button, and the
   game counts as given up in History. The Daily has no give up, so streaks are unaffected.
+- **Endless Gens**: in Endless a white **Gens** button sits beside History (on phones History is on its own row with
+  Gens and Hard under it). It reads **Gens · All**, or **Gens · 3/9** when some are off, and opens a picker
+  (`src/components/GensModal.tsx`): nine **Gen 1** to **Gen 9** toggles in a 3 by 3 grid (green and pressed in when on,
+  white and raised when off), **All** and **None** buttons, a line with the selection and how many Pokémon it holds, and
+  **OK**. At least one Gen must be on (OK is disabled and the line says "Pick at least one Gen."); closing the box
+  any other way keeps the old choice. The answer is then drawn only from those Gens, using each Pokémon's own
+  `generation` field, so forms count by their debut (Megas are Gen 6, Alolan forms Gen 7). The search box is not
+  filtered: any Pokémon can still be guessed. The choice is a per-device preference
+  (`localStorage['pokemondle:endless-gens']`, a sorted list, all nine by default, `src/lib/gens.ts`) kept in sync
+  across tabs. If the Endless game on screen has no guesses yet, a change redraws its answer at once; a game with
+  guesses keeps its answer and the change applies from the next **New Pokémon**. Each game records the Gens it was
+  drawn from, and while they are not all nine the title reads "Endless · Gens 1-3, 5" instead of "Endless mode".
+  The Daily always uses every Gen. Hard mode works the same with it: the Gen column stays hidden, though a player who
+  picks a single Gen already knows the answer's generation.
 - **Columns**: Pokémon, Type 1, Type 2, Gen, Height, Weight, Color, Evolution (stage 1–3), Form, Egg Group, Shared Ability.
   Green ✓ = match, yellow ~ = type in the other slot (or one shared egg group), red ✕ = no match, ▲/▼ = the answer is higher/lower.
   Every tile carries its ✓, ~ or ✕ as a small pixel mark in the top-right corner (`src/components/ResultMark.tsx`), and number tiles carry their arrow, so no match, partial or miss depends on telling red from green.
@@ -83,6 +97,7 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
 Each mode's game is saved in `localStorage` (`pokemondle:daily`, `pokemondle:endless`). Hard mode games add `hard: true` to the save (set at the first guess, so it can't change mid-game); older saves without it load as normal games and any other value makes the save invalid. The answer is stored scrambled
 (`t`, see `encodeSave` in `src/lib/game.ts`) rather than as a plain id, so it can't be read at a glance in the browser's
 storage panel. This is only a deterrent: the game is fully client-side, so a determined player can still work it out.
+An Endless game drawn from only some Gens adds `gens` (a sorted list such as `[1, 4]`; absent means all nine; only valid on an Endless save whose answer is from one of them).
 An Endless game that was given up adds `gaveUp: true` (only valid on an Endless save with at least one guess and no win).
 Older plain saves are still read. The search box shows "You got it!" once a game is solved, or "It got away!" after a give up.
 
@@ -159,7 +174,7 @@ asked to flag any break), and UI changes are screenshotted and measured at 320, 
    sides. Pick the face colour with `.bevel-paper` (white), `.bevel-red`, `.bevel-green`, or `data-result` on tiles.
    Never hand-roll a `box-shadow` or `border` bevel on a single control. The only exceptions are pixel icons that
    are not menu buttons: a dialog's ✕ close icon and the small on/off switch graphics in Help.
-2. **Pressed means the inverse bevel.** A selected or "on" control (the chosen Daily/Endless side, Hard when on) adds
+2. **Pressed means the inverse bevel.** A selected or "on" control (the chosen Daily/Endless side, Hard when on, a chosen Gen in the Endless Gens picker) adds
    `.bevel-pressed`: same edges, dark on top and light at the bottom. The edges stay the same size, so labels sit at
    the same height whether a control is up or down.
 3. **Equal heights and gaps.** Header and menu controls are all 44px tall (also the minimum touch target), top-aligned

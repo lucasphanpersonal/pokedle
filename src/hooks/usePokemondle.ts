@@ -7,11 +7,13 @@ import {
   decodeSave,
   giveUp as giveUpGame,
   encodeSave,
+  gameGens,
+  matchEndlessToGens,
   rollOverGames,
   gameStatus as statusOf,
   isValidSave,
   newDailyGame,
-  newEndlessGame,
+  newEndlessGameForGens,
   type AppliedGuess,
   type GameMode,
   type Games,
@@ -19,6 +21,7 @@ import {
   type GuessResult,
   type SavedGame,
 } from '../lib/game'
+import { ALL_GENS, getGensPref, reloadGensPref, setGensPref, subscribeGensPref } from '../lib/gens'
 import { effectiveHard, hardLocked, isHardPref, reloadHardPref, subscribeHardPref } from '../lib/hardMode'
 import { parseEndlessRecord, parseHistory, recordEndless, recordSolve, type EndlessRecord, type HistoryEntry } from '../lib/history'
 import { POKEDEX, POKEDEX_BY_ID } from '../lib/pokedex'
@@ -40,8 +43,9 @@ function loadDaily(dateKey: string): SavedGame {
 
 function loadEndless(): SavedGame {
   const saved = decodeSave(loadJson('endless'))
-  if (isValidSave(saved, POKEDEX_BY_ID) && saved.mode === 'endless') return saved
-  return newEndlessGame(POKEDEX)
+  // A saved game with no guesses follows the chosen Gens (they may have changed in another tab).
+  if (isValidSave(saved, POKEDEX_BY_ID) && saved.mode === 'endless') return matchEndlessToGens(saved, POKEDEX, getGensPref(), ALL_GENS)
+  return newEndlessGameForGens(POKEDEX, getGensPref())
 }
 
 const loadGames = (): Games => ({ daily: loadDaily(localDateKey()), endless: loadEndless() })
@@ -76,6 +80,12 @@ function syncEndlessRecord(endless: SavedGame): EndlessRecord {
   const next = recordEndless(stored, endless.key, status, endless.guessIds.length)
   if (next !== stored) saveJson('endless-record', next)
   return next
+}
+
+/** Redraws an Endless game that has no guesses yet if it doesn't match the chosen Gens. */
+function followGens(games: Games): Games {
+  const endless = matchEndlessToGens(games.endless, POKEDEX, getGensPref(), ALL_GENS)
+  return endless === games.endless ? games : { ...games, endless }
 }
 
 const lookup = (id: number) => POKEDEX_BY_ID.get(id) as Pokemon
@@ -116,6 +126,11 @@ export function usePokemondle(mode: GameMode) {
     const onStorage = (e: StorageEvent) => {
       if (e.key === storageKey('daily') || e.key === storageKey('endless')) commit(rollOver(loadGames()))
       if (e.key === storageKey('hard-mode')) reloadHardPref()
+      if (e.key === storageKey('endless-gens')) {
+        reloadGensPref()
+        const current = gamesRef.current
+        commit(followGens(current))
+      }
       if (e.key === storageKey('history')) setHistory(parseHistory(loadJson('history')))
       if (e.key === storageKey('endless-record')) setEndlessRecord(parseEndlessRecord(loadJson('endless-record')))
     }
@@ -176,10 +191,26 @@ export function usePokemondle(mode: GameMode) {
 
   const submitGuess = useCallback((pokemon: Pokemon): GuessResult => submitGuessDetailed(pokemon).result, [submitGuessDetailed])
 
+  const endlessGens = useSyncExternalStore(subscribeGensPref, getGensPref, () => ALL_GENS)
+
   const startNewEndlessGame = useCallback(() => {
     const current = gamesRef.current
-    commit({ ...current, endless: newEndlessGame(POKEDEX, Math.random, current.endless.targetId) })
+    commit({ ...current, endless: newEndlessGameForGens(POKEDEX, getGensPref(), Math.random, current.endless.targetId) })
   }, [commit])
+
+  /**
+   * Chooses which Gens Endless answers come from (at least one; an empty list is ignored).
+   * An Endless game with no guesses yet is redrawn from the new choice straight away;
+   * one with guesses keeps its answer, and the choice applies from the next game.
+   */
+  const setEndlessGens = useCallback(
+    (gens: readonly number[]) => {
+      setGensPref(gens)
+      const current = gamesRef.current
+      commit(followGens(current))
+    },
+    [commit],
+  )
 
   /** Ends the current Endless game as given up, revealing the answer. Does nothing if it can't be given up. */
   const giveUp = useCallback(() => {
@@ -199,6 +230,11 @@ export function usePokemondle(mode: GameMode) {
     hard,
     /** True while the Hard switch can't be changed (this game is in progress). */
     hardSwitchLocked,
+    /** The player's Endless Gens choice (used for the next Endless game). */
+    endlessGens,
+    /** The Gens the game on screen was drawn from (always all nine for the Daily). */
+    gameGens: gameGens(game, ALL_GENS),
+    setEndlessGens,
     /** Solved Dailies on this device, newest first. */
     history,
     /** Endless games caught and given up on this device. */
