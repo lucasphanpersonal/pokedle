@@ -286,6 +286,9 @@ Dependabot (`.github/dependabot.yml`) opens weekly update PRs for npm packages a
 
 See [supabase/README.md](supabase/README.md) for details.
 
+To read the game stats (players, wins, guess counts, hardest Pokémon), paste the ready-made queries in
+[supabase/queries/stats.sql](supabase/queries/stats.sql) into the Supabase SQL Editor. Traffic (visits, countries) is in Cloudflare Web Analytics.
+
 ### Client-side tracking and opting out
 
 The game sends events to the `track` function only when `VITE_TRACK_URL` is set. `.env.production` sets it
