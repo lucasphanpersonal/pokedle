@@ -9,12 +9,13 @@ import { HelpModal } from './components/HelpModal'
 import { HintPrompt } from './components/HintPrompt'
 import { HistoryModal } from './components/HistoryModal'
 import { PixelBulb } from './components/PixelBulb'
+import { PixelGear } from './components/PixelGear'
 import { ResultModal } from './components/ResultModal'
 import { SearchBar } from './components/SearchBar'
 import { useAnalytics } from './hooks/useAnalytics'
 import { useRevealEffects } from './hooks/useRevealEffects'
 import { usePokemondle, type GameMode, type GuessResult } from './hooks/usePokemondle'
-import { ALL_GENS, gensLabel, isAllGens } from './lib/gens'
+import { ALL_GENS, gensLabel } from './lib/gens'
 import { computeStats } from './lib/history'
 import { POKEDEX } from './lib/pokedex'
 import { loadJson, saveJson } from './lib/storage'
@@ -100,13 +101,24 @@ export default function App() {
       <Header mode={mode} onModeChange={setMode} onHelp={() => setShowHelp(true)} />
       <main className="mx-auto flex w-full max-w-5xl big:max-w-[80rem] flex-col gap-4 px-3 py-4 sm:px-5 sm:py-6">
         <div className="flex flex-col items-center gap-2 text-center">
-          <p className="tx-10 sm:text-xs">
-            {game.puzzleNumber !== null
-              ? `Daily #${game.puzzleNumber}`
-              : isAllGens(game.gameGens)
-                ? 'Endless mode'
-                : `Endless · ${gensLabel(game.gameGens)}`}
-          </p>
+          {mode === 'endless' ? (
+            // The title names the Gens this game was drawn from; the gear beside it opens the Gens picker
+            // (view-only mid-game, since the game keeps its Gens).
+            <div className="flex items-center justify-center gap-2">
+              <p className="tx-10 sm:text-xs">Endless · {gensLabel(game.gameGens)}</p>
+              <button
+                type="button"
+                onClick={() => setShowGens(true)}
+                aria-label="Endless Gens settings"
+                title={game.inProgress ? 'Gens for this game' : 'Choose which Gens Endless picks from'}
+                className="ds-button bevel-paper flex h-11 w-11 shrink-0 items-center justify-center text-ds-ink"
+              >
+                <PixelGear />
+              </button>
+            </div>
+          ) : (
+            <p className="tx-10 sm:text-xs">Daily #{game.puzzleNumber}</p>
+          )}
           <p className="tx-9 text-ds-frame">
             {game.guesses.length} {game.guesses.length === 1 ? 'guess' : 'guesses'}
           </p>
@@ -118,28 +130,13 @@ export default function App() {
             )}
           </div>
           {/*
-            Game menu: Gens (Endless), the Gen hint and Give up. Give up sits beside the hint, away from the guess box,
+            Game menu: the Gen hint and Give up (Endless's Gens settings are the gear beside the title). Give up sits beside the hint, away from the guess box,
             so the thing you tap most is never next to the one that ends the game. It is shown all game (locked, with a
             note on tap, until the first guess) and gone once the game is over and its tiles have flipped. History and the streak are not here:
             they belong to the end of a game, so they live on the result screen. The row wraps on narrow phones.
           */}
-          {(mode === 'endless' || canHint || showHint || game.gameStatus === 'playing' || revealing) && (
+          {(canHint || showHint || game.gameStatus === 'playing' || revealing) && (
             <div className="flex flex-wrap items-center justify-center gap-2">
-              {mode === 'endless' && (
-                <button
-                  type="button"
-                  // Mid-game it opens the picker to look only: the game keeps the Gens it was drawn from.
-                  onClick={() => setShowGens(true)}
-                  title={
-                    game.inProgress
-                      ? `This game was drawn from ${gensLabel(game.gameGens)}`
-                      : `Endless picks from: ${gensLabel(game.endlessGens)}`
-                  }
-                  className="ds-button bevel-paper h-11 whitespace-nowrap px-3 text-[9px] sm:px-4 sm:text-[10px]"
-                >
-                  Gens
-                </button>
-              )}
               {canHint && (
                 <button
                   type="button"

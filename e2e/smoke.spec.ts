@@ -140,9 +140,9 @@ test('Endless Gens: the answer comes only from the chosen generations', async ({
   const gens = new Map((pokedex as { id: number; generation: number }[]).map((p) => [p.id, p.generation]))
   await page.goto('/')
   // The picker is Endless only.
-  await expect(page.getByRole('button', { name: 'Gens', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Endless Gens settings' })).toHaveCount(0)
   await page.getByRole('radio', { name: 'endless' }).click()
-  await page.getByRole('button', { name: 'Gens', exact: true }).click()
+  await page.getByRole('button', { name: 'Endless Gens settings' }).click()
 
   const dialog = page.getByRole('dialog', { name: 'Endless Gens' })
   await dialog.getByRole('button', { name: 'None' }).click()
@@ -160,7 +160,7 @@ test('Endless Gens: the answer comes only from the chosen generations', async ({
   await guess(page, 'Bulbasaur')
   await expect.poll(async () => (await savedGame(page, 'endless'))?.guessIds).toHaveLength(1)
   // Once the game has a guess the picker only shows the game's Gens: the tiles can't change and All/None are gone.
-  await page.getByRole('button', { name: 'Gens', exact: true }).click()
+  await page.getByRole('button', { name: 'Endless Gens settings' }).click()
   const locked = page.getByRole('dialog', { name: 'Endless Gens' })
   await expect(locked).toContainText('This game was drawn from these generations')
   await expect(locked.getByRole('button', { name: 'Gen 4' })).toHaveAttribute('aria-pressed', 'true')
@@ -189,7 +189,7 @@ test('Endless Gens: the answer comes only from the chosen generations', async ({
   await expect(page.getByRole('button', { name: 'See results' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'New Pokémon' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Guess', exact: true })).toHaveCount(0)
-  await page.getByRole('button', { name: 'Gens', exact: true }).click()
+  await page.getByRole('button', { name: 'Endless Gens settings' }).click()
   await expect(page.getByRole('dialog', { name: 'Endless Gens' }).getByRole('button', { name: 'Gen 4' })).toBeEnabled()
   await page.keyboard.press('Escape')
   await page.reload()
