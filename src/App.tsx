@@ -53,7 +53,7 @@ export default function App() {
   const finished = game.gameStatus !== 'playing'
   const showResult = finished && !revealing && dismissedResult !== gameId
 
-  // Endless "Give up" asks first. Keyed by game, so switching modes or starting a new game drops a pending ask.
+  // "Give up" (Daily and Endless) asks first. Keyed by game, so switching modes or starting a new game drops a pending ask.
   const [giveUpAsk, setGiveUpAsk] = useState<string | null>(null)
   // Which locked button (Hard or Gens) was tapped, and in which game: shows that "locked" note for that game only.
   const [lockNote, setLockNote] = useState<{ game: string; what: 'hard' | 'gens' } | null>(null)
@@ -110,12 +110,17 @@ export default function App() {
               </p>
             )}
           </div>
-          {/* On phones Endless has three buttons, too many for one row: History sits above Gens and Hard. */}
-          <div className={`flex justify-center gap-2 ${mode === 'endless' ? 'flex-col items-center sm:flex-row' : 'flex-wrap'}`}>
+          {/*
+            Game menu, with Give up last (rightmost). Give up lives here, away from the guess box, so it is never
+            next to the thing you tap most, and it is always shown (greyed out until the first guess) so nothing
+            jumps when it becomes available. Phones: History on its own row, then the game's controls (Gens, Hard,
+            Give up). Wider screens use one row and show Hard in the header.
+          */}
+          <div className="flex flex-col items-center justify-center gap-2 sm:flex-row">
             <button
               type="button"
               onClick={() => setShowHistory(true)}
-              className="ds-button bevel-paper h-11 px-3 text-[9px] sm:px-4 sm:text-[10px]"
+              className="ds-button bevel-paper h-11 whitespace-nowrap px-3 text-[9px] sm:px-4 sm:text-[10px]"
             >
               History · Streak {stats.currentStreak}
             </button>
@@ -133,7 +138,7 @@ export default function App() {
                       ? 'Gens are locked for this game. Change them after you catch it or give up.'
                       : `Endless picks from: ${gensLabel(game.endlessGens)}`
                   }
-                  className={`ds-button bevel-paper h-11 px-3 text-[9px] sm:px-4 sm:text-[10px] ${
+                  className={`ds-button bevel-paper h-11 whitespace-nowrap px-3 text-[9px] sm:px-4 sm:text-[10px] ${
                     game.hardSwitchLocked ? 'cursor-not-allowed text-ds-frame' : ''
                   }`}
                 >
@@ -147,6 +152,15 @@ export default function App() {
                 onLockedPress={() => setLockNote({ game: gameId, what: 'hard' })}
                 className="inline-flex sm:hidden"
               />
+              <button
+                type="button"
+                disabled={!game.canGiveUp}
+                onClick={() => setGiveUpAsk(gameId)}
+                title={game.canGiveUp ? 'Reveal the answer and end this game' : 'Available after your first guess'}
+                className="ds-button bevel-paper h-11 whitespace-nowrap px-3 text-[9px] disabled:opacity-40 sm:px-4 sm:text-[10px]"
+              >
+                Give up
+              </button>
             </div>
           </div>
         </div>
@@ -160,14 +174,6 @@ export default function App() {
             doneText={game.gameStatus === 'lost' ? 'It got away!' : undefined}
           />
         </div>
-
-        {game.canGiveUp && (
-          <div className="flex justify-center">
-            <button type="button" onClick={() => setGiveUpAsk(gameId)} className="ds-button bevel-paper px-4 text-[10px]">
-              Give up
-            </button>
-          </div>
-        )}
 
         {finished && !revealing && (
           <div className="flex flex-wrap justify-center gap-2">
@@ -206,7 +212,7 @@ export default function App() {
       )}
       {confetti && <Confetti onDone={endConfetti} />}
       {showGiveUp && (
-        <GiveUpModal guesses={game.guesses.length} onConfirm={confirmGiveUp} onCancel={() => setGiveUpAsk(null)} />
+        <GiveUpModal mode={mode} guesses={game.guesses.length} streak={stats.currentStreak} onConfirm={confirmGiveUp} onCancel={() => setGiveUpAsk(null)} />
       )}
       {showHistory && (
         <HistoryModal history={game.history} endless={game.endlessRecord} onClose={() => setShowHistory(false)} />

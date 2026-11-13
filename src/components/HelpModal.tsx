@@ -76,7 +76,7 @@ function HardModeSetting({ locked, gameHard }: { locked: boolean; gameHard: bool
       <p id={noteId} className="mt-1 tx-9 text-ds-frame">
         Hides the Gen column, so you can't narrow it down by generation. The same switch is the Hard button in the header
         (under History on phones). It is fixed once you make a game's first
-        guess{locked ? `: this game is in ${gameHard ? 'Hard' : 'normal'} mode, and the switch unlocks when you solve it (or give up, in Endless).` : ', and applies to the next game you start.'} Hard games
+        guess{locked ? `: this game is in ${gameHard ? 'Hard' : 'normal'} mode, and the switch unlocks when you solve it or give up.` : ', and applies to the next game you start.'} Hard games
         are marked in History and get their own Daily stats, compared only with other Hard players.
       </p>
     </section>
@@ -221,8 +221,8 @@ export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
         </p>
         <p>
           <strong>Daily</strong> is the same Pokémon for everyone, new each day at midnight. <strong>Endless</strong> gives you a
-          fresh Pokémon whenever you like. Stuck in Endless? After your first guess, <strong>Give up</strong> under the search box
-          reveals the answer (it asks first). Your progress is saved on this device.
+          fresh Pokémon whenever you like. Stuck? After your first guess, <strong>Give up</strong> (the last button beside History)
+          reveals the answer (it asks first). Giving up the Daily ends it for the day and resets your streak. Your progress is saved on this device.
         </p>
         <p>
           In Endless, the <strong>Gens</strong> button beside History (under it on phones) chooses which generations the Pokémon can come from: switch
@@ -232,8 +232,8 @@ export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
           to your next one. The Daily always uses every Gen.
         </p>
         <p>
-          Solve the Daily each day to build a <strong>streak</strong>; missing a day resets it. The History button lists every
-          Daily you've solved, with your streaks and totals, plus your Endless stats: games played, caught and given up, and your average and fewest guesses. It is saved on this device only and doesn't carry over to other devices.
+          Solve the Daily each day to build a <strong>streak</strong>; missing a day or giving up resets it. The History button lists every
+          Daily you've finished, with your streaks and totals, plus your Endless stats: games played, caught and given up, and your average and fewest guesses. It is saved on this device only and doesn't carry over to other devices.
         </p>
         <p className="hidden lg:block">Keyboard: type to search, ↑/↓ to pick, Enter to guess, Esc to close.</p>
       </div>

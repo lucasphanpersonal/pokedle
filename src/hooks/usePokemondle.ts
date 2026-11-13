@@ -56,17 +56,19 @@ function rollOver(games: Games): Games {
 }
 
 /**
- * Reads the saved history and adds the Daily if it is solved (once per date),
+ * Reads the saved history and adds the Daily if it is finished, solved or given up (once per date),
  * saving the result. Also picks up a Daily solved before history existed.
  */
 function syncHistory(daily: SavedGame): HistoryEntry[] {
   const stored = parseHistory(loadJson('history'))
-  if (statusOf(daily) !== 'won') return stored
+  const status = statusOf(daily)
+  if (status === 'playing') return stored
   const next = recordSolve(stored, {
     date: daily.key,
     targetId: daily.targetId,
     guesses: daily.guessIds.length,
     ...(daily.hard ? { hard: true as const } : {}),
+    ...(status === 'lost' ? { lost: true as const } : {}),
   })
   if (next !== stored) saveJson('history', next)
   return next
@@ -212,11 +214,14 @@ export function usePokemondle(mode: GameMode) {
     [commit],
   )
 
-  /** Ends the current Endless game as given up, revealing the answer. Does nothing if it can't be given up. */
+  /**
+   * Ends the current game as given up, revealing the answer. Does nothing if it can't be given up.
+   * Rolls the Daily over first, so a confirm left open past midnight can't end the new day's game.
+   */
   const giveUp = useCallback(() => {
-    const current = gamesRef.current
-    commit({ ...current, endless: giveUpGame(current.endless) })
-  }, [commit])
+    const current = rollOver(gamesRef.current)
+    commit({ ...current, [mode]: giveUpGame(current[mode]) })
+  }, [commit, mode])
 
   return {
     mode,
@@ -235,11 +240,11 @@ export function usePokemondle(mode: GameMode) {
     /** The Gens the game on screen was drawn from (always all nine for the Daily). */
     gameGens: gameGens(game, ALL_GENS),
     setEndlessGens,
-    /** Solved Dailies on this device, newest first. */
+    /** Finished Dailies on this device (solved or given up), newest first. */
     history,
     /** Endless games caught and given up on this device. */
     endlessRecord,
-    /** True if the current game can be given up (Endless, in progress, at least one guess). */
+    /** True if the current game can be given up (in progress, at least one guess). */
     canGiveUp: canGiveUp(game),
     /** Daily puzzle number (#1 = launch day); null in Endless mode. */
     puzzleNumber: mode === 'daily' ? puzzleNumber(game.key) : null,

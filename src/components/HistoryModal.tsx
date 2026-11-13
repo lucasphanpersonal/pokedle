@@ -11,9 +11,9 @@ interface HistoryModalProps {
   onClose: () => void
 }
 
-function Stat({ label, value, wide }: { label: string; value: string | number; wide?: boolean }) {
+function Stat({ label, value, wide, full }: { label: string; value: string | number; wide?: boolean; full?: boolean }) {
   return (
-    <div className={`${wide ? 'col-span-3' : 'col-span-2'} border-2 border-ds-frame bg-ds-paper px-1 py-2 text-center`}>
+    <div className={`${full ? 'col-span-6' : wide ? 'col-span-3' : 'col-span-2'} border-2 border-ds-frame bg-ds-paper px-1 py-2 text-center`}>
       <div className="text-sm leading-5">{value}</div>
       <div className="tx-9 leading-4 text-ds-frame">{label}</div>
     </div>
@@ -34,10 +34,11 @@ export function HistoryModal({ history, endless, onClose }: HistoryModalProps) {
           <Stat label="Solved" value={stats.solved} />
           <Stat wide label="Avg guesses" value={avg(stats.averageGuesses)} />
           <Stat wide label="Fewest" value={stats.fewestGuesses ?? '-'} />
+          {stats.gaveUp > 0 && <Stat full label="Dailies given up" value={stats.gaveUp} />}
         </div>
 
         {history.length === 0 ? (
-          <p>No solved Dailies yet. Solve today's Pokémon and it will show up here.</p>
+          <p>No finished Dailies yet. Solve today's Pokémon and it will show up here.</p>
         ) : (
           <ul className="divide-y-2 divide-ds-frame-light border-y-2 border-ds-frame-light">
             {history.map((h) => {
@@ -57,7 +58,7 @@ export function HistoryModal({ history, endless, onClose }: HistoryModalProps) {
                     <div className="[overflow-wrap:anywhere]">{name}</div>
                     <div className="tx-9 text-ds-frame">
                       {puzzleNumber(h.date) >= 1 && `#${puzzleNumber(h.date)} · `}
-                      {h.date}
+                      <span className="whitespace-nowrap">{h.date}</span>
                       {h.hard && (
                         <span className="ml-2 inline-flex items-center gap-1 whitespace-nowrap">
                           <PixelStar />
@@ -67,7 +68,10 @@ export function HistoryModal({ history, endless, onClose }: HistoryModalProps) {
                     </div>
                   </div>
                   <div className="shrink-0 text-right tx-9">
-                    {h.guesses} {h.guesses === 1 ? 'guess' : 'guesses'}
+                    {h.lost && <div>Gave up</div>}
+                    <div className={h.lost ? 'text-ds-frame' : undefined}>
+                      {h.guesses} {h.guesses === 1 ? 'guess' : 'guesses'}
+                    </div>
                   </div>
                 </li>
               )
@@ -86,7 +90,7 @@ export function HistoryModal({ history, endless, onClose }: HistoryModalProps) {
         </section>
         <p className="tx-9 text-ds-frame">
           Saved on this device only: it doesn't carry over to other devices or browsers, and clearing site data erases it.
-          Only solved Dailies are listed, and missing a day resets your streak. Endless games are counted when you catch
+          Finished Dailies are listed, solved or given up. Missing a day, or giving up, resets your streak; the Daily average and fewest count solved games only. Endless games are counted when you catch
           the Pokémon or give up; the Endless average and fewest count caught games only.
         </p>
       </div>

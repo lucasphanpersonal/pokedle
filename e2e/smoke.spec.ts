@@ -146,3 +146,33 @@ test('Endless Gens: the answer comes only from the chosen generations', async ({
   await expect(page.getByText('Endless · Gen 4')).toBeVisible()
   expect(gens.get((await savedGame(page, 'endless'))!.targetId)).toBe(4)
 })
+
+test('giving up the Daily asks first, ends the game and is listed in History', async ({ page }) => {
+  await page.goto('/')
+  const giveUp = page.getByRole('button', { name: 'Give up' })
+  // Shown but unavailable before the first guess.
+  await expect(giveUp).toBeDisabled()
+  await guess(page, await nonAnswer(page, 'daily', ['Oddish', 'Paras']))
+  await expect(giveUp).toBeEnabled()
+
+  await giveUp.click()
+  const ask = page.getByRole('dialog')
+  await expect(ask).toContainText("can't play it again")
+  await ask.getByRole('button', { name: 'Keep going' }).click()
+  await expect(guessBox(page)).toBeEnabled()
+
+  await giveUp.click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Give up' }).click()
+  const answer = names.get((await savedGame(page, 'daily'))!.targetId)!
+  const result = page.getByRole('dialog')
+  await expect(result).toContainText('It got away!')
+  await expect(result).toContainText(answer)
+
+  // The loss survives a reload, and History lists it.
+  await page.reload()
+  await expect(guessBox(page)).toBeDisabled()
+  await expect(giveUp).toBeDisabled()
+  await page.keyboard.press('Escape')
+  await page.getByRole('button', { name: /History/ }).click()
+  await expect(page.getByRole('dialog')).toContainText('Gave up')
+})

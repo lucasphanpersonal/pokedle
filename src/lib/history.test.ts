@@ -26,7 +26,7 @@ describe('recordSolve', () => {
 describe('computeStats', () => {
   it('is empty for no history', () => {
     expect(computeStats([], '2026-11-08')).toEqual({
-      currentStreak: 0, bestStreak: 0, solved: 0, averageGuesses: null, fewestGuesses: null,
+      currentStreak: 0, bestStreak: 0, solved: 0, gaveUp: 0, averageGuesses: null, fewestGuesses: null,
     })
   })
   it('counts a streak that includes today', () => {
@@ -46,6 +46,29 @@ describe('computeStats', () => {
     const s = computeStats([e('2026-10-31', 4), e('2026-11-01', 8)], '2026-11-01')
     expect(s.currentStreak).toBe(2)
     expect(s.solved).toBe(2)
+    expect(s.averageGuesses).toBe(6)
+    expect(s.fewestGuesses).toBe(4)
+  })
+})
+
+describe('giving up a Daily', () => {
+  const lost = (date: string, guesses = 3): HistoryEntry => ({ ...e(date, guesses), lost: true })
+  it('keeps the lost marker and records it once per date', () => {
+    expect(parseHistory([{ ...e('2026-11-08'), lost: true }, { ...e('2026-11-07'), lost: 'yes' }]).map((x) => x.lost)).toEqual([true, undefined])
+    const one = recordSolve([], lost('2026-11-08'))
+    expect(recordSolve(one, e('2026-11-08'))).toBe(one)
+  })
+  it('ends the streak straight away when given up today', () => {
+    const s = computeStats([e('2026-11-06'), e('2026-11-07'), lost('2026-11-08')], '2026-11-08')
+    expect(s.currentStreak).toBe(0)
+    expect(s.bestStreak).toBe(2)
+  })
+  it('breaks a run in the middle and stays out of the averages', () => {
+    const s = computeStats([e('2026-11-05', 4), lost('2026-11-06', 20), e('2026-11-07', 6), e('2026-11-08', 8)], '2026-11-08')
+    expect(s.currentStreak).toBe(2)
+    expect(s.bestStreak).toBe(2)
+    expect(s.solved).toBe(3)
+    expect(s.gaveUp).toBe(1)
     expect(s.averageGuesses).toBe(6)
     expect(s.fewestGuesses).toBe(4)
   })

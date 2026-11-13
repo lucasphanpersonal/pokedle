@@ -63,3 +63,12 @@ describe('summarize', () => {
     expect(summarize({ histogram: { 3: 0 } }, 3)).toBeNull()
   })
 })
+
+describe('summarize when you gave up', () => {
+  it('compares nothing with your result', () => {
+    const s = summarize({ histogram: { 3: 4, 5: 2 } }, null)
+    expect(s?.fasterThanPercent).toBe(0)
+    expect(s?.samePercent).toBe(0)
+    expect(s?.bars.some((b) => b.isYou)).toBe(false)
+  })
+})
