@@ -174,7 +174,13 @@ test('Endless Gens: the answer comes only from the chosen generations', async ({
   // The ball bursts first; then the result screen. Its History opens over it and Escape returns to it.
   await expect(page.getByRole('dialog')).toContainText('It got away!', { timeout: 10_000 })
   await page.getByRole('dialog').getByRole('button', { name: 'History' }).click()
-  await expect(page.getByRole('dialog', { name: 'History' })).toBeVisible()
+  // From Endless, History opens on Endless, with this game listed as escaped; the switch shows the Daily.
+  const history = page.getByRole('dialog', { name: 'History' })
+  await expect(history.getByRole('radio', { name: 'endless' })).toHaveAttribute('aria-checked', 'true')
+  await expect(history.getByRole('listitem')).toHaveCount(1)
+  await expect(history.getByRole('listitem')).toContainText('Escaped')
+  await history.getByRole('radio', { name: 'daily' }).click()
+  await expect(history).toContainText('No finished Dailies yet')
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog')).toContainText('It got away!')
   await page.keyboard.press('Escape') // close the "It got away!" result
@@ -228,6 +234,8 @@ test('giving up the Daily asks first, ends the game and is listed in History', a
   await expect(giveUp).toHaveCount(0) // gone once the game is over
   await page.getByRole('dialog').getByRole('button', { name: 'History' }).click()
   const history = page.getByRole('dialog', { name: 'History' })
+  // From the Daily it opens on the Daily.
+  await expect(history.getByRole('radio', { name: 'daily' })).toHaveAttribute('aria-checked', 'true')
   await expect(history).toContainText('Gave up')
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog')).toContainText('It got away!')

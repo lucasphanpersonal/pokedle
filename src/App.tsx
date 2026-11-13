@@ -237,7 +237,14 @@ export default function App() {
         <GiveUpModal mode={mode} guesses={game.guesses.length} streak={stats.currentStreak} onConfirm={confirmGiveUp} onCancel={() => setGiveUpAsk(null)} />
       )}
       {showHistory && (
-        <HistoryModal history={game.history} endless={game.endlessRecord} onClose={() => setShowHistory(false)} />
+        <HistoryModal
+          key={mode}
+          history={game.history}
+          endless={game.endlessRecord}
+          endlessGames={game.endlessGames}
+          initialMode={mode}
+          onClose={() => setShowHistory(false)}
+        />
       )}
       {showGens && mode === 'endless' && (
         <GensModal

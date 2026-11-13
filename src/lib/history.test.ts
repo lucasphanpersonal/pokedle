@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computeEndlessStats, computeStats, EMPTY_ENDLESS_RECORD, parseEndlessRecord, parseHistory, recordEndless, recordSolve, type HistoryEntry } from './history'
+import { computeEndlessStats, computeStats, EMPTY_ENDLESS_RECORD, ENDLESS_GAMES_KEPT, parseEndlessGames, parseEndlessRecord, parseHistory, recordEndless, recordEndlessGame, recordSolve, type EndlessGameEntry, type HistoryEntry } from './history'
 
 const e = (date: string, guesses = 5, targetId = 25): HistoryEntry => ({ date, targetId, guesses })
 
@@ -133,5 +133,28 @@ describe('Endless record', () => {
     expect(parseEndlessRecord({ ...base, guesses: 3, scored: 2, fewest: 2 })).toEqual(dropped) // total below scored × fewest
     expect(parseEndlessRecord({ ...base, guesses: 10, scored: 2, fewest: 0 })).toEqual(dropped)
     expect(parseEndlessRecord({ ...base, guesses: 10, scored: 2, fewest: 4 })).toEqual({ ...base, guesses: 10, scored: 2, fewest: 4, hinted: 0 })
+  })
+})
+
+describe('Endless games list', () => {
+  const g = (key: string, extra: Partial<EndlessGameEntry> = {}): EndlessGameEntry => ({ key, targetId: 25, guesses: 4, ...extra })
+  it('adds newest first, once per game, and keeps the last 30', () => {
+    let list: EndlessGameEntry[] = []
+    list = recordEndlessGame(list, g('a'))
+    list = recordEndlessGame(list, g('b', { lost: true }))
+    expect(list.map((x) => x.key)).toEqual(['b', 'a'])
+    expect(recordEndlessGame(list, g('a'))).toBe(list)
+    for (let i = 0; i < 40; i++) list = recordEndlessGame(list, g(`k${i}`))
+    expect(list).toHaveLength(ENDLESS_GAMES_KEPT)
+    expect(list[0].key).toBe('k39')
+  })
+  it('parses only valid entries', () => {
+    expect(parseEndlessGames(null)).toEqual([])
+    const ok = [g('a', { hinted: true }), g('b', { lost: true })]
+    expect(parseEndlessGames(ok)).toEqual(ok)
+    expect(parseEndlessGames([g('a'), g('a'), { key: 'x', targetId: 0, guesses: 1 }, { key: 'y', targetId: 1, guesses: 0 }, 'z', { ...g('c'), lost: 'yes' }])).toEqual([
+      g('a'),
+      g('c'),
+    ])
   })
 })
