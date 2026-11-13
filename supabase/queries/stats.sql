@@ -12,7 +12,8 @@
 --    counts unique players PER DAY; summing days over-counts people who return. The salt changes at
 --    UTC midnight (7-8pm ET), so someone playing across it can count twice in one ET day.
 --  * Raw events are kept 6 months; older days exist only in daily_totals (see Q9).
---  * Hard mode games carry config->>'hard_mode' = 'true'. Q1/Q2 split it out as a plain column.
+--  * Games where the player took the Gen hint carry config->>'hint_used' = 'true' (from 2026-11-13).
+--    Q1/Q2 count them as a plain column. Hard mode (config->>'hard_mode') was removed the same day.
 --  * "Last 30 days" is a rolling window, so the oldest day shown is partial.
 --  * The client doesn't send streaks yet, so there is no streak query.
 --  * Results: finished games have result 'won' or 'lost' (Endless "give up" counts as lost).
@@ -32,7 +33,7 @@ select
   round(100.0 * count(*) filter (where event = 'game_finished' and result = 'won')
         / nullif(count(*) filter (where event = 'game_finished'), 0), 1) as win_pct,
   round(avg(guess_count) filter (where event = 'game_finished' and result = 'won'), 2) as avg_guesses_to_win,
-  count(*) filter (where event = 'game_finished' and config->>'hard_mode' = 'true') as hard_games_finished
+  count(*) filter (where event = 'game_finished' and config->>'hint_used' = 'true') as hinted_games_finished
 from public.events
 where (received_at at time zone 'America/New_York')::date = (now() at time zone 'America/New_York')::date
 group by mode
@@ -53,7 +54,7 @@ select
   round(100.0 * count(*) filter (where event = 'game_finished' and result = 'won')
         / nullif(count(*) filter (where event = 'game_finished'), 0), 1) as win_pct,
   round(avg(guess_count) filter (where event = 'game_finished' and result = 'won'), 2) as avg_guesses_to_win,
-  count(*) filter (where event = 'game_finished' and config->>'hard_mode' = 'true') as hard_games_finished
+  count(*) filter (where event = 'game_finished' and config->>'hint_used' = 'true') as hinted_games_finished
 from public.events
 where received_at >= now() - interval '30 days'
 group by 1, 2
