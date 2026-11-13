@@ -18,8 +18,6 @@ import { ResultMark } from './ResultMark'
 interface FeedbackRowProps {
   guess: Pokemon
   feedback: GuessFeedback
-  /** Hard mode: the Gen tile is left out. */
-  hard?: boolean
   /** Flip the tiles in one by one (only for a guess made just now). */
   animate: boolean
   /** Table only: one Shared Ability size for the whole column (see abilityColumnFit), so rows don't jump in size. */
@@ -117,12 +115,11 @@ interface TileData {
   chars: Fit
 }
 
-/** The attribute tiles in column order (after the name), without Gen in Hard mode. */
-function buildTiles(guess: Pokemon, feedback: GuessFeedback, hard: boolean, abilityColumn?: Fit): TileData[] {
-  const tiles: TileData[] = [
+/** The attribute tiles in column order (after the name). */
+function buildTiles(guess: Pokemon, feedback: GuessFeedback, abilityColumn?: Fit): TileData[] {
+  return [
     { label: 'Type 1', result: feedback.type1, content: breakable(guess.type1), chars: fitOf(guess.type1) },
     { label: 'Type 2', result: feedback.type2, content: breakable(guess.type2 ?? 'None'), chars: fitOf(guess.type2 ?? 'None') },
-    { label: 'Gen', result: feedback.generation, content: <>Gen{" "}<br />{guess.generation}</>, chars: fitOf('Gen', guess.generation) },
     // Units sit on their own line; count one extra character for the ▲/▼ that follows them on phones.
     { label: 'Height', result: feedback.height, content: <>{guess.height}{" "}<br />m</>, chars: fitOf(guess.height, 'm▲') },
     {
@@ -142,7 +139,6 @@ function buildTiles(guess: Pokemon, feedback: GuessFeedback, hard: boolean, abil
       chars: abilityColumn ?? abilityFit(abilityCellText(guess, feedback.ability)),
     },
   ]
-  return hard ? tiles.filter((t) => t.label !== 'Gen') : tiles
 }
 
 /**
@@ -150,8 +146,8 @@ function buildTiles(guess: Pokemon, feedback: GuessFeedback, hard: boolean, abil
  * tiles, then full-width Egg Group and Shared Ability strips) so nothing scrolls sideways.
  * Tablets and desktops use the table row below.
  */
-export function GuessCard({ guess, feedback, animate, hard = false, bigText = false }: FeedbackRowProps) {
-  const tiles = buildTiles(guess, feedback, hard)
+export function GuessCard({ guess, feedback, animate, bigText = false }: FeedbackRowProps) {
+  const tiles = buildTiles(guess, feedback)
   const egg = tiles[tiles.length - 2]
   const ability = tiles[tiles.length - 1]
   const delay = (i: number): CSSProperties | undefined =>
@@ -190,7 +186,7 @@ export function GuessCard({ guess, feedback, animate, hard = false, bigText = fa
         <span className="ml-auto shrink-0 tx-8 opacity-80 sm:tx-9">{formatDex(guess.dexNumber)}</span>
         <span className="sr-only">, {LABEL[feedback.pokemon]}</span>
       </div>
-      {tiles.slice(0, -2).map((_, i) => tile(i, cardTileSpan(i, hard)))}
+      {tiles.slice(0, -2).map((_, i) => tile(i, cardTileSpan(i)))}
       <div
         className={`${BG[egg.result]} ${animate ? 'tile-flip' : ''} px-notch relative col-span-12 flex min-h-9 items-center justify-center px-2.5 py-1.5 text-center tx-8 leading-[1.6] text-white sm:tx-10 ${TILE_EDGE}`}
         style={delay(tiles.length - 1)}
@@ -213,8 +209,8 @@ export function GuessCard({ guess, feedback, animate, hard = false, bigText = fa
   )
 }
 
-export function FeedbackRow({ guess, feedback, animate, hard = false, abilityColumn }: FeedbackRowProps) {
-  const tiles = buildTiles(guess, feedback, hard, abilityColumn)
+export function FeedbackRow({ guess, feedback, animate, abilityColumn }: FeedbackRowProps) {
+  const tiles = buildTiles(guess, feedback, abilityColumn)
   return (
     <tr>
       <th scope="row" className="p-0 font-normal">

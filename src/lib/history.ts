@@ -12,8 +12,8 @@ export interface HistoryEntry {
   targetId: number
   /** How many guesses it took. */
   guesses: number
-  /** True if it was solved in Hard mode (no Gen column). Absent = normal. */
-  hard?: true
+  /** True if the Gen hint was taken. Absent = solved without it. */
+  hinted?: true
 }
 
 export interface HistoryStats {
@@ -23,6 +23,8 @@ export interface HistoryStats {
   solved: number
   averageGuesses: number | null
   fewestGuesses: number | null
+  /** Share of solves (0-100, rounded) made without the Gen hint; null until something is solved. */
+  noHintPercent: number | null
 }
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
@@ -39,14 +41,17 @@ const isEntry = (v: unknown): v is HistoryEntry => {
   )
 }
 
-/** Keeps the valid entries (one per date, newest first); anything else is dropped. */
+/**
+ * Keeps the valid entries (one per date, newest first); anything else is dropped.
+ * Entries from when Hard mode existed carry `hard: true`; that flag is dropped, so they count as ordinary solves.
+ */
 export function parseHistory(raw: unknown): HistoryEntry[] {
   if (!Array.isArray(raw)) return []
   const byDate = new Map<string, HistoryEntry>()
   for (const item of raw) {
     if (isEntry(item) && !byDate.has(item.date)) {
       const entry: HistoryEntry = { date: item.date, targetId: item.targetId, guesses: item.guesses }
-      if (item.hard === true) entry.hard = true
+      if (item.hinted === true) entry.hinted = true
       byDate.set(item.date, entry)
     }
   }
@@ -81,7 +86,13 @@ export function computeStats(history: HistoryEntry[], today: string = localDateK
     solved: history.length,
     averageGuesses: history.length ? total / history.length : null,
     fewestGuesses: history.length ? Math.min(...history.map((e) => e.guesses)) : null,
+    noHintPercent: noHintPercent(history.length, history.filter((e) => e.hinted).length),
   }
+}
+
+/** Share (0-100, rounded) of `wins` that didn't use the hint; null with no wins. */
+export function noHintPercent(wins: number, hinted: number): number | null {
+  return wins > 0 ? Math.round(((wins - Math.min(hinted, wins)) / wins) * 100) : null
 }
 
 function trailingRun(sortedDays: number[]): number {
@@ -113,10 +124,12 @@ export interface EndlessRecord {
   scored: number
   /** Fewest guesses in a caught game; null until one is scored. */
   fewest: number | null
+  /** Caught games that used the Gen hint (games caught before the hint existed count as without). */
+  hinted: number
   last: string | null
 }
 
-export const EMPTY_ENDLESS_RECORD: EndlessRecord = { caught: 0, gaveUp: 0, guesses: 0, scored: 0, fewest: null, last: null }
+export const EMPTY_ENDLESS_RECORD: EndlessRecord = { caught: 0, gaveUp: 0, guesses: 0, scored: 0, fewest: null, hinted: 0, last: null }
 
 const isCount = (v: unknown): v is number => Number.isInteger(v) && (v as number) >= 0
 
@@ -135,15 +148,22 @@ export function parseEndlessRecord(raw: unknown): EndlessRecord {
     guesses: scoresOk ? guesses : 0,
     scored: scoresOk ? scored : 0,
     fewest: scoresOk ? fewest : null,
+    hinted: isCount(r.hinted) && r.hinted <= caught ? r.hinted : 0,
     last: typeof r.last === 'string' ? r.last : null,
   }
 }
 
 /**
- * Counts a finished Endless game once; `guesses` is how many it took. Returns
- * the same record if it was already counted.
+ * Counts a finished Endless game once; `guesses` is how many it took and `hinted` whether it used
+ * the Gen hint. Returns the same record if it was already counted.
  */
-export function recordEndless(record: EndlessRecord, gameKey: string, result: 'won' | 'lost', guesses: number): EndlessRecord {
+export function recordEndless(
+  record: EndlessRecord,
+  gameKey: string,
+  result: 'won' | 'lost',
+  guesses: number,
+  hinted = false,
+): EndlessRecord {
   if (record.last === gameKey) return record
   if (result === 'lost') return { ...record, gaveUp: record.gaveUp + 1, last: gameKey }
   return {
@@ -152,6 +172,7 @@ export function recordEndless(record: EndlessRecord, gameKey: string, result: 'w
     guesses: record.guesses + guesses,
     scored: record.scored + 1,
     fewest: record.fewest === null ? guesses : Math.min(record.fewest, guesses),
+    hinted: record.hinted + (hinted ? 1 : 0),
     last: gameKey,
   }
 }
@@ -164,6 +185,8 @@ export interface EndlessStats {
   /** Average guesses per caught game; null until one is scored. */
   averageGuesses: number | null
   fewestGuesses: number | null
+  /** Share of caught games (0-100) caught without the Gen hint; null until one is caught. */
+  noHintPercent: number | null
 }
 
 export function computeEndlessStats(record: EndlessRecord): EndlessStats {
@@ -173,5 +196,6 @@ export function computeEndlessStats(record: EndlessRecord): EndlessStats {
     gaveUp: record.gaveUp,
     averageGuesses: record.scored ? record.guesses / record.scored : null,
     fewestGuesses: record.fewest,
+    noHintPercent: noHintPercent(record.caught, record.hinted),
   }
 }

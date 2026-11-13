@@ -1,12 +1,12 @@
 /**
- * Grid span (of 12) for the i-th small tile on a phone card, shared with the key above the cards.
- * Normally two rows of four (Hard mode: three wider tiles on top, as Gen is gone). With Larger text
+ * Grid span (of 12) for the i-th of the seven small tiles on a phone card, shared with the key above
+ * the cards: three wider tiles on top (Type 1, Type 2, Height), then a row of four. With Larger text
  * on screens under 640 px, four tiles are too narrow for the bigger text, so they go in rows of three
- * and the last row's one or two tiles stretch to fill it.
+ * and the last tile stretches across the card.
  */
-export function cardTileSpan(i: number, hard: boolean): string {
-  const normal = hard && i < 3 ? 'col-span-4' : 'col-span-3'
-  const big = i < 6 ? 'big:max-sm:col-span-4' : hard ? 'big:max-sm:col-span-12' : 'big:max-sm:col-span-6'
+export function cardTileSpan(i: number): string {
+  const normal = i < 3 ? 'col-span-4' : 'col-span-3'
+  const big = i < 6 ? 'big:max-sm:col-span-4' : 'big:max-sm:col-span-12'
   return `${normal} ${big}`
 }
 

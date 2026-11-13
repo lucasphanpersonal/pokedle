@@ -14,7 +14,6 @@ export interface GuessFeedback {
   pokemon: 'match' | 'mismatch'
   type1: MatchFeedback
   type2: MatchFeedback
-  generation: NumberFeedback
   height: NumberFeedback
   weight: NumberFeedback
   color: 'match' | 'mismatch'
@@ -126,7 +125,6 @@ export function compareGuess(guess: Pokemon, target: Pokemon): GuessFeedback {
   return {
     pokemon: guess.id === target.id ? 'match' : 'mismatch',
     ...compareTypes(guess, target),
-    generation: compareNumber(guess.generation, target.generation),
     height: compareNumber(guess.height, target.height),
     weight: compareWeight(guess.weight, target.weight),
     color: guess.color === target.color ? 'match' : 'mismatch',

@@ -23,8 +23,8 @@ export interface SavedGame {
   key: string
   targetId: number
   guessIds: number[]
-  /** Set when the first guess is made, if Hard mode (no Gen column) was on. Absent = normal. */
-  hard?: true
+  /** The player took the Gen hint (offered after HINT_AFTER_GUESSES guesses). Absent = no hint. */
+  hinted?: true
   /** Endless only: the player gave up and the answer was revealed. Absent = still open or won. */
   gaveUp?: true
   /** Endless only: the Gens the answer was drawn from, sorted. Absent = all nine. */
@@ -103,20 +103,29 @@ export function giveUp(game: SavedGame): SavedGame {
   return canGiveUp(game) ? { ...game, gaveUp: true } : game
 }
 
+/**
+ * The Gen hint (the answer's generation) is offered once a game has this many guesses
+ * and is still open. Taking it is optional and is recorded on the game.
+ */
+export const HINT_AFTER_GUESSES = 5
+
+/** True if the Gen hint can be taken now: the game is open, has enough guesses, and hasn't used it yet. */
+export function canTakeHint(game: SavedGame): boolean {
+  return gameStatus(game) === 'playing' && game.guessIds.length >= HINT_AFTER_GUESSES && !game.hinted
+}
+
+/** Marks the Gen hint as taken. Returns the same game if it can't be taken. */
+export function takeHint(game: SavedGame): SavedGame {
+  return canTakeHint(game) ? { ...game, hinted: true } : game
+}
+
 export type GuessResult = 'ok' | 'duplicate' | 'game-over'
 
 /** Returns the updated game, or the reason the guess was rejected. */
-export function applyGuess(
-  game: SavedGame,
-  guessId: number,
-  hard = false,
-): { game: SavedGame; result: GuessResult } {
+export function applyGuess(game: SavedGame, guessId: number): { game: SavedGame; result: GuessResult } {
   if (gameStatus(game) !== 'playing') return { game, result: 'game-over' }
   if (game.guessIds.includes(guessId)) return { game, result: 'duplicate' }
-  // The mode is fixed by the first guess; after that the switch can't change it.
-  const next: SavedGame = { ...game, guessIds: [...game.guessIds, guessId] }
-  if (game.guessIds.length === 0 && hard) next.hard = true
-  return { game: next, result: 'ok' }
+  return { game: { ...game, guessIds: [...game.guessIds, guessId] }, result: 'ok' }
 }
 
 export type Games = Record<GameMode, SavedGame>
@@ -135,8 +144,8 @@ export interface AppliedGuess {
   guessNumber: number
   /** Status of that game after the guess. */
   status: GameStatus
-  /** True if that game is played in Hard mode. */
-  hard: boolean
+  /** True if that game has used the Gen hint. */
+  hinted: boolean
 }
 
 /**
@@ -150,10 +159,9 @@ export function applyGuessToGames(
   guessId: number,
   today: string,
   pool: Pokemon[],
-  hard = false,
 ): { games: Games; result: GuessResult; applied: AppliedGuess | null } {
   const current = rollOverGames(games, today, pool)
-  const { game, result } = applyGuess(current[mode], guessId, hard)
+  const { game, result } = applyGuess(current[mode], guessId)
   if (result !== 'ok') return { games: current, result, applied: null }
   return {
     games: { ...current, [mode]: game },
@@ -164,7 +172,7 @@ export function applyGuessToGames(
       targetId: game.targetId,
       guessNumber: game.guessIds.length,
       status: gameStatus(game),
-      hard: game.hard === true,
+      hinted: game.hinted === true,
     },
   }
 }
@@ -185,7 +193,7 @@ export function isValidSave(game: unknown, byId: Map<number, Pokemon>): game is 
     new Set(ids).size === ids.length &&
     // Nothing may be recorded after the winning guess.
     (winAt === -1 || winAt === ids.length - 1) &&
-    (g.hard === undefined || g.hard === true) &&
+    (g.hinted === undefined || g.hinted === true) &&
     // Only an Endless game with guesses and no win can have been given up.
     (g.gaveUp === undefined || (g.gaveUp === true && g.mode === 'endless' && winAt === -1 && ids.length > 0)) &&
     // Only an Endless game records its Gens, and its answer must come from them.
@@ -207,7 +215,7 @@ export interface StoredGame {
   v: typeof SAVE_VERSION
   mode: GameMode
   key: string
-  hard?: true
+  hinted?: true
   gaveUp?: true
   gens?: number[]
   /** Scrambled answer id. */
@@ -222,11 +230,15 @@ export function encodeSave(game: SavedGame): StoredGame {
   return { ...rest, t: ((targetId ^ mask(game.key)) + 7919).toString(36) }
 }
 
-/** Reads a stored game. Also accepts the older plain `targetId` format. Returns null if unreadable. */
+/**
+ * Reads a stored game. Also accepts the older plain `targetId` format. Returns null if unreadable.
+ * Saves from when Hard mode existed carry a `hard` flag; it is dropped, so those games (even one
+ * still in progress) carry on as ordinary games.
+ */
 export function decodeSave(raw: unknown): unknown {
   if (!raw || typeof raw !== 'object') return null
-  const r = raw as Partial<StoredGame> & { targetId?: unknown }
-  if (typeof r.targetId === 'number') return raw
+  const { hard: _hard, ...r } = raw as Partial<StoredGame> & { targetId?: unknown; hard?: unknown }
+  if (typeof r.targetId === 'number') return r
   if (typeof r.t !== 'string' || typeof r.key !== 'string') return null
   const n = parseInt(r.t, 36)
   if (!Number.isInteger(n)) return null

@@ -4,12 +4,14 @@ import { localDateKey, puzzleNumber } from '../lib/daily'
 import {
   applyGuessToGames,
   canGiveUp,
+  canTakeHint,
   decodeSave,
   giveUp as giveUpGame,
   encodeSave,
   gameGens,
   matchEndlessToGens,
   rollOverGames,
+  takeHint as takeHintGame,
   gameStatus as statusOf,
   isValidSave,
   newDailyGame,
@@ -22,10 +24,9 @@ import {
   type SavedGame,
 } from '../lib/game'
 import { ALL_GENS, getGensPref, reloadGensPref, setGensPref, subscribeGensPref } from '../lib/gens'
-import { effectiveHard, hardLocked, isHardPref, reloadHardPref, subscribeHardPref } from '../lib/hardMode'
 import { parseEndlessRecord, parseHistory, recordEndless, recordSolve, type EndlessRecord, type HistoryEntry } from '../lib/history'
 import { POKEDEX, POKEDEX_BY_ID } from '../lib/pokedex'
-import { loadJson, saveJson, storageKey } from '../lib/storage'
+import { loadJson, removeKey, saveJson, storageKey } from '../lib/storage'
 import type { Pokemon } from '../types/pokemon'
 
 export type { GameMode, GameStatus, GuessResult }
@@ -48,6 +49,12 @@ function loadEndless(): SavedGame {
   return newEndlessGameForGens(POKEDEX, getGensPref())
 }
 
+/** Settings left over from when Hard mode existed; nothing reads them any more. */
+function forgetHardMode(): void {
+  removeKey('hard-mode')
+  removeKey('seen-hard-notice')
+}
+
 const loadGames = (): Games => ({ daily: loadDaily(localDateKey()), endless: loadEndless() })
 
 /** Replaces the daily game if the local date has moved on. */
@@ -66,7 +73,7 @@ function syncHistory(daily: SavedGame): HistoryEntry[] {
     date: daily.key,
     targetId: daily.targetId,
     guesses: daily.guessIds.length,
-    ...(daily.hard ? { hard: true as const } : {}),
+    ...(daily.hinted ? { hinted: true as const } : {}),
   })
   if (next !== stored) saveJson('history', next)
   return next
@@ -77,7 +84,7 @@ function syncEndlessRecord(endless: SavedGame): EndlessRecord {
   const stored = parseEndlessRecord(loadJson('endless-record'))
   const status = statusOf(endless)
   if (status === 'playing') return stored
-  const next = recordEndless(stored, endless.key, status, endless.guessIds.length)
+  const next = recordEndless(stored, endless.key, status, endless.guessIds.length, endless.hinted === true)
   if (next !== stored) saveJson('endless-record', next)
   return next
 }
@@ -102,7 +109,10 @@ const msUntilLocalMidnight = () => {
  * localStorage on every change and kept in sync across open tabs.
  */
 export function usePokemondle(mode: GameMode) {
-  const [games, setGamesState] = useState<Games>(loadGames)
+  const [games, setGamesState] = useState<Games>(() => {
+    forgetHardMode()
+    return loadGames()
+  })
   // The latest state, updated synchronously so back-to-back guesses (before a
   // re-render) are each validated against the result of the one before.
   const gamesRef = useRef(games)
@@ -125,7 +135,6 @@ export function usePokemondle(mode: GameMode) {
     // Another tab saved progress: pick it up instead of overwriting it later.
     const onStorage = (e: StorageEvent) => {
       if (e.key === storageKey('daily') || e.key === storageKey('endless')) commit(rollOver(loadGames()))
-      if (e.key === storageKey('hard-mode')) reloadHardPref()
       if (e.key === storageKey('endless-gens')) {
         reloadGensPref()
         const current = gamesRef.current
@@ -162,9 +171,8 @@ export function usePokemondle(mode: GameMode) {
     [guesses, targetPokemon],
   )
   const gameStatus = statusOf(game)
-  const hardPref = useSyncExternalStore(subscribeHardPref, isHardPref, () => false)
-  const hard = effectiveHard(game, hardPref)
-  const hardSwitchLocked = hardLocked(game)
+  // The Gens button is locked while a game is in progress (has guesses and isn't solved or given up yet).
+  const inProgress = game.guessIds.length > 0 && gameStatus === 'playing'
 
   /**
    * Records a guess in the current mode. `result` is 'ok' if it was accepted,
@@ -181,7 +189,6 @@ export function usePokemondle(mode: GameMode) {
         pokemon.id,
         localDateKey(),
         POKEDEX,
-        isHardPref(),
       )
       commit(next)
       return { result, applied }
@@ -212,6 +219,13 @@ export function usePokemondle(mode: GameMode) {
     [commit],
   )
 
+  /** Reveals the answer's Gen for the game on screen. Does nothing until the hint is available. */
+  const takeHint = useCallback(() => {
+    const current = gamesRef.current
+    const taken = takeHintGame(current[mode])
+    if (taken !== current[mode]) commit({ ...current, [mode]: taken })
+  }, [commit, mode])
+
   /** Ends the current Endless game as given up, revealing the answer. Does nothing if it can't be given up. */
   const giveUp = useCallback(() => {
     const current = gamesRef.current
@@ -226,10 +240,12 @@ export function usePokemondle(mode: GameMode) {
     guesses,
     feedback,
     gameStatus,
-    /** True if this game is played in Hard mode (no Gen column). */
-    hard,
-    /** True while the Hard switch can't be changed (this game is in progress). */
-    hardSwitchLocked,
+    /** True if this game has taken the Gen hint (the answer's Gen is shown). */
+    hinted: game.hinted === true,
+    /** True if the Gen hint can be taken now (the game is open and has enough guesses). */
+    canTakeHint: canTakeHint(game),
+    /** True while the game on screen has guesses and is still open (the Gens button is locked). */
+    inProgress,
     /** The player's Endless Gens choice (used for the next Endless game). */
     endlessGens,
     /** The Gens the game on screen was drawn from (always all nine for the Daily). */
@@ -247,5 +263,6 @@ export function usePokemondle(mode: GameMode) {
     submitGuessDetailed,
     startNewEndlessGame,
     giveUp,
+    takeHint,
   }
 }

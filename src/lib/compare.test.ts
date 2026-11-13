@@ -83,7 +83,6 @@ describe('compareGuess', () => {
       pokemon: 'mismatch',
       type1: 'match',
       type2: 'match',
-      generation: 'higher',
       height: 'higher',
       weight: 'lower',
       color: 'mismatch',
