@@ -197,7 +197,7 @@ export function HelpModal({ onClose }: HelpModalProps) {
           reveals the answer (it asks first). Giving up the Daily ends it for the day and resets your streak. Your progress is saved on this device.
         </p>
         <p>
-          In Endless, the <strong>Gens</strong> button beside History chooses which generations the Pokémon can come from: switch
+          In Endless, the <strong>Gens</strong> button beside History (under it on phones) chooses which generations the Pokémon can come from: switch
           each of Gen 1 to 9 on or off, or use All and None (at least one must stay on). Forms count by their debut, so
           Megas are Gen 6. You can still guess any Pokémon. Gens are locked while a game is in progress (tap the
           button to see why): change them before your first guess, or after you catch the Pokémon or give up, and they apply
@@ -206,7 +206,7 @@ export function HelpModal({ onClose }: HelpModalProps) {
         <p>
           <span className="inline-flex items-center gap-1.5 align-middle"><PixelBulb /><strong>Gen hint:</strong></span> the
           guesses never show a Pokémon's generation. After {HINT_AFTER_GUESSES} guesses you are offered a hint that tells you
-          which Gen the answer is from. It's up to you: say Not now and a Gen hint button stays beside History for
+          which Gen the answer is from. It's up to you: say Not now and a Gen hint button stays beside History (under it on phones) for
           the rest of the game. A hinted win still counts as a win and keeps your streak; History marks it with a bulb and
           shows how many of your wins needed no hint.
         </p>

@@ -124,9 +124,6 @@ export default function App() {
             {!game.canGiveUp && game.gameStatus === 'playing' && lockNote?.game === gameId && lockNote.what === 'giveup' && (
               <p className="max-w-md tx-8 leading-4 text-ds-frame">Give up unlocks after your first guess.</p>
             )}
-            {!game.canGiveUp && game.gameStatus === 'playing' && lockNote?.game === gameId && lockNote.what === 'giveup' && (
-              <p className="max-w-md tx-8 leading-4 text-ds-frame">Give up unlocks after your first guess.</p>
-            )}
           </div>
           {/*
             Game menu. Give up lives here, away from the guess box, so the thing you tap most is never next to the
