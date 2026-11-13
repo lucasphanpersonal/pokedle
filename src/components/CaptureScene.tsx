@@ -8,8 +8,10 @@ import { iconUrl, spriteUrl } from '../lib/pokedex'
 import { playSound } from '../lib/sound'
 import type { Pokemon } from '../types/pokemon'
 
-/** The same hand-drawn ball as the tab icon, split at the band so the lid can open. */
-// The 16x16 drawing at 1x: small next to the Pokémon, as in the games' battle screens.
+/**
+ * The same hand-drawn ball as the tab icon, split at the band so the lid can open. Its 16x16 drawing
+ * at 1x: small next to the Pokémon, as in the games' battle screens.
+ */
 const { grid16 } = parseBallArt(ballArt)
 const LID = ballPaths(grid16, 0, 8)
 const BASE = ballPaths(grid16, 8, 16)
@@ -230,7 +232,8 @@ export function CaptureScene({ kind, pokemon, onDone }: CaptureSceneProps) {
             </>
           )}
 
-          {/* Escape: the Pokémon pops out as a white shape, takes its colours, then runs off to the right. */}
+          {/* Escape: the Pokémon pops out as a white shape, takes its colours, then runs off to the right.
+              PokéAPI sprites have empty rows below the feet, so bottom-5 stands them on the platform, not under it. */}
           {opened && sprite && (
             <div className="absolute bottom-5 left-1/2 -ml-24">
               <div className={phase === 'flee' ? 'capture-flee' : ''}>
