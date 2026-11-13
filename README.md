@@ -23,7 +23,7 @@ npm run icons      # rebuild the site icons in public/ from scripts/icons/pokeba
 e2e/smoke.spec.ts             Playwright browser smoke test (load, guess, win, mode switch, Endless Gens at 390px and 1280px)
 scripts/fetchPokemonData.ts   builds the local Pokémon dataset from PokéAPI
 scripts/makeIcons.ts          builds the tab icon, home-screen icons and manifest icons from the pixel Poké Ball
-scripts/icons/pokeball.txt    the hand-drawn Poké Ball (16x16 and 32x32 grids, one letter per colour); also drawn in-game by CaptureScene
+scripts/icons/pokeball.txt    the hand-drawn Poké Ball (16x16 and 32x32 grids, one letter per colour); its 16x16 grid is also drawn in-game, at 1x, by CaptureScene
 src/lib/pokeballArt.ts        its palette and parser, shared by makeIcons.ts and the catch/escape scene (plus the pixel star)
 public/                       favicon.ico, apple-touch-icon.png, manifest.json and its icons (generated, committed)
 src/components/               Header, SearchBar, GuessGrid, FeedbackRow, ResultModal, HistoryModal, HelpModal, GiveUpModal, GensModal, Modal
