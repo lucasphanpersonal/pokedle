@@ -179,3 +179,41 @@ test('giving up the Daily asks first, ends the game and is listed in History', a
   await page.getByRole('button', { name: /History/ }).click()
   await expect(page.getByRole('dialog')).toContainText('Gave up')
 })
+
+test('Gen hint: offered after 5 guesses, optional, and shown for the rest of the game', async ({ page }) => {
+  // Reduced motion: the hint text appears at once, so one Enter closes it.
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/')
+  // There is no Gen column any more.
+  await guess(page, await nonAnswer(page, 'daily', ['Pidgey', 'Zubat']))
+  await expect(page.getByRole('columnheader', { name: 'Gen' })).toHaveCount(0)
+  for (const pair of [['Rattata', 'Spearow'], ['Caterpie', 'Weedle'], ['Ekans', 'Sandshrew'], ['Oddish', 'Paras']]) {
+    await expect(page.getByRole('alertdialog', { name: 'Gen hint' })).toHaveCount(0)
+    await guess(page, await nonAnswer(page, 'daily', pair))
+  }
+  await expect.poll(async () => (await savedGame(page, 'daily'))?.guessIds).toHaveLength(5)
+
+  // After the fifth guess the offer pops up; Not now keeps a button for later.
+  const prompt = page.getByRole('alertdialog', { name: 'Gen hint' })
+  await expect(prompt).toBeVisible({ timeout: 15_000 })
+  await prompt.getByRole('button', { name: 'Not now' }).click()
+  await expect(prompt).toHaveCount(0)
+  const hintButton = page.getByRole('button', { name: 'Gen hint' })
+  await expect(hintButton).toBeVisible()
+
+  // It isn't offered again after a reload.
+  await page.reload()
+  await expect(guessBox(page)).toBeEnabled()
+  await expect(prompt).toHaveCount(0)
+
+  const target = (await savedGame(page, 'daily'))!.targetId
+  const gen = (pokedex as { id: number; generation: number }[]).find((p) => p.id === target)!.generation
+  await hintButton.click()
+  await prompt.getByRole('button', { name: 'Show Gen' }).click()
+  await expect(prompt).toContainText(`from Gen ${gen}`)
+  await page.keyboard.press('Enter')
+  await expect(prompt).toHaveCount(0)
+  await expect(page.getByText(`Hint: it's from Gen ${gen}`)).toBeVisible()
+  await expect(hintButton).toHaveCount(0)
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('pokemondle:daily') ?? '{}').hinted)).toBe(true)
+})

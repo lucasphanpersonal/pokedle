@@ -5,9 +5,8 @@ import { playCry, stopCry } from '../lib/cry'
 import { playSound } from '../lib/sound'
 import type { Pokemon } from '../types/pokemon'
 
-/** Time for a whole new row to finish flipping (Hard mode has one less tile). */
-const rowRevealMs = (hard: boolean) =>
-  (GRID_COLUMNS.length - (hard ? 2 : 1)) * TILE_FLIP_STAGGER_MS + TILE_FLIP_DURATION_MS
+/** Time for a whole new row to finish flipping. */
+const ROW_REVEAL_MS = (GRID_COLUMNS.length - 1) * TILE_FLIP_STAGGER_MS + TILE_FLIP_DURATION_MS
 
 /** Length of the win fanfare (ms); the cry waits for it to finish. */
 const WIN_FANFARE_MS = 1500
@@ -21,7 +20,7 @@ const prefersReducedMotion = () =>
  * `gameId` is the game currently rendered; everything is keyed by game so a mode
  * switch or new game never leaves an old game's effects pending.
  */
-export function useRevealEffects(gameId: string, hard: boolean) {
+export function useRevealEffects(gameId: string) {
   // Held until the newest row has flipped in; keyed by game so switching modes never leaves it stuck.
   const [reveal, setReveal] = useState<{ gameId: string; token: number } | null>(null)
   // Win burst, for the game it was earned in. Only set from a fresh guess, so reloading a won Daily never replays it.
@@ -60,18 +59,18 @@ export function useRevealEffects(gameId: string, hard: boolean) {
       }
       const token = ++revealToken.current
       setReveal({ gameId: appliedId, token })
-      later(() => setReveal((cur) => (cur?.token === token ? null : cur)), rowRevealMs(hard))
+      later(() => setReveal((cur) => (cur?.token === token ? null : cur)), ROW_REVEAL_MS)
       // One tick per tile, as it turns over, climbing in pitch across the row.
-      for (let i = 0; i < GRID_COLUMNS.length - (hard ? 1 : 0); i++) {
+      for (let i = 0; i < GRID_COLUMNS.length; i++) {
         later(() => playSound('tick', i), i * TILE_FLIP_STAGGER_MS + TILE_FLIP_DURATION_MS / 2)
       }
       if (won) {
-        later(() => playSound('win'), rowRevealMs(hard) + 100)
-        later(() => playCry(pokemon), rowRevealMs(hard) + 100 + WIN_FANFARE_MS)
-        later(() => setConfettiGame(appliedId), rowRevealMs(hard) + 100)
+        later(() => playSound('win'), ROW_REVEAL_MS + 100)
+        later(() => playCry(pokemon), ROW_REVEAL_MS + 100 + WIN_FANFARE_MS)
+        later(() => setConfettiGame(appliedId), ROW_REVEAL_MS + 100)
       }
     },
-    [clearTimers, hard],
+    [clearTimers],
   )
 
   return {

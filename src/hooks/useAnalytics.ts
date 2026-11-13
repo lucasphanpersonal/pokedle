@@ -9,7 +9,7 @@ interface GameView {
   targetPokemon: Pokemon
   guesses: Pokemon[]
   gameStatus: GameStatus
-  hard: boolean
+  hinted: boolean
   submitGuessDetailed: (pokemon: Pokemon) => { result: GuessResult; applied: AppliedGuess | null }
 }
 
@@ -40,7 +40,7 @@ export function finishedTransition(last: SeenGame | null, current: SeenGame): 'w
  * per-game stored flag also dedupes across StrictMode and tabs).
  */
 export function useAnalytics(game: GameView): (pokemon: Pokemon) => { result: GuessResult; applied: AppliedGuess | null } {
-  const { mode, gameKey, targetPokemon, guesses, gameStatus, hard, submitGuessDetailed } = game
+  const { mode, gameKey, targetPokemon, guesses, gameStatus, hinted, submitGuessDetailed } = game
   useEffect(() => startAnalytics(), [])
 
   // Tagged with the game the guess was actually applied to (not the rendered
@@ -51,7 +51,7 @@ export function useAnalytics(game: GameView): (pokemon: Pokemon) => { result: Gu
       const outcome = submitGuessDetailed(pokemon)
       const { result, applied } = outcome
       if (result === 'ok' && applied) {
-        const ref = { mode: applied.mode, gameKey: applied.gameKey, targetId: applied.targetId, hard: applied.hard }
+        const ref = { mode: applied.mode, gameKey: applied.gameKey, targetId: applied.targetId, hinted: applied.hinted }
         trackGuess(ref, {
           guessId: pokemon.id,
           guessNumber: applied.guessNumber,
@@ -72,8 +72,8 @@ export function useAnalytics(game: GameView): (pokemon: Pokemon) => { result: Gu
     const current = { id: `${mode}:${gameKey}`, status: gameStatus }
     const finished = finishedTransition(prev.current, current)
     prev.current = current
-    if (finished) trackFinish({ mode, gameKey, targetId: targetPokemon.id, hard }, finished, guesses.length)
-  }, [mode, gameKey, gameStatus, targetPokemon.id, guesses.length, hard])
+    if (finished) trackFinish({ mode, gameKey, targetId: targetPokemon.id, hinted }, finished, guesses.length)
+  }, [mode, gameKey, gameStatus, targetPokemon.id, guesses.length, hinted])
 
   return wrapped
 }

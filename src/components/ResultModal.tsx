@@ -6,7 +6,7 @@ import type { Pokemon } from '../types/pokemon'
 import { DailyStats } from './DailyStats'
 import { DexEntryCard } from './DexEntryCard'
 import { Modal } from './Modal'
-import { PixelStar } from './PixelStar'
+import { PixelBulb } from './PixelBulb'
 
 interface ResultModalProps {
   mode: GameMode
@@ -17,8 +17,8 @@ interface ResultModalProps {
   /** Current and best Daily streaks on this device. */
   streak: number
   bestStreak: number
-  /** Solved in Hard mode (no Gen column). */
-  hard: boolean
+  /** The Gen hint was taken in this game. */
+  hinted: boolean
   /** The player gave up (Daily or Endless): the answer is revealed instead of caught. */
   gaveUp?: boolean
   onClose: () => void
@@ -43,7 +43,7 @@ function Countdown() {
 }
 
 /** End-of-game screen: the answer's artwork, guess count, streak, daily stats and New Pokémon. */
-export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestStreak, hard, gaveUp, onClose, onNewGame }: ResultModalProps) {
+export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestStreak, hinted, gaveUp, onClose, onNewGame }: ResultModalProps) {
   const guessText = `${feedback.length} ${feedback.length === 1 ? 'guess' : 'guesses'}`
   return (
     <Modal title={gaveUp ? 'It got away!' : 'Gotcha!'} onClose={onClose}>
@@ -69,10 +69,10 @@ export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestSt
             You caught <strong>{target.name}</strong> in {guessText}!
           </p>
         )}
-        {hard && (
+        {hinted && (
           <p className="inline-flex items-center gap-1.5 border-2 border-ds-frame bg-ds-paper px-2 py-1 tx-9">
-            <PixelStar />
-            Hard mode: no Gen column
+            <PixelBulb />
+            Used the Gen hint
           </p>
         )}
 
@@ -91,7 +91,7 @@ export function ResultModal({ mode, target, feedback, puzzleDate, streak, bestSt
           </p>
         )}
 
-        {mode === 'daily' && <DailyStats date={puzzleDate} guesses={gaveUp ? null : feedback.length} hard={hard} />}
+        {mode === 'daily' && <DailyStats date={puzzleDate} guesses={gaveUp ? null : feedback.length} />}
 
         {mode === 'daily' && (
           <p className="tx-9 text-ds-frame">

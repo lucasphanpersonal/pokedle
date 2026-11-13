@@ -23,27 +23,16 @@ const BIG_TABLE_QUERY = '(min-width: 80rem)'
  * Pokémon is widest so almost every name (all but "Paldean Tauros (Combat Breed)") fits on three lines at 7px or more;
  * Shared Ability is sized by line count (abilityFit in FeedbackRow.tsx), so three long abilities still stay inside the tile.
  */
-const COLUMN_WIDTHS = [12.5, 10.375, 10.375, 6, 7, 7, 9, 8, 8.5, 9.5, 11.75]
+const COLUMN_WIDTHS = [13.298, 11.037, 11.037, 7.447, 7.447, 9.574, 8.511, 9.043, 10.106, 12.5]
 
 /** Phone key: the labels of the card's two tile rows, in column order. */
-const KEY_TOP = ['Type 1', 'Type 2', 'Gen', 'Height']
-const HARD_KEY_TOP = ['Type 1', 'Type 2', 'Height']
+const KEY_TOP = ['Type 1', 'Type 2', 'Height']
 const KEY_BOTTOM = ['Weight', 'Color', 'Evolution', 'Form']
 
 interface GuessGridProps {
   guesses: Pokemon[]
   feedback: GuessFeedback[]
-  /** Hard mode: the Gen column is hidden. */
-  hard?: boolean
 }
-
-/** Column widths with Gen removed (index 3), scaled back up to 100. */
-const HARD_COLUMNS = GRID_COLUMNS.filter((c) => c !== 'Gen')
-const HARD_WIDTHS = (() => {
-  const rest = COLUMN_WIDTHS.filter((_, i) => GRID_COLUMNS[i] !== 'Gen')
-  const total = rest.reduce((a, b) => a + b, 0)
-  return rest.map((w) => (w * 100) / total)
-})()
 
 /**
  * The guess table. Newest guess on top. Only guesses made after the grid
@@ -51,12 +40,10 @@ const HARD_WIDTHS = (() => {
  * remounts the grid) appears instantly.
  *
  * Phones and tablets under 1024 px show one compact card per guess (no sideways
- * scrolling); larger tablets and desktops show the full eleven-column table.
+ * scrolling); larger tablets and desktops show the full ten-column table.
  * Only the layout that fits is rendered, so each guess's tiles exist once in the DOM.
  */
-export function GuessGrid({ guesses, feedback, hard = false }: GuessGridProps) {
-  const columns = hard ? HARD_COLUMNS : GRID_COLUMNS
-  const widths = hard ? HARD_WIDTHS : COLUMN_WIDTHS
+export function GuessGrid({ guesses, feedback }: GuessGridProps) {
   const abilityColumn = abilityColumnFit(guesses, feedback)
   const bigText = useSyncExternalStore(subscribeBigText, isBigText, () => false)
   const twoUp = TWO_UP[bigText ? 'big' : 'normal']
@@ -85,13 +72,13 @@ export function GuessGrid({ guesses, feedback, hard = false }: GuessGridProps) {
         <div>
           <table className="w-full table-fixed border-separate border-spacing-1">
             <colgroup>
-              {widths.map((w, i) => (
-                <col key={columns[i]} style={{ width: `${w}%` }} />
+              {COLUMN_WIDTHS.map((w, i) => (
+                <col key={GRID_COLUMNS[i]} style={{ width: `${w}%` }} />
               ))}
             </colgroup>
             <thead>
               <tr>
-                {columns.map((col) => (
+                {GRID_COLUMNS.map((col) => (
                   <th key={col} scope="col" className="p-1 text-center tx-9 leading-3 font-normal">
                     {col}
                   </th>
@@ -103,7 +90,7 @@ export function GuessGrid({ guesses, feedback, hard = false }: GuessGridProps) {
                 .map((g, i) => ({ g, f: feedback[i], i }))
                 .reverse()
                 .map(({ g, f, i }) => (
-                  <FeedbackRow key={g.id} guess={g} feedback={f} hard={hard} animate={i >= restoredCount} abilityColumn={abilityColumn} />
+                  <FeedbackRow key={g.id} guess={g} feedback={f} animate={i >= restoredCount} abilityColumn={abilityColumn} />
                 ))}
             </tbody>
           </table>
@@ -124,8 +111,8 @@ export function GuessGrid({ guesses, feedback, hard = false }: GuessGridProps) {
                   copy ? twoUp.keyCopy : 'grid'
                 }`}
               >
-                {[...(hard ? HARD_KEY_TOP : KEY_TOP), ...KEY_BOTTOM].map((label, i) => (
-                  <span key={label} className={cardTileSpan(i, hard)}>
+                {[...KEY_TOP, ...KEY_BOTTOM].map((label, i) => (
+                  <span key={label} className={cardTileSpan(i)}>
                     {label}
                   </span>
                 ))}
@@ -137,7 +124,7 @@ export function GuessGrid({ guesses, feedback, hard = false }: GuessGridProps) {
               .map((g, i) => ({ g, f: feedback[i], i }))
               .reverse()
               .map(({ g, f, i }) => (
-                <GuessCard key={g.id} guess={g} feedback={f} hard={hard} animate={i >= restoredCount} bigText={bigText} />
+                <GuessCard key={g.id} guess={g} feedback={f} animate={i >= restoredCount} bigText={bigText} />
               ))}
           </ul>
         </div>

@@ -45,18 +45,18 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   its suggestions; already guessed Pokémon are hidden from them. Matching ignores case, accents and punctuation ("flabebe" finds Flabébé).
   Typing the full name of a Pokémon you already guessed and pressing Enter says "You already guessed …" instead of guessing
   the next suggestion (so "pikachu" twice never guesses Pikachu Rock Star); picking a suggestion with ↑/↓ first still works.
-- **Give up (Daily and Endless)**: a white **Give up** button is the last one in the menu row under the puzzle title
-  (after History and, in Endless, Gens; on phones History has its own row, with Gens, Hard and Give up under it). It is kept away from the search
-  box on purpose, so the most-tapped control never sits next to one that ends the game, and it is always shown, so nothing moves
-  when it becomes available: before the first guess it is locked like Hard and Gens (same colours, grey label, and a
-  tap shows "Give up unlocks after your first guess." under the guess count). It asks first
-  (`src/components/GiveUpModal.tsx`: **Keep going** or **Give up**), then ends the game as `lost`: the result screen,
-  titled "It got away!", reveals the answer with its Pokédex entry (plus **New Pokémon** in Endless). For the Daily the
-  dialog warns that it can't be replayed and names the streak that ends: a given-up Daily is listed in History as
-  "Gave up", resets the streak straight away and stays out of the solved count, average and fewest. An Endless give up
-  counts as given up in the Endless stats.
-- **Endless Gens**: in Endless a white **Gens** button sits beside History (on phones History is on its own row with
-  Gens, Hard and Give up under it). It reads **Gens · All**, or **Gens · 3/9** when some are off, and opens a picker
+- **Give up (Daily and Endless)**: a white **Give up** button sits in the menu row under the puzzle title: right of
+  History, and last in the row on wider screens (after Gens and Gen hint). On phones History and Give up share the top
+  row, with Gens and Gen hint under them when shown. It is kept away from the search box on purpose, so the most-tapped
+  control never sits next to one that ends the game, and it is always shown, so nothing moves when it becomes
+  available: before the first guess it is locked like Gens (same colours, grey label, and a tap shows "Give up unlocks
+  after your first guess." under the guess count). It asks first (`src/components/GiveUpModal.tsx`: **Keep going** or
+  **Give up**), then ends the game as `lost`: the result screen, titled "It got away!", reveals the answer with its
+  Pokédex entry (plus **New Pokémon** in Endless). For the Daily the dialog warns that it can't be replayed and names
+  the streak that ends: a given-up Daily is listed in History as "Gave up", resets the streak straight away and stays
+  out of the solved count, average, fewest and no-hint share. An Endless give up counts as given up in the Endless stats.
+- **Endless Gens**: in Endless a white **Gens** button sits in the same row (on phones it starts the second row, under
+  History and Give up). It reads **Gens · All**, or **Gens · 3/9** when some are off, and opens a picker
   (`src/components/GensModal.tsx`): nine **Gen 1** to **Gen 9** toggles in a 3 by 3 grid (green and pressed in when on,
   white and raised when off), **All** and **None** buttons, a line with the selection and how many Pokémon it holds, and
   **OK**. At least one Gen must be on (OK is disabled and the line says "Pick at least one Gen."); closing the box
@@ -64,15 +64,15 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   `generation` field, so forms count by their debut (Megas are Gen 6, Alolan forms Gen 7). The search box is not
   filtered: any Pokémon can still be guessed. The choice is a per-device preference
   (`localStorage['pokemondle:endless-gens']`, a sorted list, all nine by default, `src/lib/gens.ts`) kept in sync
-  across tabs. Like Hard mode, the button is **locked while a game is in progress** (it has guesses and isn't solved
+  across tabs. The button is **locked while a game is in progress** (it has guesses and isn't solved
   or given up): it keeps its bevel but its label greys and it is `aria-disabled`, and tapping it shows a one-line note under the guess count
   ("Gens are locked for this game, which was drawn from …") instead of opening the picker. Before the first guess a
   change redraws the answer at once; once the game is solved or given up the picker opens again and the change
   applies from the next **New Pokémon**. Each game records the Gens it was
   drawn from, and while they are not all nine the title reads "Endless · Gens 1-3, 5" instead of "Endless mode".
-  The Daily always uses every Gen. Hard mode works the same with it: the Gen column stays hidden, though a player who
-  picks a single Gen already knows the answer's generation.
-- **Columns**: Pokémon, Type 1, Type 2, Gen, Height, Weight, Color, Evolution (stage 1–3), Form, Egg Group, Shared Ability.
+  The Daily always uses every Gen. An Endless game drawn from a single Gen never offers the Gen hint (the player already knows it).
+- **Columns**: Pokémon, Type 1, Type 2, Height, Weight, Color, Evolution (stage 1–3), Form, Egg Group, Shared Ability.
+  There is no Gen column: a guess never shows its generation, so the Gen is only revealed by the optional Gen hint.
   Green ✓ = match, yellow ~ = type in the other slot (or one shared egg group), red ✕ = no match, ▲/▼ = the answer is higher/lower.
   Every tile carries its ✓, ~ or ✕ as a small pixel mark in the top-right corner (`src/components/ResultMark.tsx`), and number tiles carry their arrow, so no match, partial or miss depends on telling red from green.
   Form is green when the guess and the answer share a form category (Base, Mega, Regional, Gigantamax, Cosmetic, Other), red otherwise; the tile shows the guess's own category.
@@ -80,30 +80,31 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   Shared Ability lists every ability the two share (hidden abilities count). With no match it is red and lists all of
   the guess's own abilities instead.
   Guessing the exact answer always turns every tile green. (Forms with no ability data on PokéAPI, like the new Legends Z-A Megas, borrow their base species' abilities in the data script.)
-- **Hard mode**: an optional switch that hides the Gen column (table and phone cards). It is the **Hard** button in the header (on phones it sits under History), and it also appears under **Help → Difficulty**. While a game is in progress the button can't be changed until that game is solved or given up; it keeps its colours (no fading), and tapping it shows a one-line note under the guess count explaining the lock.
-  It is a per-device preference (`localStorage['pokemondle:hard-mode']`, off by default, `src/lib/hardMode.ts`) that
-  sets how the *next* game starts. Each game records its own `hard` flag when its first guess is made, so the mode
-  can't change mid-game: the switch is disabled while the current game is in progress and unlocks once it is solved or given up.
-  The first time a player turns Hard on, an in-game style text box pops up in the middle of the screen, over the same dimmed background as the other dialogs, and explains that the Gen
-  column is hidden (`src/components/HardNotice.tsx`). The text types out letter by letter with a stepping ▼ arrow; a tap,
-  click, Enter, Space, Z/A or Esc finishes the text, then closes the box. If Hard was switched on inside Help, it appears
-  once Help closes. It is shown once per device (`localStorage['pokemondle:seen-hard-notice']`).
-  Hard games show "Hard mode" under the guess count, a **★ Hard mode** line on the result screen and a **★ Hard** tag
-  in History (streaks still count them). The star is a small pixel SVG (`PixelStar.tsx`), since the pixel font has no ★. Their analytics events carry `config.hard_mode = true`, and a Hard Daily
-  gets its own **Today's stats (Hard)** panel, compared only with other Hard players (see
-  [Public daily stats](#public-daily-stats)).
+- **Gen hint**: one mode for everyone (Hard mode and its Gen column were removed). Once a game has 5 guesses
+  (`HINT_AFTER_GUESSES` in `src/lib/game.ts`) and is still open, an in-game style text box pops up in the middle of
+  the screen over the dimmed background (`src/components/HintPrompt.tsx`), after the fifth row has flipped in. Its
+  question types out letter by letter (a tap, Enter, Space or Z/A finishes it), then offers **Not now** (focused, so a
+  stray Enter never spends the hint) and **Show Gen**. Show Gen types out "This Pokémon is from Gen N!" with a stepping
+  ▼; advancing closes it. Esc or a tap on the dimmed background means Not now. The pop-up appears once per game
+  (`localStorage['pokemondle:hint-offered']`, the last game offered in each mode); after Not now a white **Gen hint**
+  button (with a pixel bulb, `PixelBulb.tsx`) sits beside History until the game ends. Once taken, a "Hint: it's from
+  Gen N" badge stays under the guess count, the save gets `hinted: true`, the result screen shows **Used the Gen hint**
+  and History marks the Daily with a bulb. A hinted win still counts as a win and keeps the streak; History shows
+  "N% of wins without a hint" for the Daily and for Endless. Analytics events carry `config.hint_used` (false until the hint is
+  taken), and the Daily stats panel says what share of players used it.
 - **Pokédex numbers**: every guess shows its National Dex number (`#025`) beside the name as a display-only label,
   never a clue. Forms use their species' number (Alolan Raichu is `#026`).
 - **Results**: after the last tile flips, a dialog shows the answer's artwork, how many guesses it took and a
   **Pokédex entry card** (number, category such as "Mouse Pokémon", height, weight and English flavor text). Number,
   height and weight come from the local dataset; category and text are fetched from PokéAPI's `pokemon-species`
   endpoint only when the game ends, on a win or a give up (cached per session), with a graceful message if offline (`src/lib/dexEntry.ts`). On the
-  Daily it also shows **Today's stats**: players who solved it, the average guesses, how you rank (not shown after a give up) and a small guesses
-  histogram (see [Public daily stats](#public-daily-stats)). Endless shows a **New Pokémon** button instead.
+  Daily it always shows **Today's stats**: players who solved it, the average guesses, how you rank (not after a give
+  up), how many gave up or used the Gen hint, and a small guesses histogram, or "You're the first to solve today's
+  Pokémon!" when nobody else has yet (see [Public daily stats](#public-daily-stats)). Endless shows a **New Pokémon** button instead.
 
 ### Saved games
 
-Each mode's game is saved in `localStorage` (`pokemondle:daily`, `pokemondle:endless`). Hard mode games add `hard: true` to the save (set at the first guess, so it can't change mid-game); older saves without it load as normal games and any other value makes the save invalid. The answer is stored scrambled
+Each mode's game is saved in `localStorage` (`pokemondle:daily`, `pokemondle:endless`). A game where the Gen hint was taken adds `hinted: true` (any other value makes the save invalid). Saves from when Hard mode existed carry `hard: true`; `decodeSave` drops it, so those games, even one still in progress, carry on as ordinary games. The old `pokemondle:hard-mode` and `pokemondle:seen-hard-notice` settings are deleted on load. The answer is stored scrambled
 (`t`, see `encodeSave` in `src/lib/game.ts`) rather than as a plain id, so it can't be read at a glance in the browser's
 storage panel. This is only a deterrent: the game is fully client-side, so a determined player can still work it out.
 An Endless game drawn from only some Gens adds `gens` (a sorted list such as `[1, 4]`; absent means all nine; only valid on an Endless save whose answer is from one of them).
@@ -113,7 +114,7 @@ Older plain saves are still read. The search box shows "You got it!" once a game
 ### History and streaks
 
 - Every finished Daily is saved on the player's own device in `localStorage['pokemondle:history']` (date, answer id,
-  guess count, `hard: true` if it was a Hard mode game, and `lost: true` if it was given up). No account or server is involved, so it doesn't carry over between devices or browsers.
+  guess count, `hinted: true` if the Gen hint was taken, and `lost: true` if it was given up; entries from the Hard mode days lose their `hard` flag and count as ordinary solves). No account or server is involved, so it doesn't carry over between devices or browsers.
 - The **History** button under the puzzle title shows the current streak, and opens a screen with current and best
   streak, Dailies solved, average and fewest guesses (solved Dailies only), a "Dailies given up" count once there is one, and a list of past Dailies (puzzle number, date, answer, guesses, "Gave up" for a given-up one; days before launch show only the date).
   The Daily result screen shows the streak too.
@@ -161,10 +162,10 @@ Older plain saves are still read. The search box shows "You got it!" once a game
 
 ### Layout on different devices
 
-- Desktop and large tablet (≥ 1024 px, or ≥ 1280 px with Larger text): all eleven columns fit on screen.
+- Desktop and large tablet (≥ 1024 px, or ≥ 1280 px with Larger text): all ten columns fit on screen.
 - Phones and tablets under 1024 px (1280 px with Larger text): no sideways scrolling. Each guess is a compact card: sprite and name on top, then the
-  comparison tiles in two rows of four (Type 1, Type 2, Gen, Height / Weight, Color, Evolution, Form; in Hard mode the top row is three wider tiles without Gen) and full-width Egg Group and Shared Ability strips,
-  with a small key above the list laid out in the same two rows of four as the tiles (rows of three under 640 px with Larger text; `cardTileSpan` in `src/lib/cardLayout.ts` sets the spans for both). The search box uses 16 px text so iOS doesn't
+  comparison tiles in two rows (three wider tiles: Type 1, Type 2, Height; then four: Weight, Color, Evolution, Form) and full-width Egg Group and Shared Ability strips,
+  with a small key above the list laid out in the same two rows as the tiles (rows of three under 640 px with Larger text; `cardTileSpan` in `src/lib/cardLayout.ts` sets the spans for both). The search box uses 16 px text so iOS doesn't
   zoom, and every button and suggestion is at least 44 px tall for touch. From 720 px wide (iPad portrait; 900 px with Larger text) the cards sit two to a row,
   each column with its own key, so tablet tiles aren't stretched across the whole screen.
 - Only one of the two layouts is rendered at a time (`useMediaQuery` in GuessGrid), not both with one hidden by CSS. Rotating
@@ -184,7 +185,7 @@ asked to flag any break), and UI changes are screenshotted and measured at 320, 
    Never hand-roll a `box-shadow` or `border` bevel on a single control. A dialog's close button is a 44px
    `.ds-button bevel-paper` square holding the pixel-art cross (`ResultMark` drawn at 2px per art pixel), like the
    header's ? button. The only exception is the small on/off switch graphics in Help, which are not menu buttons.
-2. **Pressed means the inverse bevel.** A selected or "on" control (the chosen Daily/Endless side, Hard when on, a chosen Gen in the Endless Gens picker) adds
+2. **Pressed means the inverse bevel.** A selected or "on" control (the chosen Daily/Endless side, a chosen Gen in the Endless Gens picker) adds
    `.bevel-pressed`: same edges, dark on top and light at the bottom. The edges stay the same size, so labels sit at
    the same height whether a control is up or down.
 3. **Equal heights and gaps.** Header and menu controls are all 44px tall (also the minimum touch target), top-aligned
@@ -304,7 +305,7 @@ game sends `game_finished` with `result: 'won'`, or `'lost'` when a game (Daily 
 Daily counts toward the public Daily stats' players-finished total and solve rate, but not the guesses-to-solve chart.
 
 Players can switch off "Share anonymous stats" in the Help screen (the "?" button), which also explains that only
-anonymous game events (guesses, results, device type, and whether Hard mode was on) are recorded. Players are opted out automatically if their browser sends Global Privacy Control (`navigator.globalPrivacyControl`)
+anonymous game events (guesses, results, device type, and whether the Gen hint was taken) are recorded. Players are opted out automatically if their browser sends Global Privacy Control (`navigator.globalPrivacyControl`)
 or Do Not Track, or if `localStorage['pokemondle:analytics-opt-out']` is `'true'` (`setTrackingOptOut()` in
 `src/lib/analytics.ts` sets it, and the Help switch calls it; the choice is also held in memory for the session if
 storage is unavailable). When the browser sends GPC or Do Not Track, the
@@ -314,20 +315,24 @@ switch is shown off and disabled.
 
 The Daily result screen reads totals from the `stats` Edge Function
 (`GET /functions/v1/stats?date=YYYY-MM-DD`), which calls `public_daily_stats()` and returns only
-`games_finished`, `wins`, `solve_rate` and a guesses histogram. Nothing per-player and never the answer.
+`games_finished`, `wins`, `solve_rate`, `hinted` (finished games that took the Gen hint) and a guesses histogram. Nothing per-player and never the answer.
 Each network (IP) counts at most once per puzzle and UTC day (migration `20261110010000_public_stats_one_per_visitor.sql`),
-so one person cannot skew it by posting many finishes, and players sharing one Wi-Fi count as one. Below 5 finished games it returns an empty histogram, and the panel stays hidden. Responses are cached for 60 s.
-The client derives the URL from `VITE_TRACK_URL` (`/track` becomes `/stats`), skips the request for players who
-opted out (or send GPC / Do Not Track), and shows nothing if the request fails or the player is offline.
+so one person cannot skew it by posting many finishes, and players sharing one Wi-Fi count as one. Totals are served
+from the first finished game (there is no minimum any more), so the panel shows after every Daily. Responses are cached for 60 s.
+The client derives the URL from `VITE_TRACK_URL` (`/track` becomes `/stats`). The panel (`src/components/DailyStats.tsx`)
+always renders: "Counting today's players…" while loading; "You're the first to solve today's Pokémon!" when the server
+has counted nobody yet (your own result is then added on the client so your bar shows);
+otherwise players, average guesses and how you rank, plus "N gave up" and "N% used the Gen hint" lines. Players who
+opted out (or send GPC / Do Not Track) get a note pointing to the Share anonymous stats switch instead of a request,
+and a failed request says the stats can't be reached right now.
 
 
-Normal and Hard mode games have separate stats. `public_daily_stats(date, hard)` (migration
-`20261108230000_public_stats_hard_split.sql`) counts only games whose events carry `config.hard_mode = true` when
-`hard` is true, and only the others when it is false; each side has its own 5-game threshold, so the Hard panel often
-stays hidden. Apply the migration (`supabase db push`) before deploying the `stats` function: the function calls the
-two-argument `public_daily_stats`, so deploying it first makes the panel disappear for everyone until the migration lands.
-The function takes `?hard=1` for the Hard stats and echoes `hard` in its response; the game ignores an
-answer that doesn't match what it asked for, so an older deployed function can never show normal stats as Hard.
+Every Daily counts together: migration `20261113220000_public_stats_hint.sql` replaced the old normal/Hard split
+(`public_daily_stats(date, hard)` and the `?hard=1` parameter) with `public_daily_stats(date)`. Games from the Hard mode days
+count as games without the hint. The migration drops the two-argument function, so the `stats` function must be redeployed
+with it; the **Deploy Supabase** action does both on merge (migration first), and the panel just says the stats can't be
+reached for the few seconds in between.
 
-The player's own result is sent just before, so the fetch waits 1.5 s to usually include it. Deploy the function
-(with the same `ALLOWED_ORIGINS` secret as `track`) before the site update goes live; until then the panel simply doesn't appear.
+The player's own result is sent just before, so the fetch waits 1.5 s to usually include it. The function uses the
+same `ALLOWED_ORIGINS` secret as `track`. Deploy order is migration first, then the function (the workflow does this);
+the site can go live at any time, and the panel says the stats can't be reached until both are deployed.

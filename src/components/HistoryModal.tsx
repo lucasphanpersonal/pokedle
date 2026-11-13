@@ -2,7 +2,7 @@ import { puzzleNumber } from '../lib/daily'
 import { computeEndlessStats, computeStats, type EndlessRecord, type HistoryEntry } from '../lib/history'
 import { iconUrl, POKEDEX_BY_ID } from '../lib/pokedex'
 import { Modal } from './Modal'
-import { PixelStar } from './PixelStar'
+import { PixelBulb } from './PixelBulb'
 
 interface HistoryModalProps {
   history: HistoryEntry[]
@@ -17,6 +17,17 @@ function Stat({ label, value, wide, full }: { label: string; value: string | num
       <div className="text-sm leading-5">{value}</div>
       <div className="tx-9 leading-4 text-ds-frame">{label}</div>
     </div>
+  )
+}
+
+/** "80% of wins without a hint", once there is a win to count. */
+function NoHintLine({ percent, className = '' }: { percent: number | null; className?: string }) {
+  if (percent === null) return null
+  return (
+    <p className={`flex items-center justify-center gap-1.5 tx-9 text-ds-frame ${className}`}>
+      <PixelBulb />
+      {percent}% of wins without a hint
+    </p>
   )
 }
 
@@ -36,6 +47,7 @@ export function HistoryModal({ history, endless, onClose }: HistoryModalProps) {
           <Stat wide label="Fewest" value={stats.fewestGuesses ?? '-'} />
           {stats.gaveUp > 0 && <Stat full label="Dailies given up" value={stats.gaveUp} />}
         </div>
+        <NoHintLine percent={stats.noHintPercent} className="!mt-2" />
 
         {history.length === 0 ? (
           <p>No finished Dailies yet. Solve today's Pokémon and it will show up here.</p>
@@ -59,10 +71,10 @@ export function HistoryModal({ history, endless, onClose }: HistoryModalProps) {
                     <div className="tx-9 text-ds-frame">
                       {puzzleNumber(h.date) >= 1 && `#${puzzleNumber(h.date)} · `}
                       <span className="whitespace-nowrap">{h.date}</span>
-                      {h.hard && (
+                      {h.hinted && (
                         <span className="ml-2 inline-flex items-center gap-1 whitespace-nowrap">
-                          <PixelStar />
-                          Hard
+                          <PixelBulb />
+                          Hint
                         </span>
                       )}
                     </div>
@@ -87,11 +99,14 @@ export function HistoryModal({ history, endless, onClose }: HistoryModalProps) {
             <Stat wide label="Avg guesses" value={avg(endlessStats.averageGuesses)} />
             <Stat wide label="Fewest" value={endlessStats.fewestGuesses ?? '-'} />
           </div>
+          <NoHintLine percent={endlessStats.noHintPercent} className="mt-2" />
         </section>
         <p className="tx-9 text-ds-frame">
           Saved on this device only: it doesn't carry over to other devices or browsers, and clearing site data erases it.
-          Finished Dailies are listed, solved or given up. Missing a day, or giving up, resets your streak; the Daily average and fewest count solved games only. Endless games are counted when you catch
-          the Pokémon or give up; the Endless average and fewest count caught games only.
+          Finished Dailies are listed, solved or given up. Missing a day or giving up resets your streak; the Daily
+          average and fewest count solved games only. Games where you took the Gen hint still count as wins and keep
+          your streak; they are marked with a bulb. Endless games are counted when you catch the Pokémon or give up; the
+          Endless average and fewest count caught games only.
         </p>
       </div>
     </Modal>

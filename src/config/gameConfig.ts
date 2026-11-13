@@ -14,12 +14,14 @@ export const ENABLED_FORM_CATEGORIES: Record<FormCategory, boolean> = {
   other: true,
 }
 
-/** Column headers for the guess grid, in display order. */
+/**
+ * Column headers for the guess grid, in display order. There is no Gen column: the answer's
+ * generation is only revealed by the optional Gen hint (see HINT_AFTER_GUESSES in lib/game.ts).
+ */
 export const GRID_COLUMNS = [
   'Pokémon',
   'Type 1',
   'Type 2',
-  'Gen',
   'Height',
   'Weight',
   'Color',

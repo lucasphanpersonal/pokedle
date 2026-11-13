@@ -6,8 +6,3 @@ export function parseDate(raw: string | null): string | null {
   const d = new Date(`${raw}T00:00:00Z`)
   return Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== raw ? null : raw
 }
-
-/** `hard=1` asks for the Hard mode stats; anything else (or nothing) means the normal ones. */
-export function parseHard(raw: string | null): boolean {
-  return raw === '1'
-}

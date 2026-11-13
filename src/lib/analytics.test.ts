@@ -46,22 +46,29 @@ const today = localDateKey()
 const daily = { mode: 'daily' as const, gameKey: today, targetId: 25 }
 const endless = { mode: 'endless' as const, gameKey: '2026-11-07T10:00:00.000Z', targetId: 6 }
 
-describe('hard mode flag', () => {
-  it('tags every event with config.hard_mode and the server accepts it', async () => {
-    const hardDaily = { ...daily, hard: true }
-    trackGuess(hardDaily, { guessId: 25, guessNumber: 1, isCorrect: true })
-    trackFinish(hardDaily, 'won', 1)
+describe('Gen hint flag', () => {
+  it('tags events with config.hint_used once the hint is taken, and the server accepts it', async () => {
+    trackGuess(daily, { guessId: 1, guessNumber: 1, isCorrect: false })
+    const hinted = { ...daily, hinted: true }
+    trackGuess(hinted, { guessId: 25, guessNumber: 2, isCorrect: true })
+    trackFinish(hinted, 'won', 2)
     const [body] = await bodies()
     expect(validateBatch(body).ok).toBe(true)
-    const events = (body as { events: { config: Record<string, unknown> }[] }).events
-    expect(events.every((e) => e.config.hard_mode === true)).toBe(true)
+    const events = (body as { events: { event: string; config: Record<string, unknown> }[] }).events
+    expect(events.map((e) => [e.event, e.config.hint_used])).toEqual([
+      ['game_started', false],
+      ['guess_made', false],
+      ['guess_made', true],
+      ['game_finished', true],
+    ])
+    expect(events.every((e) => !('hard_mode' in e.config))).toBe(true)
   })
-  it('is false for normal games', async () => {
+  it('is false for games without the hint', async () => {
     trackGuess(daily, { guessId: 25, guessNumber: 1, isCorrect: true })
     trackFinish(daily, 'won', 1)
     const [body] = await bodies()
     const events = (body as { events: { config: Record<string, unknown> }[] }).events
-    expect(events.every((e) => e.config.hard_mode === false)).toBe(true)
+    expect(events.every((e) => e.config.hint_used === false)).toBe(true)
   })
 })
 

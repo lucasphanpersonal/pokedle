@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Pokemon } from '../types/pokemon'
-import { canGiveUp, decodeSave, encodeSave, applyGuess, applyGuessToGames, gameStatus, giveUp, isValidSave, newDailyGame, newEndlessGame, newEndlessGameForGens, matchEndlessToGens, gameGens, type SavedGame } from './game'
+import { canGiveUp, canTakeHint, HINT_AFTER_GUESSES, takeHint, decodeSave, encodeSave, applyGuess, applyGuessToGames, gameStatus, giveUp, isValidSave, newDailyGame, newEndlessGame, newEndlessGameForGens, matchEndlessToGens, gameGens, type SavedGame } from './game'
 
 const pool = [1, 2, 3, 4, 5].map((id) => ({ id }) as Pokemon)
 const byId = new Map(pool.map((p) => [p.id, p]))
@@ -71,13 +71,13 @@ describe('applyGuessToGames', () => {
     const g = games('2026-11-08')
     const { applied, result } = applyGuessToGames(g, 'endless', 2, '2026-11-08', pool)
     expect(result).toBe('ok')
-    expect(applied).toEqual({ mode: 'endless', gameKey: 'e', targetId: 1, guessNumber: 1, status: 'playing', hard: false })
+    expect(applied).toEqual({ mode: 'endless', gameKey: 'e', targetId: 1, guessNumber: 1, status: 'playing', hinted: false })
   })
   it('tags a guess after midnight with the new day, not the stale cached one', () => {
     const stale = games('2026-11-08')
     const fresh = newDailyGame('2026-11-09', pool)
     const out = applyGuessToGames(stale, 'daily', 5, '2026-11-09', pool)
-    expect(out.applied).toEqual({ mode: 'daily', gameKey: '2026-11-09', targetId: fresh.targetId, guessNumber: 1, status: 'playing', hard: false })
+    expect(out.applied).toEqual({ mode: 'daily', gameKey: '2026-11-09', targetId: fresh.targetId, guessNumber: 1, status: 'playing', hinted: false })
     expect(out.games.daily.key).toBe('2026-11-09')
     expect(out.games.daily.guessIds).toEqual([5])
   })
@@ -120,26 +120,46 @@ describe('save scrambling', () => {
   })
 })
 
-describe('hard mode flag', () => {
-  const fresh = (): SavedGame => ({ v: 1, mode: 'endless', key: 'x', targetId: 1, guessIds: [] })
-  it('is recorded on the first guess only', () => {
-    const first = applyGuess(fresh(), 2, true).game
-    expect(first.hard).toBe(true)
-    // Turning the preference off mid-game doesn't change the game.
-    expect(applyGuess(first, 3, false).game.hard).toBe(true)
-    // And turning it on mid-game doesn't make a normal game hard.
-    const normal = applyGuess(fresh(), 2, false).game
-    expect(applyGuess(normal, 3, true).game.hard).toBeUndefined()
+describe('Gen hint', () => {
+  const bigPool = Array.from({ length: 10 }, (_, i) => ({ id: i + 1 }) as Pokemon)
+  const bigById = new Map(bigPool.map((p) => [p.id, p]))
+  const withGuesses = (n: number): SavedGame => ({ v: 1, mode: 'endless', key: 'x', targetId: 1, guessIds: bigPool.slice(1, n + 1).map((p) => p.id) })
+
+  it(`is offered only after ${HINT_AFTER_GUESSES} guesses, while the game is open, and only once`, () => {
+    expect(canTakeHint(withGuesses(HINT_AFTER_GUESSES - 1))).toBe(false)
+    expect(takeHint(withGuesses(HINT_AFTER_GUESSES - 1)).hinted).toBeUndefined()
+    const hinted = takeHint(withGuesses(HINT_AFTER_GUESSES))
+    expect(hinted.hinted).toBe(true)
+    expect(canTakeHint(hinted)).toBe(false)
+    expect(takeHint(hinted)).toBe(hinted)
+    const won = applyGuess(withGuesses(HINT_AFTER_GUESSES), 1).game
+    expect(canTakeHint(won)).toBe(false)
+    expect(canTakeHint(giveUp(withGuesses(HINT_AFTER_GUESSES)))).toBe(false)
   })
   it('is reported for the game a guess landed in, and survives save and load', () => {
-    const games = { daily: newDailyGame('2026-11-08', pool), endless: fresh() }
-    const { games: next, applied } = applyGuessToGames(games, 'endless', 2, '2026-11-08', pool, true)
-    expect(applied?.hard).toBe(true)
-    expect(isValidSave(decodeSave(encodeSave(next.endless)), byId)).toBe(true)
-    expect((decodeSave(encodeSave(next.endless)) as SavedGame).hard).toBe(true)
+    const hinted = takeHint(withGuesses(HINT_AFTER_GUESSES))
+    const games = { daily: newDailyGame('2026-11-08', bigPool), endless: hinted }
+    const { games: next, applied } = applyGuessToGames(games, 'endless', 9, '2026-11-08', bigPool)
+    expect(applied?.hinted).toBe(true)
+    expect(isValidSave(decodeSave(encodeSave(next.endless)), bigById)).toBe(true)
+    expect((decodeSave(encodeSave(next.endless)) as SavedGame).hinted).toBe(true)
   })
-  it('rejects a corrupt hard flag', () => {
-    expect(isValidSave({ ...fresh(), targetId: 1, hard: 'yes' }, byId)).toBe(false)
+  it('rejects a corrupt hint flag', () => {
+    expect(isValidSave({ ...withGuesses(5), hinted: 'yes' }, bigById)).toBe(false)
+  })
+})
+
+describe('saves from when Hard mode existed', () => {
+  it('drop the hard flag, so a Hard game in progress carries on as an ordinary game', () => {
+    const old = { v: 1, mode: 'daily', key: '2026-11-08', targetId: 3, guessIds: [2], hard: true }
+    const decoded = decodeSave(old) as SavedGame & { hard?: unknown }
+    expect(decoded.hard).toBeUndefined()
+    expect(isValidSave(decoded, byId)).toBe(true)
+    const scrambled = { ...encodeSave({ v: 1, mode: 'endless', key: 'k', targetId: 3, guessIds: [2] }), hard: true }
+    const read = decodeSave(scrambled) as SavedGame & { hard?: unknown }
+    expect(read.hard).toBeUndefined()
+    expect(read.targetId).toBe(3)
+    expect(isValidSave(read, byId)).toBe(true)
   })
 })
 

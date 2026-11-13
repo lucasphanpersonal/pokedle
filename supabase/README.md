@@ -98,15 +98,17 @@ For ready-made, commented queries (today's players/wins/losses, last 30 days, gu
 see [queries/stats.sql](queries/stats.sql). Paste one query at a time into the SQL Editor and **Save** it. They are read-only `SELECT`s, with days in America/New_York.
 `target_id` and `guess_id` are National Dex numbers.
 
-The `stats` function (`GET /functions/v1/stats?date=YYYY-MM-DD[&hard=1]`, same `ALLOWED_ORIGINS` as `track`) serves this
+The `stats` function (`GET /functions/v1/stats?date=YYYY-MM-DD`, same `ALLOWED_ORIGINS` as `track`) serves this
 to the game with a 60 s cache. `select public_daily_stats(current_date);` is the only thing the anon role may call: aggregates
-for one daily puzzle (games finished, solve rate, guess histogram), never the target or per-player data.
-`public_daily_stats(date, hard)` serves normal games by default, or only Hard mode games (`config.hard_mode = true`, no Gen column)
-with `?hard=1`; each has its own 5-game threshold. The raw events and the private views include both (filter on `config->>'hard_mode'`).
-Each network counts at most once per puzzle date and split, keyed on `ip_hash` (falling back to `visitor_hash` for older
+for one daily puzzle (games finished, wins, solve rate, guess histogram, and `hinted`: finished games whose events carry
+`config.hint_used = true`), never the target or per-player data. Since migration `20261113220000_public_stats_hint.sql`
+every Daily counts together (the old Hard mode split and its `?hard=1` parameter are gone; old `config.hard_mode` games
+count as games without the hint), and there is no minimum: totals are returned from the first finished game, so the
+result screen can always show them. To split by hint in your own queries, filter on `config->>'hint_used'`.
+Each network counts at most once per puzzle date, keyed on `ip_hash` (falling back to `visitor_hash` for older
 rows) and taking the earliest finish by `received_at`, then `id`. Rotating the User-Agent therefore doesn't add fake finishes;
 only many IPs would. Because the hashes rotate with the UTC-day salt, a player whose finishes land on two UTC days can count
-twice, and players sharing one network (home Wi-Fi, a school) count as one. It returns nulls and an empty histogram when fewer than 5 games finished, and errors for dates older
+twice, and players sharing one network (home Wi-Fi, a school) count as one. It returns zero counts, a null solve rate and an empty histogram when no game has finished, and errors for dates older
 than 400 days or more than 1 day ahead.
 
 ## Maintenance
