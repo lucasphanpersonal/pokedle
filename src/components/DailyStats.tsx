@@ -49,7 +49,8 @@ export function DailyStats({ date, guesses }: DailyStatsProps) {
       stats.finished === 0 ? { ...stats, histogram: { [guesses]: 1 }, finished: 1 } : stats
     const summary = summarize(counted, guesses)
     const max = Math.max(...summary.bars.map((b) => b.count), 1)
-    const first = summary.players <= 1
+    // Only claim "first" when the server counted nobody (your result was added above); one counted player may be someone else.
+    const first = stats.finished === 0
     body = (
       <>
         {first ? (

@@ -314,8 +314,8 @@ Each network (IP) counts at most once per puzzle and UTC day (migration `2026111
 so one person cannot skew it by posting many finishes, and players sharing one Wi-Fi count as one. Totals are served
 from the first finished game (there is no minimum any more), so the panel shows after every Daily. Responses are cached for 60 s.
 The client derives the URL from `VITE_TRACK_URL` (`/track` becomes `/stats`). The panel (`src/components/DailyStats.tsx`)
-always renders: "Counting today's players…" while loading; "You're the first to solve today's Pokémon!" when at most
-one player has solved it (if nobody is counted yet, your own result is added on the client so your bar shows);
+always renders: "Counting today's players…" while loading; "You're the first to solve today's Pokémon!" when the server
+has counted nobody yet (your own result is then added on the client so your bar shows);
 otherwise players, average guesses and how you rank, plus "N gave up" and "N% used the Gen hint" lines. Players who
 opted out (or send GPC / Do Not Track) get a note pointing to the Share anonymous stats switch instead of a request,
 and a failed request says the stats can't be reached right now.
@@ -327,5 +327,6 @@ count as games without the hint. The migration drops the two-argument function, 
 with it; the **Deploy Supabase** action does both on merge (migration first), and the panel just says the stats can't be
 reached for the few seconds in between.
 
-The player's own result is sent just before, so the fetch waits 1.5 s to usually include it. Deploy the function
-(with the same `ALLOWED_ORIGINS` secret as `track`) before the site update goes live; until then the panel simply doesn't appear.
+The player's own result is sent just before, so the fetch waits 1.5 s to usually include it. The function uses the
+same `ALLOWED_ORIGINS` secret as `track`. Deploy order is migration first, then the function (the workflow does this);
+the site can go live at any time, and the panel says the stats can't be reached until both are deployed.
