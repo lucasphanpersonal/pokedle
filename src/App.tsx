@@ -55,8 +55,8 @@ export default function App() {
 
   // Endless "Give up" asks first. Keyed by game, so switching modes or starting a new game drops a pending ask.
   const [giveUpAsk, setGiveUpAsk] = useState<string | null>(null)
-  // Game whose locked Hard button was tapped: shows the "locked" note for that game only.
-  const [lockNoteGame, setLockNoteGame] = useState<string | null>(null)
+  // Which locked button (Hard or Gens) was tapped, and in which game: shows that "locked" note for that game only.
+  const [lockNote, setLockNote] = useState<{ game: string; what: 'hard' | 'gens' } | null>(null)
   const showGiveUp = giveUpAsk === gameId && game.canGiveUp
   const confirmGiveUp = () => {
     setGiveUpAsk(null)
@@ -80,7 +80,7 @@ export default function App() {
         onHelp={() => setShowHelp(true)}
         hard={hard}
         hardLocked={game.hardSwitchLocked}
-        onHardLockedPress={() => setLockNoteGame(gameId)}
+        onHardLockedPress={() => setLockNote({ game: gameId, what: 'hard' })}
       />
       <main className="mx-auto flex w-full max-w-5xl big:max-w-[80rem] flex-col gap-4 px-3 py-4 sm:px-5 sm:py-6">
         <div className="flex flex-col items-center gap-2 text-center">
@@ -95,12 +95,18 @@ export default function App() {
             {game.guesses.length} {game.guesses.length === 1 ? 'guess' : 'guesses'}
             {hard && ' · Hard mode'}
           </p>
-          {/* Only shown once the player taps the locked Hard button, so it doesn't cost two lines every game. */}
+          {/* Only shown once the player taps a locked Hard or Gens button, so it doesn't cost two lines every game. */}
           {/* Always mounted so screen readers announce the text when it appears. */}
           <div role="status" className="contents">
-            {game.hardSwitchLocked && lockNoteGame === gameId && (
+            {game.hardSwitchLocked && lockNote?.game === gameId && lockNote.what === 'hard' && (
               <p className="max-w-md tx-8 leading-4 text-ds-frame">
                 Hard mode is locked for this game. It applies to your next Daily or a new Endless game.
+              </p>
+            )}
+            {mode === 'endless' && game.hardSwitchLocked && lockNote?.game === gameId && lockNote.what === 'gens' && (
+              <p className="max-w-md tx-8 leading-4 text-ds-frame">
+                Gens are locked for this game, which was drawn from {gensLabel(game.gameGens)}. Change them after you catch it
+                or give up, and they apply to your next Pokémon.
               </p>
             )}
           </div>
@@ -117,9 +123,19 @@ export default function App() {
               {mode === 'endless' && (
                 <button
                   type="button"
-                  onClick={() => setShowGens(true)}
-                  title={`Endless picks from: ${gensLabel(game.endlessGens)}`}
-                  className="ds-button bevel-paper h-11 px-3 text-[9px] sm:px-4 sm:text-[10px]"
+                  onClick={() => {
+                    if (game.hardSwitchLocked) setLockNote({ game: gameId, what: 'gens' })
+                    else setShowGens(true)
+                  }}
+                  aria-disabled={game.hardSwitchLocked || undefined}
+                  title={
+                    game.hardSwitchLocked
+                      ? 'Gens are locked for this game. Change them after you catch it or give up.'
+                      : `Endless picks from: ${gensLabel(game.endlessGens)}`
+                  }
+                  className={`ds-button bevel-paper h-11 px-3 text-[9px] sm:px-4 sm:text-[10px] ${
+                    game.hardSwitchLocked ? 'cursor-not-allowed text-ds-frame' : ''
+                  }`}
                 >
                   Gens · {isAllGens(game.endlessGens) ? 'All' : `${game.endlessGens.length}/9`}
                 </button>
@@ -128,7 +144,7 @@ export default function App() {
               <HardToggle
                 hard={hard}
                 hardLocked={game.hardSwitchLocked}
-                onLockedPress={() => setLockNoteGame(gameId)}
+                onLockedPress={() => setLockNote({ game: gameId, what: 'hard' })}
                 className="inline-flex sm:hidden"
               />
             </div>
@@ -195,7 +211,7 @@ export default function App() {
       {showHistory && (
         <HistoryModal history={game.history} endless={game.endlessRecord} onClose={() => setShowHistory(false)} />
       )}
-      {showGens && mode === 'endless' && (
+      {showGens && mode === 'endless' && !game.hardSwitchLocked && (
         <GensModal
           gens={game.endlessGens}
           counts={GEN_COUNTS}

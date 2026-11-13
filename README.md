@@ -58,8 +58,11 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   `generation` field, so forms count by their debut (Megas are Gen 6, Alolan forms Gen 7). The search box is not
   filtered: any Pokémon can still be guessed. The choice is a per-device preference
   (`localStorage['pokemondle:endless-gens']`, a sorted list, all nine by default, `src/lib/gens.ts`) kept in sync
-  across tabs. If the Endless game on screen has no guesses yet, a change redraws its answer at once; a game with
-  guesses keeps its answer and the change applies from the next **New Pokémon**. Each game records the Gens it was
+  across tabs. Like Hard mode, the button is **locked while a game is in progress** (it has guesses and isn't solved
+  or given up): it keeps its bevel but its label greys and it is `aria-disabled`, and tapping it shows a one-line note under the guess count
+  ("Gens are locked for this game, which was drawn from …") instead of opening the picker. Before the first guess a
+  change redraws the answer at once; once the game is solved or given up the picker opens again and the change
+  applies from the next **New Pokémon**. Each game records the Gens it was
   drawn from, and while they are not all nine the title reads "Endless · Gens 1-3, 5" instead of "Endless mode".
   The Daily always uses every Gen. Hard mode works the same with it: the Gen column stays hidden, though a player who
   picks a single Gen already knows the answer's generation.
