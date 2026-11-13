@@ -23,13 +23,15 @@ npm run icons      # rebuild the site icons in public/ from scripts/icons/pokeba
 e2e/smoke.spec.ts             Playwright browser smoke test (load, guess, win, mode switch, Endless Gens at 390px and 1280px)
 scripts/fetchPokemonData.ts   builds the local Pokémon dataset from PokéAPI
 scripts/makeIcons.ts          builds the tab icon, home-screen icons and manifest icons from the pixel Poké Ball
-scripts/icons/pokeball.txt    the hand-drawn Poké Ball (16x16 and 32x32 grids, one letter per colour)
+scripts/icons/pokeball.txt    the hand-drawn Poké Ball (16x16 and 32x32 grids, one letter per colour); also drawn in-game by CaptureScene
+src/lib/pokeballArt.ts        its palette and parser, shared by makeIcons.ts and the catch/escape scene (plus the pixel star)
 public/                       favicon.ico, apple-touch-icon.png, manifest.json and its icons (generated, committed)
 src/components/               Header, SearchBar, GuessGrid, FeedbackRow, ResultModal, HistoryModal, HelpModal, GiveUpModal, GensModal, Modal
 src/hooks/usePokemondle.ts    game state (target, guesses, status), saved to localStorage (answer id scrambled, see below)
 src/lib/history.ts            Daily history (solved and given up), streak maths and Endless stats (pure, tested)
 src/hooks/useAnalytics.ts     wraps guesses with anonymous analytics
-src/hooks/useRevealEffects.ts  flip-reveal hold, tick sounds, win fanfare, cry and confetti timers
+src/hooks/useRevealEffects.ts  flip-reveal hold, tick sounds, the catch/escape scene, then win fanfare, cry and confetti
+src/components/CaptureScene.tsx  the Poké Ball catch (win) and escape (give up) animation; timings in src/lib/capture.ts
 src/hooks/useMediaQuery.ts     live CSS media-query match (GuessGrid picks table or cards with it)
 src/lib/                      dataset + search, Pokédex entry fetch (dexEntry.ts), comparison, daily seed, game rules, Endless Gen filter (gens.ts), sound, storage, display settings (display.ts: CRT, Larger text), tile text fitting (tileText.ts), phone card layout (cardLayout.ts)
 src/config/gameConfig.ts      game settings, including which form categories are enabled
@@ -51,7 +53,7 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   control never sits next to one that ends the game, and it is always shown, so nothing moves when it becomes
   available: before the first guess it is locked like Gens (same colours, grey label, and a tap shows "Give up unlocks
   after your first guess." under the guess count). It asks first (`src/components/GiveUpModal.tsx`: **Keep going** or
-  **Give up**), then ends the game as `lost`: the result screen, titled "It got away!", reveals the answer with its
+  **Give up**), then ends the game as `lost`: the Poké Ball escape plays (see **Catch and escape** below), then the result screen, titled "It got away!", reveals the answer with its
   Pokédex entry (plus **New Pokémon** in Endless). For the Daily the dialog warns that it can't be replayed and names
   the streak that ends: a given-up Daily is listed in History as "Gave up", resets the streak straight away and stays
   out of the solved count, average, fewest and no-hint share. An Endless give up counts as given up in the Endless stats.
@@ -150,14 +152,15 @@ Older plain saves are still read. The search box shows "You got it!" once a game
   their size, so they still fit in one row on a 320 px phone.
 
 - **Sound effects and volume**: original 8-bit style blips synthesised in the browser with the Web Audio API
-  (`src/lib/sound.ts`; square/triangle oscillators, no audio files and nothing copied from the games; the win cry below is the only audio, and it is streamed, not bundled): a short press blip on every button, switch and radio (one document-level click listener in `sound.ts`, so new buttons get it automatically; the speaker and Guess buttons opt out with `data-no-sound`), a blip as
+  (`src/lib/sound.ts`; square/triangle oscillators, no audio files and nothing copied from the games; the cry below is the only streamed audio, and nothing is bundled): a short press blip on every button, switch and radio (one document-level click listener in `sound.ts`, so new buttons get it automatically; the speaker and Guess buttons opt out with `data-no-sound`), a blip as
   you type, a tick as you move through suggestions, a two-note chime on a guess, a rising tick as each tile flips
   (timed from `useRevealEffects` to match the flip animation), a low buzz for a bad or duplicate guess and a fanfare when
-  you win, then the answer's cry after the fanfare. Volume is a Nintendo-style row of 5 equal dashes (empty white when off, green when lit) (`src/components/VolumeControl.tsx`; none lit is muted, default 5): tap a dash (the 4th lights the first 4) or use the arrow keys, Home and End. The dashes sit in the header from 760px wide up and always in **Help → Display & sound**; the speaker button mutes and restores the last level. The level scales the blips and the win cry (the cry at half strength; iOS Safari ignores volume on the cry), and is saved per
+  you win, then the answer's cry after the fanfare; during the catch and escape scene, a falling whoosh as the Poké Ball is thrown, two taps as it bounces, a low "bwop" and springy rise on each shake that follows the tilts, a click and
+  twinkle when it catches, a pop when it bursts and a quick run down the scale as the Pokémon flees. Volume is a Nintendo-style row of 5 equal dashes (empty white when off, green when lit) (`src/components/VolumeControl.tsx`; none lit is muted, default 5): tap a dash (the 4th lights the first 4) or use the arrow keys, Home and End. The dashes sit in the header from 760px wide up and always in **Help → Display & sound**; the speaker button mutes and restores the last level. The level scales the blips and the win cry (the cry at half strength; iOS Safari ignores volume on the cry), and is saved per
   device in `localStorage['pokemondle:volume']` (the old `pokemondle:sound` on/off setting is migrated: off becomes 0). The audio context is created on the first tap or keypress, as
-  browsers (including iOS Safari) require. Typing and menu blips still play with "reduce motion"; only the tile ticks are skipped.
-- **Win cry**: on a win the answer's cry plays after the fanfare (`src/lib/cry.ts`). Cries are streamed from the PokéAPI
-  cries repo (`raw.githubusercontent.com/PokeAPI/cries`, `latest/{id}.ogg`), only on a win, never during play. Forms without
+  browsers (including iOS Safari) require. Typing and menu blips still play with "reduce motion"; only the tile ticks and the catch/escape sounds are skipped (that scene is not shown).
+- **Win cry**: on a win the answer's cry plays after the fanfare (`src/lib/cry.ts`); on a give up it plays as the Pokémon bursts out of the ball. Cries are streamed from the PokéAPI
+  cries repo (`raw.githubusercontent.com/PokeAPI/cries`, `latest/{id}.ogg`), only when a game ends, never during play. Forms without
   their own cry use their species' cry. A missing or offline cry is skipped silently, and muting stops it at once.
 
 ### Layout on different devices
@@ -171,7 +174,19 @@ Older plain saves are still read. The search box shows "You got it!" once a game
 - Only one of the two layouts is rendered at a time (`useMediaQuery` in GuessGrid), not both with one hidden by CSS. Rotating
   an iPad across 1024 px (1280 px with Larger text) swaps the layout without replaying the tile flips.
 - Keyboard: type to search, ↑/↓ to move through suggestions, Enter to guess, Esc to close a dialog, ←/→ to switch Daily/Endless when that toggle is focused.
-- **Win confetti**: a ~2 second burst of pixel confetti in the game's colours, with a few Poké Balls and stars, falls over the result dialog when you win (Daily or Endless). It starts after the last tile flips, is pointer-free, and is not shown for players who set "reduce motion" (`src/components/Confetti.tsx`).
+- **Catch and escape** (`src/components/CaptureScene.tsx`, timings in `src/lib/capture.ts`): when a game ends, a small
+  battle screen (light banded field, grass platform, in-game text box, the same width as the result dialog) plays before the
+  result screen. **Win**: once the last row has flipped, the Poké Ball drops onto the platform, shakes three times, clicks
+  shut and three pixel stars pop out ("Gotcha! Pikachu was caught!"), about 4.7 s. **Give up** (Daily and Endless): the
+  ball also shakes three times, then the lid flips open in a white flash, the answer's sprite pops out as a white shape, takes its
+  colours and hops off the right edge ("The wild Pikachu fled!"), about 5.5 s. Each shake takes about a second (a rock, then a rest), at the games' pace, and its wobble sound follows the tilts. A tap, click or any key skips it (the skip
+  only skips: it never also closes or presses anything on the result screen). The ball is the same hand-drawn drawing as
+  the tab icon (`scripts/icons/pokeball.txt`, via `src/lib/pokeballArt.ts`); the stars, platform and flash are drawn in
+  code, and only the Pokémon's sprite comes from PokéAPI. The sprite starts loading when the scene starts; if it hasn't
+  loaded by the burst (slow or offline), the ball still bursts and the text still says it fled, just without the sprite.
+  Reloading a finished game never replays it, and players who set "reduce motion" skip it (straight to the result screen,
+  as before).
+- **Win confetti**: a ~2 second burst of pixel confetti in the game's colours, with a few Poké Balls and stars, falls over the result dialog when you win (Daily or Endless). It starts as the catch scene ends (with the fanfare, then the cry), is pointer-free, and is not shown for players who set "reduce motion" (`src/components/Confetti.tsx`).
 - Animations are turned off for players who set "reduce motion".
 
 ## Design rules

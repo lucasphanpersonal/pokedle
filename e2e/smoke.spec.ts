@@ -68,13 +68,43 @@ test('guessing, winning, and surviving a reload', async ({ page }) => {
   await guess(page, answer)
 
   const result = page.getByRole('dialog')
-  await expect(result).toBeVisible({ timeout: 15_000 })
+  // The row flips in, then the Poké Ball shakes and clicks; a tap skips the rest.
+  const scene = page.locator('[data-capture="catch"]')
+  await expect(scene).toBeVisible({ timeout: 15_000 })
+  await expect(scene).toContainText('Go! Poké Ball!')
+  await scene.click()
+  await expect(scene).toHaveCount(0)
+  await expect(result).toBeVisible()
   await expect(result).toContainText('Gotcha!')
   await expect(result).toContainText(answer)
 
   // Progress is saved: after a reload the finished game is still there.
   await page.reload()
   await expect(guessBox(page)).toBeDisabled()
+})
+
+test('reduced motion: no catch scene, the result shows straight away', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/')
+  await expect.poll(async () => (await savedGame(page, 'daily'))?.targetId).toBeDefined()
+  const answer = names.get((await savedGame(page, 'daily'))!.targetId)!
+  await guess(page, answer)
+  await expect(page.getByRole('dialog')).toContainText('Gotcha!')
+  await expect(page.locator('[data-capture]')).toHaveCount(0)
+})
+
+test('a key skips the escape scene', async ({ page }) => {
+  await page.goto('/')
+  await guess(page, await nonAnswer(page, 'daily', ['Pidgey', 'Zubat']))
+  await expect.poll(async () => (await savedGame(page, 'daily'))?.guessIds).toHaveLength(1)
+  await page.getByRole('button', { name: 'Give up' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Give up' }).click()
+  const scene = page.locator('[data-capture="escape"]')
+  await expect(scene).toBeVisible()
+  await page.keyboard.press('Enter')
+  await expect(scene).toHaveCount(0)
+  // The key only skipped: the result screen is open, not closed or acted on.
+  await expect(page.getByRole('dialog')).toContainText('It got away!')
 })
 
 test('a repeat guess is rejected', async ({ page }) => {
@@ -137,7 +167,9 @@ test('Endless Gens: the answer comes only from the chosen generations', async ({
   // Giving up ends the game, which unlocks the picker again.
   await page.getByRole('button', { name: 'Give up' }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Give up' }).click()
-  await page.keyboard.press('Escape') // close the "It got away!" result
+  // The ball bursts first; then the result screen. Escape closes it.
+  await expect(page.getByRole('dialog')).toContainText('It got away!', { timeout: 10_000 })
+  await page.keyboard.press('Escape')
   await page.getByRole('button', { name: 'Gens · 1/9' }).click()
   await expect(page.getByRole('dialog', { name: 'Endless Gens' })).toBeVisible()
   await page.keyboard.press('Escape')
@@ -167,8 +199,12 @@ test('giving up the Daily asks first, ends the game and is listed in History', a
   await giveUp.click()
   await page.getByRole('dialog').getByRole('button', { name: 'Give up' }).click()
   const answer = names.get((await savedGame(page, 'daily'))!.targetId)!
+  // The Poké Ball bursts and the answer runs off, then the result screen shows.
+  const scene = page.locator('[data-capture="escape"]')
+  await expect(scene).toContainText('Oh no! The Pokémon broke free!')
   const result = page.getByRole('dialog')
-  await expect(result).toContainText('It got away!')
+  await expect(result).toContainText('It got away!', { timeout: 10_000 })
+  await expect(scene).toHaveCount(0)
   await expect(result).toContainText(answer)
 
   // The loss survives a reload, and History lists it.
