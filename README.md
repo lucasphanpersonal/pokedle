@@ -99,8 +99,8 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   **Pokédex entry card** (number, category such as "Mouse Pokémon", height, weight and English flavor text). Number,
   height and weight come from the local dataset; category and text are fetched from PokéAPI's `pokemon-species`
   endpoint only when the game ends, on a win or a give up (cached per session), with a graceful message if offline (`src/lib/dexEntry.ts`). On the
-  Daily it always shows **Today's stats**: players who solved it, the average guesses, how you rank (not after a give
-  up), how many gave up or used the Gen hint, and a small guesses histogram, or "You're the first to solve today's
+  Daily it always shows **Today's stats**: boxes for players who solved it, the average guesses, how many gave up and
+  the share who used the Gen hint, a line with how you rank (not after a give up), and a small guesses histogram, or "You're the first to solve today's
   Pokémon!" when nobody else has yet (see [Public daily stats](#public-daily-stats)). Endless shows a **New Pokémon** button instead.
   A white **History** button sits on the result screen in both modes (beside **New Pokémon** in Endless).
 - **After the game**: once the last tile flips, the guess box keeps its "You got it!" (or "It got away!") text and
@@ -342,11 +342,14 @@ Each network (IP) counts at most once per puzzle and UTC day (migration `2026111
 so one person cannot skew it by posting many finishes, and players sharing one Wi-Fi count as one. Totals are served
 from the first finished game (there is no minimum any more), so the panel shows after every Daily. Responses are cached for 60 s.
 The client derives the URL from `VITE_TRACK_URL` (`/track` becomes `/stats`). The panel (`src/components/DailyStats.tsx`)
-always renders: "Counting today's players…" while loading; "You're the first to solve today's Pokémon!" when the server
-has counted nobody yet (your own result is then added on the client so your bar shows);
-otherwise players, average guesses and how you rank, plus "N gave up" and "N% used the Gen hint" lines. Players who
-opted out (or send GPC / Do Not Track) get a note pointing to the Share anonymous stats switch instead of a request,
-and a failed request says the stats can't be reached right now.
+always renders, and always in the same shape so the result screen never jumps when the totals arrive: four stat boxes
+(**Solved**, **Avg guesses**, **Gave up**, **Used hint**; two by two on phones, one row from 640 px), one message line
+with two lines' room held for it (three on phones with Larger text), the guesses chart and its caption. While loading,
+and when stats are off or can't be reached, the boxes show "-", the chart is empty and the line says "Counting today's
+players…", "Stats sharing is off (see How to play)." or "Today's stats can't be reached right now." When the totals
+arrive they fade in place (a short stepped fade, none with reduce motion). The line then says how you rank, or "You're
+the first to solve today's Pokémon!" when the server has counted nobody yet (your own result is then added on the
+client so your bar shows; Used hint stays "-" then).
 
 
 Every Daily counts together: migration `20261113220000_public_stats_hint.sql` replaced the old normal/Hard split
