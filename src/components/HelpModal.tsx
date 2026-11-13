@@ -104,7 +104,7 @@ function StatsToggle() {
       <h3 className="mb-2 tx-11">Privacy</h3>
       <p>
         The game records anonymous game events (guesses, results, device type, Gen hint use) with no cookies, accounts or
-        personal data. They power the Daily stats on the result screen. Do Not Track and Global Privacy Control are always respected. Cloudflare also counts page views, which this
+        personal data. They power the Daily stats on the result screen, shown while this is on. Do Not Track and Global Privacy Control are always respected. Cloudflare also counts page views, which this
         switch doesn't affect.
       </p>
       <PixelSwitch
@@ -165,7 +165,7 @@ export function HelpModal({ onClose }: HelpModalProps) {
           </div>
           <div>
             <dt className="inline">Shared Ability: </dt>
-            <dd className="inline">names any ability you share with the answer, hidden ones included.</dd>
+            <dd className="inline">green with the abilities you share (hidden ones count); red lists the guess's own.</dd>
           </div>
         </dl>
         <p>
@@ -173,8 +173,8 @@ export function HelpModal({ onClose }: HelpModalProps) {
           {HINT_AFTER_GUESSES} guesses you can reveal the answer's Gen. A hinted win still counts.
         </p>
         <p>
-          <strong>Daily:</strong> one Pokémon for everyone, new at midnight. Solve it each day to keep your streak; giving
-          up resets it.
+          <strong>Daily:</strong> one Pokémon for everyone, new at midnight. Solve it every day for a streak; missing a day
+          or giving up resets it.
         </p>
         <p>
           <strong>Endless:</strong> play as many as you like. <strong>Gens</strong> picks which generations the answer comes from.
