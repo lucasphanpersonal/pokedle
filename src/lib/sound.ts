@@ -8,7 +8,19 @@ import { loadJson, saveJson } from './storage'
  * created lazily on the first sound request, which always follows a tap or
  * keypress, and resumed if the browser (notably iOS Safari) suspended it.
  */
-export type SoundName = 'type' | 'move' | 'select' | 'press' | 'tick' | 'error' | 'win' | 'toggle'
+export type SoundName =
+  | 'type'
+  | 'move'
+  | 'select'
+  | 'press'
+  | 'tick'
+  | 'error'
+  | 'win'
+  | 'toggle'
+  | 'wobble'
+  | 'click'
+  | 'burst'
+  | 'flee'
 
 interface Note {
   /** Frequency in Hz. */
@@ -48,6 +60,24 @@ export function notesFor(name: SoundName, pitch = 0): Note[] {
       return [n(-12, 0, 0.09, 'square', 0.1), n(-17, 0.09, 0.14, 'square', 0.1)]
     case 'toggle':
       return [n(12, 0, 0.05), n(19, 0.05, 0.08)]
+    case 'wobble':
+      // The Poké Ball rocking on the ground: a low double knock.
+      return [n(-17, 0, 0.05, 'triangle', 0.22), n(-22, 0.07, 0.07, 'triangle', 0.22)]
+    case 'click':
+      // The ball locking shut, then the stars twinkling.
+      return [
+        n(-10, 0, 0.025, 'square', 0.1),
+        n(15, 0.04, 0.03, 'square', 0.1),
+        n(27, 0.16, 0.05, 'triangle', 0.14),
+        n(31, 0.22, 0.05, 'triangle', 0.14),
+        n(34, 0.28, 0.1, 'triangle', 0.14),
+      ]
+    case 'burst':
+      // The ball popping open.
+      return [n(24, 0, 0.03), n(12, 0.03, 0.04), n(19, 0.07, 0.05), n(31, 0.12, 0.12, 'triangle', 0.14)]
+    case 'flee':
+      // A quick run down the scale as the Pokémon dashes off.
+      return [n(14, 0, 0.05), n(9, 0.06, 0.05), n(5, 0.12, 0.05), n(0, 0.18, 0.09)]
     case 'win':
       // C major fanfare: C E G, then a held high C with a harmony note.
       return [

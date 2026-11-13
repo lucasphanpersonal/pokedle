@@ -384,3 +384,200 @@ html.crt body {
     display: none;
   }
 }
+
+/*
+ * Catch and escape scenes (components/CaptureScene.tsx). Lengths match the timings there:
+ * drop 450ms, each shake 520ms, then a click with stars (catch) or a burst, pop and run (give up).
+ */
+@keyframes capture-drop {
+  0% {
+    transform: translateY(-60vh);
+    animation-timing-function: ease-in;
+  }
+  55% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  72% {
+    transform: translateY(-18px);
+    animation-timing-function: ease-in;
+  }
+  86% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  93% {
+    transform: translateY(-5px);
+    animation-timing-function: ease-in;
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+
+/* One rock left and right, then a rest; repeated once per shake. */
+@keyframes capture-shake {
+  0%,
+  62%,
+  100% {
+    transform: rotate(0deg);
+  }
+  14% {
+    transform: rotate(-22deg);
+  }
+  34% {
+    transform: rotate(16deg);
+  }
+  50% {
+    transform: rotate(-7deg);
+  }
+}
+
+@keyframes capture-click {
+  50% {
+    transform: scale(1.06, 0.92);
+  }
+}
+
+@keyframes capture-star {
+  0% {
+    transform: translate(0, 0) scale(0.3);
+    opacity: 1;
+  }
+  45% {
+    transform: translate(var(--dx), var(--dy)) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), calc(var(--dy) + 8px)) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes capture-lid {
+  to {
+    transform: translate(-3px, -6px) rotate(-40deg);
+  }
+}
+
+@keyframes capture-flash {
+  from {
+    transform: scale(0.2);
+    opacity: 0.95;
+  }
+  to {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+/* The Pokémon comes out as a white shape, then takes its colours. */
+@keyframes capture-pop {
+  0% {
+    transform: translateY(30%) scale(0.15);
+    filter: brightness(0) invert(1);
+  }
+  55% {
+    transform: translateY(0) scale(1.08);
+    filter: brightness(0) invert(1);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    filter: none;
+  }
+}
+
+/* Hops off the right of the battle field (at most 448px wide, so 340px from the centre clears it), facing the way it runs. */
+@keyframes capture-flee {
+  0% {
+    transform: translate(0, 0) scaleX(-1);
+  }
+  20% {
+    transform: translate(60px, -28px) scaleX(-1);
+  }
+  40% {
+    transform: translate(120px, 0) scaleX(-1);
+  }
+  60% {
+    transform: translate(190px, -28px) scaleX(-1);
+  }
+  80% {
+    transform: translate(260px, 0) scaleX(-1);
+  }
+  100% {
+    transform: translate(340px, -14px) scaleX(-1);
+  }
+}
+
+@keyframes capture-fade {
+  to {
+    opacity: 0;
+  }
+}
+
+.capture-drop {
+  animation: capture-drop 450ms both;
+}
+/* A light battle field in bands (like the page's sky) with a grass platform, as in the DS games. */
+.capture-field {
+  background: linear-gradient(
+    180deg,
+    #d8f0f8 0 22%,
+    #e4f4f0 22% 40%,
+    #eef8e4 40% 56%,
+    #d8f0c0 56% 70%,
+    #c4e8a4 70% 100%
+  );
+}
+.capture-platform {
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 40%, #b8e090 0 45%, #98d070 45% 100%);
+  box-shadow:
+    inset 0 -4px 0 #6aa850,
+    0 3px 0 rgb(0 0 0 / 0.15);
+}
+.capture-shake {
+  transform-origin: 50% 92%;
+  animation: capture-shake 520ms ease-in-out var(--shakes) both;
+}
+.capture-click {
+  transform-origin: 50% 100%;
+  animation: capture-click 160ms steps(2) both;
+}
+.capture-star {
+  animation: capture-star 650ms ease-out both;
+}
+.capture-lid {
+  transform-box: view-box;
+  transform-origin: 3px 16px;
+  animation: capture-lid 220ms ease-out both;
+}
+.capture-flash {
+  animation: capture-flash 450ms ease-out both;
+}
+.capture-pop {
+  transform-origin: 50% 100%;
+  animation: capture-pop 420ms ease-out both;
+}
+.capture-flee {
+  animation: capture-flee 800ms ease-in both;
+}
+.capture-fade {
+  animation: capture-fade 500ms ease-in 250ms both;
+}
+
+/* The scene is never shown with reduced motion; this is a backstop. */
+@media (prefers-reduced-motion: reduce) {
+  .capture-drop,
+  .capture-shake,
+  .capture-click,
+  .capture-star,
+  .capture-lid,
+  .capture-flash,
+  .capture-pop,
+  .capture-flee,
+  .capture-fade {
+    animation: none;
+  }
+}
