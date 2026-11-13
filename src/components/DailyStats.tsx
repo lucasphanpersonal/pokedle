@@ -35,7 +35,7 @@ export function DailyStats({ date, guesses }: DailyStatsProps) {
     }
   }, [date, guesses])
 
-  const footnote = 'Anonymous totals from players sharing stats. Each network counts once a day.'
+  const footnote = 'Anonymous totals, one per network a day.'
   let body
   if (result === null) {
     body = <p className="text-ds-frame">Counting today&apos;s players…</p>
@@ -106,7 +106,7 @@ export function DailyStats({ date, guesses }: DailyStatsProps) {
             </span>
           ))}
         </div>
-        <p className="mt-1 tx-8 text-ds-frame">Guesses to solve{guesses === null ? '.' : '; yours is green and underlined.'} {footnote}</p>
+        <p className="mt-1 tx-8 text-ds-frame">Guesses to solve. {footnote}</p>
       </>
     )
   }
