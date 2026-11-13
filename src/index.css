@@ -416,20 +416,20 @@ html.crt body {
 }
 
 
-/* One rock left (10%), right (25%), settle (35%), then a rest; once per shake. The 'wobble' sound's clicks land on these. */
+/* One slow rock left (15%), right (35%), settle (50%), then a rest; once per shake. The 'wobble' sound's pitch follows these. */
 @keyframes capture-shake {
   0%,
-  42%,
+  60%,
   100% {
     transform: rotate(0deg);
   }
-  10% {
+  15% {
     transform: rotate(-22deg);
   }
-  25% {
+  35% {
     transform: rotate(16deg);
   }
-  35% {
+  50% {
     transform: rotate(-7deg);
   }
 }

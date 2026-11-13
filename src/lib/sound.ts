@@ -69,14 +69,14 @@ export function notesFor(name: SoundName, pitch = 0): Note[] {
       // The ball tapping the ground as it lands.
       return [n(-5, 0, 0.03, 'triangle', 0.22), n(-12, 0.025, 0.03, 'triangle', 0.16)]
     case 'wobble': {
-      // One shake, played as it starts: a low, warbling "wob-wob" whose pitch follows the ball, dipping
-      // as it tips left (0.1 s), rising as it tips right (0.25 s), easing back as it settles (0.35 s).
-      // Matches .capture-shake in index.css (10%, 25%, 35% of 1 s). Notes overlap so it glides, not clicks.
+      // One shake, played as it starts: a low, slow "wob-wob" whose pitch follows the ball, dipping
+      // as it tips left (0.15 s), rising as it tips right (0.35 s), easing back as it settles (0.5 s).
+      // Matches .capture-shake in index.css (15%, 35%, 50% of 1 s). Notes overlap so it glides, not clicks.
       const curve = [-14, -17, -20, -22, -21, -18, -15, -14, -16, -19, -20, -19, -18]
-      const step = 0.035
+      const step = 0.05
       return [
-        ...curve.map((semi, i) => n(semi, i * step, step + 0.015, 'square', 0.06)),
-        ...curve.map((semi, i) => n(semi - 12, i * step, step + 0.015, 'triangle', 0.18)),
+        ...curve.map((semi, i) => n(semi, i * step, step + 0.02, 'square', 0.06)),
+        ...curve.map((semi, i) => n(semi - 12, i * step, step + 0.02, 'triangle', 0.18)),
       ]
     }
     case 'click':
