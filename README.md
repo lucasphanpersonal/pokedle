@@ -45,18 +45,17 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   its suggestions; already guessed Pokémon are hidden from them. Matching ignores case, accents and punctuation ("flabebe" finds Flabébé).
   Typing the full name of a Pokémon you already guessed and pressing Enter says "You already guessed …" instead of guessing
   the next suggestion (so "pikachu" twice never guesses Pikachu Rock Star); picking a suggestion with ↑/↓ first still works.
-- **Give up (Daily and Endless)**: a white **Give up** button sits in the menu row under the puzzle title: right of
-  History, and last in the row on wider screens (after Gens and Gen hint). On phones History and Give up share the top
-  row, with Gens and Gen hint under them when shown. It is kept away from the search box on purpose, so the most-tapped
-  control never sits next to one that ends the game, and it is always shown, so nothing moves when it becomes
-  available: before the first guess it is locked like Gens (same colours, grey label, and a tap shows "Give up unlocks
+- **Give up (Daily and Endless)**: a white **Give up** button sits last in the menu row under the puzzle title,
+  beside the Gen hint (after Gens in Endless); the row wraps on narrow phones. It disappears once the game is over. It
+  is kept away from the search box on purpose, so the most-tapped control never sits next to one that ends the game,
+  and it is shown all game, so nothing moves when it becomes available: before the first guess it is locked (same
+  colours, grey label, `aria-disabled`, and a tap shows "Give up unlocks
   after your first guess." under the guess count). It asks first (`src/components/GiveUpModal.tsx`: **Keep going** or
   **Give up**), then ends the game as `lost`: the result screen, titled "It got away!", reveals the answer with its
   Pokédex entry (plus **New Pokémon** in Endless). For the Daily the dialog warns that it can't be replayed and names
   the streak that ends: a given-up Daily is listed in History as "Gave up", resets the streak straight away and stays
   out of the solved count, average, fewest and no-hint share. An Endless give up counts as given up in the Endless stats.
-- **Endless Gens**: in Endless a white **Gens** button sits in the same row (on phones it starts the second row, under
-  History and Give up). It reads **Gens · All**, or **Gens · 3/9** when some are off, and opens a picker
+- **Endless Gens**: in Endless a white **Gens** button sits first in the menu row. It opens a picker
   (`src/components/GensModal.tsx`): nine **Gen 1** to **Gen 9** toggles in a 3 by 3 grid (green and pressed in when on,
   white and raised when off), **All** and **None** buttons, a line with the selection and how many Pokémon it holds, and
   **OK**. At least one Gen must be on (OK is disabled and the line says "Pick at least one Gen."); closing the box
@@ -64,10 +63,10 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   `generation` field, so forms count by their debut (Megas are Gen 6, Alolan forms Gen 7). The search box is not
   filtered: any Pokémon can still be guessed. The choice is a per-device preference
   (`localStorage['pokemondle:endless-gens']`, a sorted list, all nine by default, `src/lib/gens.ts`) kept in sync
-  across tabs. The button is **locked while a game is in progress** (it has guesses and isn't solved
-  or given up): it keeps its bevel but its label greys and it is `aria-disabled`, and tapping it shows a one-line note under the guess count
-  ("Gens are locked for this game, which was drawn from …") instead of opening the picker. Before the first guess a
-  change redraws the answer at once; once the game is solved or given up the picker opens again and the change
+  across tabs. While a game is in progress (it has guesses and isn't solved or given up) the picker
+  is **view-only**: it shows the Gens that game was drawn from as disabled tiles, without All and None, says "This game
+  was drawn from these generations. You can change them once you catch it or give up.", and OK just closes it. Before the first guess a
+  change redraws the answer at once; once the game is solved or given up the picker can be changed again and the change
   applies from the next **New Pokémon**. Each game records the Gens it was
   drawn from, and while they are not all nine the title reads "Endless · Gens 1-3, 5" instead of "Endless mode".
   The Daily always uses every Gen. An Endless game drawn from a single Gen never offers the Gen hint (the player already knows it).
@@ -87,7 +86,7 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   stray Enter never spends the hint) and **Show Gen**. Show Gen types out "This Pokémon is from Gen N!" with a stepping
   ▼; advancing closes it. Esc or a tap on the dimmed background means Not now. The pop-up appears once per game
   (`localStorage['pokemondle:hint-offered']`, the last game offered in each mode); after Not now a white **Gen hint**
-  button (with a pixel bulb, `PixelBulb.tsx`) sits beside History until the game ends. Once taken, that button stays in
+  button (with a pixel bulb, `PixelBulb.tsx`) sits in the menu row (after Gens in Endless) until the game ends. Once taken, that button stays in
   place pressed in (the inverse bevel, a non-interactive status) and reads **Hint · Gen N**, the save gets `hinted: true`, the result screen shows **Used the Gen hint**
   and History marks the Daily with a bulb. A hinted win still counts as a win and keeps the streak; History shows
   "N% of wins without a hint" for the Daily and for Endless. Analytics events carry `config.hint_used` (false until the hint is
@@ -101,6 +100,11 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   Daily it always shows **Today's stats**: players who solved it, the average guesses, how you rank (not after a give
   up), how many gave up or used the Gen hint, and a small guesses histogram, or "You're the first to solve today's
   Pokémon!" when nobody else has yet (see [Public daily stats](#public-daily-stats)). Endless shows a **New Pokémon** button instead.
+  A white **History** button sits on the result screen in both modes (beside **New Pokémon** in Endless).
+- **After the game**: once the last tile flips, the guess box keeps its "You got it!" (or "It got away!") text and
+  a red **See results** takes the Guess button's place, reopening the result screen after it has been closed. In
+  Endless a red **New Pokémon** joins it and See results turns white (one red main action); on phones the two buttons
+  take the whole box and the text hides. While the tiles are still flipping the box shows the faded Guess button.
 
 ### Saved games
 
@@ -109,15 +113,17 @@ Each mode's game is saved in `localStorage` (`pokemondle:daily`, `pokemondle:end
 storage panel. This is only a deterrent: the game is fully client-side, so a determined player can still work it out.
 An Endless game drawn from only some Gens adds `gens` (a sorted list such as `[1, 4]`; absent means all nine; only valid on an Endless save whose answer is from one of them).
 A game that was given up (Daily or Endless) adds `gaveUp: true` (only valid on a save with at least one guess and no win).
-Older plain saves are still read. The search box shows "You got it!" once a game is solved, or "It got away!" after a give up.
+Older plain saves are still read.
 
 ### History and streaks
 
 - Every finished Daily is saved on the player's own device in `localStorage['pokemondle:history']` (date, answer id,
   guess count, `hinted: true` if the Gen hint was taken, and `lost: true` if it was given up; entries from the Hard mode days lose their `hard` flag and count as ordinary solves). No account or server is involved, so it doesn't carry over between devices or browsers.
-- The **History** button under the puzzle title shows the current streak, and opens a screen with current and best
+- History and the streak live on the **result screen** only, never on the play page: the Daily result shows
+  "Streak: N days · Best: N", and its **History** button (in Endless too) opens a screen with current and best
   streak, Dailies solved, average and fewest guesses (solved Dailies only), a "Dailies given up" count once there is one, and a list of past Dailies (puzzle number, date, answer, guesses, "Gave up" for a given-up one; days before launch show only the date).
-  The Daily result screen shows the streak too.
+  Closing History returns to the result screen. A returning player who already finished today's Daily lands on the
+  result screen; after closing it, **See results** in the guess box brings it (and History) back.
 - History also shows **Endless** stats: games played, Pokémon caught and given up, and the average and fewest guesses
   over caught games (given-up games don't count toward those two). They are kept in
   `localStorage['pokemondle:endless-record']` (`caught`, `gaveUp`, `guesses` and `scored` (the guess total and how many

@@ -3,8 +3,10 @@ import { ALL_GENS, gensLabel, sameGens } from '../lib/gens'
 import { Modal } from './Modal'
 
 interface GensModalProps {
-  /** The Gens currently chosen. */
+  /** The Gens currently chosen (when locked, the ones the game on screen was drawn from). */
   gens: readonly number[]
+  /** An Endless game is in progress: the box only shows its Gens, which can change once it is over. */
+  locked?: boolean
   /** How many Pokémon each Gen has (index 0 = Gen 1). */
   counts: readonly number[]
   /** The Endless game on screen already has guesses, so a change waits for the next game. */
@@ -15,12 +17,15 @@ interface GensModalProps {
 }
 
 /**
+ * Endless mode's Gen picker. Mid-game it is view-only (locked): the tiles show the game's Gens but can't be
+ * changed, All/None are gone and OK just closes.
+ *
  * Endless mode's Gen picker: nine on/off tiles plus All and None. Like every toggle in the game, an
  * "on" tile is green and pressed in (inverse bevel) and an "off" tile is white and raised, so on/off
  * never depends on colour alone. The choice is saved with OK; closing the box any other way keeps the
  * old one. At least one Gen must be on.
  */
-export function GensModal({ gens, counts, gameStarted, onSave, onClose }: GensModalProps) {
+export function GensModal({ gens, locked = false, counts, gameStarted, onSave, onClose }: GensModalProps) {
   // Compared with the choice the box opened with, so OK with nothing touched never overwrites a change made in another tab.
   const [opened] = useState<readonly number[]>(gens)
   const [draft, setDraft] = useState<readonly number[]>(gens)
@@ -33,7 +38,11 @@ export function GensModal({ gens, counts, gameStarted, onSave, onClose }: GensMo
   return (
     <Modal title="Endless Gens" onClose={onClose}>
       <div className="flex flex-col gap-4 tx-10 leading-5">
-        <p>Choose which generations Endless picks its Pokémon from. You can still guess any Pokémon.</p>
+        <p>
+          {locked
+            ? 'This game was drawn from these generations. You can change them once you catch it or give up.'
+            : 'Choose which generations Endless picks its Pokémon from. You can still guess any Pokémon.'}
+        </p>
         <div className="flex flex-col gap-1.5 sm:gap-2">
           <div role="group" aria-label="Generations" className="grid grid-cols-3 gap-1.5 sm:gap-2">
             {ALL_GENS.map((gen) => {
@@ -43,9 +52,12 @@ export function GensModal({ gens, counts, gameStarted, onSave, onClose }: GensMo
                   key={gen}
                   type="button"
                   aria-pressed={on}
+                  disabled={locked}
                   onClick={() => toggle(gen)}
                   className={`ds-button h-11 px-2.5 text-[10px] ${
-                    on ? 'bevel-green bevel-pressed text-white [text-shadow:1px_1px_0_rgb(0_0_0/0.4)]' : 'bevel-paper text-ds-ink'
+                    on
+                      ? 'bevel-green bevel-pressed text-white [text-shadow:1px_1px_0_rgb(0_0_0/0.4)]'
+                      : 'bevel-paper text-ds-ink'
                   }`}
                 >
                   Gen {gen}
@@ -53,14 +65,24 @@ export function GensModal({ gens, counts, gameStarted, onSave, onClose }: GensMo
               )
             })}
           </div>
-          <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-            <button type="button" onClick={() => setDraft(ALL_GENS)} className="ds-button bevel-paper h-11 px-3 text-[10px]">
-              All
-            </button>
-            <button type="button" onClick={() => setDraft([])} className="ds-button bevel-paper h-11 px-3 text-[10px]">
-              None
-            </button>
-          </div>
+          {!locked && (
+            <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+              <button
+                type="button"
+                onClick={() => setDraft(ALL_GENS)}
+                className="ds-button bevel-paper h-11 px-3 text-[10px]"
+              >
+                All
+              </button>
+              <button
+                type="button"
+                onClick={() => setDraft([])}
+                className="ds-button bevel-paper h-11 px-3 text-[10px]"
+              >
+                None
+              </button>
+            </div>
+          )}
         </div>
         {/* Always mounted so screen readers announce each change. */}
         <p role="status" className="text-center tx-9 text-ds-frame">
