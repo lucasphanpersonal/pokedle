@@ -73,7 +73,7 @@ describe('sound', () => {
 
   it('every effect has audible, ordered notes', async () => {
     const { notesFor } = await import('./sound')
-    for (const name of ['type', 'move', 'select', 'tick', 'error', 'win', 'toggle', 'wobble', 'click', 'burst', 'flee'] as const) {
+    for (const name of ['type', 'move', 'select', 'tick', 'error', 'win', 'toggle', 'throw', 'bounce', 'wobble', 'click', 'burst', 'flee'] as const) {
       const notes = notesFor(name)
       expect(notes.length).toBeGreaterThan(0)
       for (const note of notes) {

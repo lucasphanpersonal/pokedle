@@ -82,7 +82,7 @@ function DisplaySettings() {
         <span>Volume</span>
         <VolumeBars />
       </div>
-      <p className="mt-1 tx-9 text-ds-frame">Retro 8-bit blips as you press buttons and type, as tiles flip, knocks and a click as the Poké Ball shakes, a jingle when you win, then the answer's cry (it also cries as it escapes when you give up). Tap a dash or use the arrow keys to set the volume; none lit is muted. The speaker button in the header mutes and unmutes.</p>
+      <p className="mt-1 tx-9 text-ds-frame">Retro 8-bit blips as you press buttons and type, as tiles flip, a whoosh, bounces and a rattle as the Poké Ball lands and shakes, a jingle when you win, then the answer's cry (it also cries as it escapes when you give up). Tap a dash or use the arrow keys to set the volume; none lit is muted. The speaker button in the header mutes and unmutes.</p>
       <p className="mt-1 tx-9 text-ds-frame">When a game ends, a Poké Ball shakes and clicks shut if you won, or bursts open and lets the Pokémon run off if you gave up. Tap or press any key to skip it. Then a short burst of confetti if you won. Players who set reduce motion don't see these.</p>
     </section>
   )

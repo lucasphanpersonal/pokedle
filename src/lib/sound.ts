@@ -17,6 +17,8 @@ export type SoundName =
   | 'error'
   | 'win'
   | 'toggle'
+  | 'throw'
+  | 'bounce'
   | 'wobble'
   | 'click'
   | 'burst'
@@ -60,9 +62,23 @@ export function notesFor(name: SoundName, pitch = 0): Note[] {
       return [n(-12, 0, 0.09, 'square', 0.1), n(-17, 0.09, 0.14, 'square', 0.1)]
     case 'toggle':
       return [n(12, 0, 0.05), n(19, 0.05, 0.08)]
+    case 'throw':
+      // The ball flying in: a quick falling whoosh, stepped like an 8-bit pitch sweep.
+      return [24, 21, 18, 15, 12, 9].map((semi, i) => n(semi, i * 0.03, 0.035, 'triangle', 0.1))
+    case 'bounce':
+      // The ball tapping the ground as it lands.
+      return [n(-5, 0, 0.03, 'triangle', 0.22), n(-12, 0.025, 0.03, 'triangle', 0.16)]
     case 'wobble':
-      // The Poké Ball rocking on the ground: a low double knock.
-      return [n(-17, 0, 0.05, 'triangle', 0.22), n(-22, 0.07, 0.07, 'triangle', 0.22)]
+      // One shake: a click-clack rattle as the ball tips one way, the other, and settles,
+      // over a low knock on the ground. Timed to the tilts of .capture-shake in index.css.
+      return [
+        n(-19, 0, 0.06, 'triangle', 0.2),
+        n(2, 0.02, 0.025, 'square', 0.09),
+        n(-3, 0.045, 0.02, 'square', 0.07),
+        n(6, 0.12, 0.025, 'square', 0.09),
+        n(1, 0.145, 0.02, 'square', 0.07),
+        n(-1, 0.21, 0.025, 'square', 0.06),
+      ]
     case 'click':
       // The ball locking shut, then the stars twinkling.
       return [

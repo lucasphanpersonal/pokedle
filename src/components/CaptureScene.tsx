@@ -92,8 +92,13 @@ export function CaptureScene({ kind, pokemon, onDone }: CaptureSceneProps) {
   useEffect(() => {
     const timers: number[] = []
     const at = (ms: number, fn: () => void) => timers.push(window.setTimeout(fn, ms))
+    // Thrown in, two taps as it bounces (the touchdowns of .capture-drop, at 55% and 86% of DROP_MS),
+    // then a rattle per shake, its clicks landing on the tilts.
+    playSound('throw')
+    at(DROP_MS * 0.55, () => playSound('bounce'))
+    at(DROP_MS * 0.86, () => playSound('bounce', -5))
     at(DROP_MS, () => setPhase('shake'))
-    for (let i = 0; i < timeline.shakes; i++) at(DROP_MS + i * SHAKE_MS + 40, () => playSound('wobble'))
+    for (let i = 0; i < timeline.shakes; i++) at(DROP_MS + i * SHAKE_MS + 50, () => playSound('wobble'))
     if (kind === 'catch') {
       at(timeline.settle, () => {
         setPhase('click')
