@@ -1,6 +1,6 @@
 /**
  * Builds the site icons (browser tab, home screen, web app manifest) from the hand-drawn
- * pixel-art Poké Ball in scripts/icons/pokeball.txt. Run with `npm run icons` after editing
+ * pixel-art Poké Ball in scripts/icons/pokeball.txt (also drawn in-game by src/components/CaptureScene.tsx). Run with `npm run icons` after editing
  * the drawing; the output in public/ is committed, so the build itself never runs this.
  *
  * The drawing holds two grids separated by a blank line: a 16x16 one for small tab icons
@@ -9,17 +9,16 @@
  */
 import { readFileSync, writeFileSync } from 'node:fs'
 import { crc32, deflateSync } from 'node:zlib'
+import { BALL_PALETTE, parseBallArt } from '../src/lib/pokeballArt.ts'
 
 type RGBA = [number, number, number, number]
 
+/** The shared drawing palette (src/lib/pokeballArt.ts) as RGBA, plus `.` for transparent. */
 const PALETTE: Record<string, RGBA> = {
   '.': [0, 0, 0, 0],
-  k: [32, 40, 48, 255], // outline and band (--color-ds-ink)
-  R: [232, 64, 64, 255], // red
-  r: [168, 32, 40, 255], // red shade
-  L: [255, 160, 152, 255], // red highlight
-  W: [248, 248, 248, 255], // white (--color-ds-paper)
-  w: [176, 184, 196, 255], // white shade
+  ...Object.fromEntries(
+    Object.entries(BALL_PALETTE).map(([ch, hex]) => [ch, [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).concat(255) as RGBA]),
+  ),
 }
 
 /** The page's banded sky (index.css body background), top to bottom, with each band's end as a fraction of the height. */
@@ -35,18 +34,7 @@ const SKY_BANDS: [number, number][] = [
 ]
 
 const root = new URL('..', import.meta.url)
-const [grid16, grid32] = readFileSync(new URL('scripts/icons/pokeball.txt', root), 'utf8')
-  .trim()
-  .split(/\n\s*\n/)
-  .map((block) => block.trim().split('\n'))
-
-for (const [grid, size] of [
-  [grid16, 16],
-  [grid32, 32],
-] as const) {
-  if (grid.length !== size || grid.some((row) => row.length !== size)) throw new Error(`pokeball.txt: expected a ${size}x${size} grid`)
-  for (const ch of grid.join('')) if (!(ch in PALETTE)) throw new Error(`pokeball.txt: unknown colour "${ch}"`)
-}
+const { grid16, grid32 } = parseBallArt(readFileSync(new URL('scripts/icons/pokeball.txt', root), 'utf8'))
 
 class Canvas {
   readonly size: number

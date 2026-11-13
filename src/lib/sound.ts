@@ -8,7 +8,21 @@ import { loadJson, saveJson } from './storage'
  * created lazily on the first sound request, which always follows a tap or
  * keypress, and resumed if the browser (notably iOS Safari) suspended it.
  */
-export type SoundName = 'type' | 'move' | 'select' | 'press' | 'tick' | 'error' | 'win' | 'toggle'
+export type SoundName =
+  | 'type'
+  | 'move'
+  | 'select'
+  | 'press'
+  | 'tick'
+  | 'error'
+  | 'win'
+  | 'toggle'
+  | 'throw'
+  | 'bounce'
+  | 'wobble'
+  | 'click'
+  | 'burst'
+  | 'flee'
 
 interface Note {
   /** Frequency in Hz. */
@@ -48,6 +62,42 @@ export function notesFor(name: SoundName, pitch = 0): Note[] {
       return [n(-12, 0, 0.09, 'square', 0.1), n(-17, 0.09, 0.14, 'square', 0.1)]
     case 'toggle':
       return [n(12, 0, 0.05), n(19, 0.05, 0.08)]
+    case 'throw':
+      // The ball flying in: a quick falling whoosh, stepped like an 8-bit pitch sweep.
+      return [24, 21, 18, 15, 12, 9].map((semi, i) => n(semi, i * 0.03, 0.035, 'triangle', 0.1))
+    case 'bounce':
+      // The ball tapping the ground as it lands.
+      return [n(-5, 0, 0.03, 'triangle', 0.22), n(-12, 0.025, 0.03, 'triangle', 0.16)]
+    case 'wobble': {
+      // One shake, played as it starts: a quick low "bwop" as the ball tips left (pitch falls fast to its
+      // lowest at 0.1 s), then a springy rise as it tips right (highest at 0.24 s) and settles (0.3 s).
+      // Matches .capture-shake in index.css (10%, 24%, 30% of 1 s). Notes overlap so it glides, not clicks.
+      const curve: [semi: number, len: number][] = [
+        [-8, 0.022], [-12, 0.022], [-16, 0.022], [-20, 0.022], [-22, 0.022],
+        [-20, 0.034], [-16, 0.034], [-12, 0.034], [-10, 0.034], [-12, 0.034],
+      ]
+      let t = 0
+      return curve.flatMap(([semi, len]) => {
+        const at = t
+        t += len
+        return [n(semi, at, len + 0.015, 'square', 0.06), n(semi - 12, at, len + 0.015, 'triangle', 0.18)]
+      })
+    }
+    case 'click':
+      // The ball locking shut, then the stars twinkling.
+      return [
+        n(-10, 0, 0.025, 'square', 0.1),
+        n(15, 0.04, 0.03, 'square', 0.1),
+        n(27, 0.16, 0.05, 'triangle', 0.14),
+        n(31, 0.22, 0.05, 'triangle', 0.14),
+        n(34, 0.28, 0.1, 'triangle', 0.14),
+      ]
+    case 'burst':
+      // The ball popping open.
+      return [n(24, 0, 0.03), n(12, 0.03, 0.04), n(19, 0.07, 0.05), n(31, 0.12, 0.12, 'triangle', 0.14)]
+    case 'flee':
+      // A quick run down the scale as the Pokémon dashes off.
+      return [n(14, 0, 0.05), n(9, 0.06, 0.05), n(5, 0.12, 0.05), n(0, 0.18, 0.09)]
     case 'win':
       // C major fanfare: C E G, then a held high C with a harmony note.
       return [

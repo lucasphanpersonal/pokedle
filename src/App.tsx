@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import { CaptureScene } from './components/CaptureScene'
 import { Confetti } from './components/Confetti'
 import { GensModal } from './components/GensModal'
 import { GiveUpModal } from './components/GiveUpModal'
@@ -33,7 +34,7 @@ export default function App() {
   const submitGuess = useAnalytics(game)
   const gameId = `${mode}:${game.gameKey}`
 
-  const { revealing, confetti, endConfetti, play } = useRevealEffects(gameId)
+  const { revealing, capture, endCapture, confetti, endConfetti, play, escape } = useRevealEffects(gameId)
   const onGuess = useCallback(
     (pokemon: Pokemon): GuessResult => {
       const { result, applied } = submitGuess(pokemon)
@@ -59,6 +60,8 @@ export default function App() {
   const confirmGiveUp = () => {
     setGiveUpAsk(null)
     game.giveUp()
+    // The ball bursts and the answer runs off before the result screen.
+    escape(game.targetPokemon, gameId)
   }
 
   // The Gen hint. It is pointless when the answer can only come from one Gen (an Endless game limited to one).
@@ -228,6 +231,7 @@ export default function App() {
           onNewGame={mode === 'endless' ? game.startNewEndlessGame : undefined}
         />
       )}
+      {capture && <CaptureScene key={capture.gameId} kind={capture.kind} pokemon={capture.pokemon} onDone={endCapture} />}
       {confetti && <Confetti onDone={endConfetti} />}
       {showGiveUp && (
         <GiveUpModal mode={mode} guesses={game.guesses.length} streak={stats.currentStreak} onConfirm={confirmGiveUp} onCancel={() => setGiveUpAsk(null)} />
