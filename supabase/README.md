@@ -94,7 +94,7 @@ select * from daily_totals order by day desc;                -- rolled-up histor
 ```
 Use the editor's **Save** to keep them as saved queries. The views are not readable with the anon key.
 
-For ready-made, commented queries (today's players/wins/losses, last 30 days, guess distribution, most-guessed and hardest Pokémon, devices, streaks)
+For ready-made, commented queries (today's players/wins/losses, last 30 days, guess distribution, most-guessed and hardest Pokémon, devices)
 see [queries/stats.sql](queries/stats.sql). Paste one query at a time into the SQL Editor and **Save** it. They are read-only `SELECT`s, with days in America/New_York.
 `target_id` and `guess_id` are National Dex numbers.
 

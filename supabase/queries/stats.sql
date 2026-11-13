@@ -9,9 +9,12 @@
 --    puzzle rows use puzzle_date (the player's local puzzle day) where noted.
 --  * target_id / guess_id are National Dex numbers (25 = Pikachu).
 --  * "Players" = distinct visitor_hash. It rotates every UTC day and is never a device id, so it
---    counts unique players PER DAY; summing days over-counts people who return.
---  * Raw events are kept 6 months; older days exist only in daily_totals (see Q10).
+--    counts unique players PER DAY; summing days over-counts people who return. The salt changes at
+--    UTC midnight (7-8pm ET), so someone playing across it can count twice in one ET day.
+--  * Raw events are kept 6 months; older days exist only in daily_totals (see Q9).
 --  * Hard mode games carry config->>'hard_mode' = 'true'. Q1/Q2 split it out as a plain column.
+--  * "Last 30 days" is a rolling window, so the oldest day shown is partial.
+--  * The client doesn't send streaks yet, so there is no streak query.
 --  * Results: finished games have result 'won' or 'lost' (Endless "give up" counts as lost).
 
 
@@ -91,8 +94,8 @@ order by guess_count nulls last;
 
 
 -- =====================================================================================
--- Q5 Most-guessed Pokémon (top 25, by Dex number) and most common first guesses (top 25)
--- times_guessed = every guess; opening_guesses = only guess #1 of a game.
+-- Q5 Most-guessed Pokémon: top 25 by Dex number
+-- times_guessed = every guess; opening_guesses = how many of those were guess #1 of a game.
 -- =====================================================================================
 select
   guess_id                                                          as dex_number,
@@ -161,25 +164,8 @@ order by games_started desc;
 
 
 -- =====================================================================================
--- Q9 Daily streaks: share of finishers with a streak of 2 or more (last 30 days)
--- Streak is what the player had when the game ended. High share = people are coming back.
--- =====================================================================================
-select
-  (received_at at time zone 'America/New_York')::date               as day,
-  count(*)                                                          as finishers,
-  count(*) filter (where streak >= 2)                               as with_streak,
-  round(100.0 * count(*) filter (where streak >= 2) / count(*), 1)  as streak_pct,
-  max(streak)                                                       as longest_streak
-from public.events
-where event = 'game_finished' and mode = 'daily'
-  and received_at >= now() - interval '30 days'
-group by 1
-order by day desc;
-
-
--- =====================================================================================
--- Q10 Long-term history: rolled-up days older than 6 months (daily_totals) plus recent days
--- Days older than the 6 month retention window live only in daily_totals (UTC days).
+-- Q9 Long-term history: days already rolled up into daily_totals (older than 6 months, UTC days)
+-- Empty until the first rollup runs; recent days are in Q1-Q3.
 -- =====================================================================================
 select day, mode, players, games_started, games_finished, wins,
        round(100.0 * wins / nullif(games_finished, 0), 1)           as win_pct,
