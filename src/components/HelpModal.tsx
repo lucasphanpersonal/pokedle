@@ -225,6 +225,12 @@ export function HelpModal({ onClose, hardLocked, gameHard }: HelpModalProps) {
           reveals the answer (it asks first). Your progress is saved on this device.
         </p>
         <p>
+          In Endless, the <strong>Gens</strong> button under History chooses which generations the Pokémon can come from: switch
+          each of Gen 1 to 9 on or off, or use All and None (at least one must stay on). Forms count by their debut, so
+          Megas are Gen 6. You can still guess any Pokémon. A change picks a new Pokémon if you haven't guessed yet;
+          otherwise it applies from your next one. The Daily always uses every Gen.
+        </p>
+        <p>
           Solve the Daily each day to build a <strong>streak</strong>; missing a day resets it. The History button lists every
           Daily you've solved, with your streaks and totals, plus your Endless stats: games played, caught and given up, and your average and fewest guesses. It is saved on this device only and doesn't carry over to other devices.
         </p>

@@ -105,3 +105,33 @@ test('switching to Endless and back keeps each mode separate', async ({ page }) 
   expect(daily!.guessIds).toHaveLength(1)
   expect(names.get(daily!.guessIds[0])).toBe(dailyGuess)
 })
+
+test('Endless Gens: the answer comes only from the chosen generations', async ({ page }) => {
+  const gens = new Map((pokedex as { id: number; generation: number }[]).map((p) => [p.id, p.generation]))
+  await page.goto('/')
+  // The picker is Endless only.
+  await expect(page.getByRole('button', { name: /Endless Gens/ })).toHaveCount(0)
+  await page.getByRole('radio', { name: 'endless' }).click()
+  await page.getByRole('button', { name: 'Endless Gens: All Gens' }).click()
+
+  const dialog = page.getByRole('dialog', { name: 'Endless Gens' })
+  await dialog.getByRole('button', { name: 'None' }).click()
+  // At least one Gen is needed.
+  await expect(dialog.getByRole('button', { name: 'OK' })).toBeDisabled()
+  await dialog.getByRole('button', { name: 'Gen 4' }).click()
+  await expect(dialog.getByRole('button', { name: 'Gen 4' })).toHaveAttribute('aria-pressed', 'true')
+  await dialog.getByRole('button', { name: 'OK' }).click()
+
+  await expect(page.getByText('Endless · Gen 4')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Endless Gens: Gen 4' })).toBeVisible()
+  // No guesses yet, so the answer was redrawn from Gen 4 straight away.
+  await expect.poll(async () => gens.get((await savedGame(page, 'endless'))!.targetId)).toBe(4)
+
+  // Guesses from other Gens are still allowed, and the choice survives a reload.
+  await guess(page, 'Bulbasaur')
+  await expect.poll(async () => (await savedGame(page, 'endless'))?.guessIds).toHaveLength(1)
+  await page.reload()
+  await page.getByRole('radio', { name: 'endless' }).click()
+  await expect(page.getByText('Endless · Gen 4')).toBeVisible()
+  expect(gens.get((await savedGame(page, 'endless'))!.targetId)).toBe(4)
+})

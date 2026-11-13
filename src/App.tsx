@@ -1,5 +1,6 @@
 import { useCallback, useState, useSyncExternalStore } from 'react'
 import { Confetti } from './components/Confetti'
+import { GensModal } from './components/GensModal'
 import { GiveUpModal } from './components/GiveUpModal'
 import { GuessGrid } from './components/GuessGrid'
 import { HardNotice } from './components/HardNotice'
@@ -13,16 +14,21 @@ import { useAnalytics } from './hooks/useAnalytics'
 import { useRevealEffects } from './hooks/useRevealEffects'
 import { usePokemondle, type GameMode, type GuessResult } from './hooks/usePokemondle'
 import { dismissHardNotice, isHardNoticePending, subscribeHardPref } from './lib/hardMode'
+import { ALL_GENS, gensLabel, isAllGens } from './lib/gens'
 import { computeStats } from './lib/history'
 import { POKEDEX } from './lib/pokedex'
 import { loadJson, saveJson } from './lib/storage'
 import type { Pokemon } from './types/pokemon'
+
+/** How many Pokémon each Gen has (index 0 = Gen 1), for the Endless Gen picker. */
+const GEN_COUNTS = ALL_GENS.map((gen) => POKEDEX.filter((p) => p.generation === gen).length)
 
 export default function App() {
   const [mode, setMode] = useState<GameMode>('daily')
   // Show the rules automatically on a player's first visit.
   const [showHelp, setShowHelp] = useState(() => loadJson('seen-help') !== true)
   const [showHistory, setShowHistory] = useState(false)
+  const [showGens, setShowGens] = useState(false)
   const game = usePokemondle(mode)
   const stats = computeStats(game.history)
   const submitGuess = useAnalytics(game)
@@ -59,7 +65,7 @@ export default function App() {
 
   // First time Hard is switched on: explain it, once any open dialog (e.g. Help, where it can also be switched) closes.
   const hardNotice = useSyncExternalStore(subscribeHardPref, isHardNoticePending, () => false)
-  const showHardNotice = hardNotice && !showHelp && !showHistory && !showResult && !showGiveUp && !revealing
+  const showHardNotice = hardNotice && !showHelp && !showHistory && !showGens && !showResult && !showGiveUp && !revealing
 
   const closeHelp = () => {
     setShowHelp(false)
@@ -79,7 +85,11 @@ export default function App() {
       <main className="mx-auto flex w-full max-w-5xl big:max-w-[80rem] flex-col gap-4 px-3 py-4 sm:px-5 sm:py-6">
         <div className="flex flex-col items-center gap-2 text-center">
           <p className="tx-10 sm:text-xs">
-            {game.puzzleNumber !== null ? `Daily #${game.puzzleNumber}` : 'Endless mode'}
+            {game.puzzleNumber !== null
+              ? `Daily #${game.puzzleNumber}`
+              : isAllGens(game.gameGens)
+                ? 'Endless mode'
+                : `Endless · ${gensLabel(game.gameGens)}`}
           </p>
           <p className="tx-9 text-ds-frame">
             {game.guesses.length} {game.guesses.length === 1 ? 'guess' : 'guesses'}
@@ -94,7 +104,8 @@ export default function App() {
               </p>
             )}
           </div>
-          <div className="flex flex-wrap justify-center gap-2">
+          {/* On phones Endless has three buttons, too many for one row: History sits above Gens and Hard. */}
+          <div className={`flex justify-center gap-2 ${mode === 'endless' ? 'flex-col items-center sm:flex-row' : 'flex-wrap'}`}>
             <button
               type="button"
               onClick={() => setShowHistory(true)}
@@ -102,13 +113,25 @@ export default function App() {
             >
               History · Streak {stats.currentStreak}
             </button>
-            {/* Phones have no room for this in the header; wide screens show it there. */}
-            <HardToggle
-              hard={hard}
-              hardLocked={game.hardSwitchLocked}
-              onLockedPress={() => setLockNoteGame(gameId)}
-              className="inline-flex sm:hidden"
-            />
+            <div className="flex justify-center gap-2 sm:contents">
+              {mode === 'endless' && (
+                <button
+                  type="button"
+                  onClick={() => setShowGens(true)}
+                  aria-label={`Endless Gens: ${gensLabel(game.endlessGens)}`}
+                  className="ds-button bevel-paper h-11 px-3 text-[9px] sm:px-4 sm:text-[10px]"
+                >
+                  Gens · {isAllGens(game.endlessGens) ? 'All' : `${game.endlessGens.length}/9`}
+                </button>
+              )}
+              {/* Phones have no room for this in the header; wide screens show it there. */}
+              <HardToggle
+                hard={hard}
+                hardLocked={game.hardSwitchLocked}
+                onLockedPress={() => setLockNoteGame(gameId)}
+                className="inline-flex sm:hidden"
+              />
+            </div>
           </div>
         </div>
 
@@ -171,6 +194,15 @@ export default function App() {
       )}
       {showHistory && (
         <HistoryModal history={game.history} endless={game.endlessRecord} onClose={() => setShowHistory(false)} />
+      )}
+      {showGens && mode === 'endless' && (
+        <GensModal
+          gens={game.endlessGens}
+          counts={GEN_COUNTS}
+          gameStarted={game.guesses.length > 0}
+          onSave={game.setEndlessGens}
+          onClose={() => setShowGens(false)}
+        />
       )}
       {showHardNotice && <HardNotice appliesNow={game.guesses.length === 0} onDismiss={dismissHardNotice} />}
       {showHelp && <HelpModal onClose={closeHelp} hardLocked={game.hardSwitchLocked} gameHard={hard} />}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Pokemon } from '../types/pokemon'
-import { canGiveUp, decodeSave, encodeSave, applyGuess, applyGuessToGames, gameStatus, giveUp, isValidSave, newDailyGame, newEndlessGame, type SavedGame } from './game'
+import { canGiveUp, decodeSave, encodeSave, applyGuess, applyGuessToGames, gameStatus, giveUp, isValidSave, newDailyGame, newEndlessGame, newEndlessGameForGens, matchEndlessToGens, gameGens, type SavedGame } from './game'
 
 const pool = [1, 2, 3, 4, 5].map((id) => ({ id }) as Pokemon)
 const byId = new Map(pool.map((p) => [p.id, p]))
@@ -172,5 +172,63 @@ describe('giving up (Endless only)', () => {
     expect(isValidSave({ ...lost, guessIds: [] }, byId)).toBe(false)
     expect(isValidSave({ ...lost, guessIds: [2, 1] }, byId)).toBe(false)
     expect(isValidSave({ ...endless, gaveUp: 'yes' }, byId)).toBe(false)
+  })
+})
+
+describe('Endless Gens', () => {
+  const ALL = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  // Ids 1-3 are Gen 1, 4-5 Gen 2, 6 Gen 6.
+  const genPool = [1, 1, 1, 2, 2, 6].map((generation, i) => ({ id: i + 1, generation }) as Pokemon)
+  const genById = new Map(genPool.map((p) => [p.id, p]))
+
+  it('draws the answer only from the chosen Gens and records them', () => {
+    for (let i = 0; i < 50; i++) {
+      const game = newEndlessGameForGens(genPool, [2, 6])
+      expect([4, 5, 6]).toContain(game.targetId)
+      expect(game.gens).toEqual([2, 6])
+    }
+  })
+  it('records nothing when every Gen is on', () => {
+    expect(newEndlessGameForGens(genPool, ALL).gens).toBeUndefined()
+  })
+  it('falls back to the whole pool if the chosen Gens have no Pokémon', () => {
+    const game = newEndlessGameForGens(genPool, [9])
+    expect(game.gens).toBeUndefined()
+    expect(genById.has(game.targetId)).toBe(true)
+  })
+  it('still avoids the previous answer inside the chosen Gens', () => {
+    expect(newEndlessGameForGens(genPool, [2], () => 0, 4).targetId).toBe(5)
+  })
+  it('redraws a game with no guesses when the Gens change, and leaves a started game alone', () => {
+    const fresh: SavedGame = { v: 1, mode: 'endless', key: 'x', targetId: 1, guessIds: [] }
+    const redrawn = matchEndlessToGens(fresh, genPool, [6], ALL)
+    expect(redrawn.targetId).toBe(6)
+    expect(redrawn.gens).toEqual([6])
+    // Same Gens: nothing changes.
+    expect(matchEndlessToGens(redrawn, genPool, [6], ALL)).toBe(redrawn)
+    expect(matchEndlessToGens(fresh, genPool, ALL, ALL)).toBe(fresh)
+    // Back to all Gens: a restricted game with no guesses is redrawn from everything.
+    expect(matchEndlessToGens(redrawn, genPool, ALL, ALL).gens).toBeUndefined()
+    const started = { ...fresh, guessIds: [2] }
+    expect(matchEndlessToGens(started, genPool, [6], ALL)).toBe(started)
+  })
+  it('reads the Gens of a game', () => {
+    expect(gameGens({ gens: [2] }, ALL)).toEqual([2])
+    expect(gameGens({}, ALL)).toBe(ALL)
+  })
+  it('validates saved Gens', () => {
+    const base = { v: 1, mode: 'endless', key: 'k', targetId: 4, guessIds: [] }
+    expect(isValidSave({ ...base, gens: [2, 6] }, genById)).toBe(true)
+    expect(isValidSave({ ...base, gens: [1] }, genById)).toBe(false) // the answer is not from Gen 1
+    expect(isValidSave({ ...base, gens: [] }, genById)).toBe(false)
+    expect(isValidSave({ ...base, gens: [6, 2] }, genById)).toBe(false)
+    expect(isValidSave({ ...base, gens: [2, 2] }, genById)).toBe(false)
+    expect(isValidSave({ ...base, gens: [2, 12] }, genById)).toBe(false)
+    expect(isValidSave({ ...base, gens: 'all' }, genById)).toBe(false)
+    expect(isValidSave({ ...base, mode: 'daily', gens: [2] }, genById)).toBe(false)
+  })
+  it('keeps the Gens through save and load', () => {
+    const game = newEndlessGameForGens(genPool, [2, 6])
+    expect(decodeSave(JSON.parse(JSON.stringify(encodeSave(game))))).toEqual(game)
   })
 })
