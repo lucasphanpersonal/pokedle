@@ -69,15 +69,19 @@ export function notesFor(name: SoundName, pitch = 0): Note[] {
       // The ball tapping the ground as it lands.
       return [n(-5, 0, 0.03, 'triangle', 0.22), n(-12, 0.025, 0.03, 'triangle', 0.16)]
     case 'wobble': {
-      // One shake, played as it starts: a low, slow "wob-wob" whose pitch follows the ball, dipping
-      // as it tips left (0.15 s), rising as it tips right (0.35 s), easing back as it settles (0.5 s).
-      // Matches .capture-shake in index.css (15%, 35%, 50% of 1 s). Notes overlap so it glides, not clicks.
-      const curve = [-14, -17, -20, -22, -21, -18, -15, -14, -16, -19, -20, -19, -18]
-      const step = 0.05
-      return [
-        ...curve.map((semi, i) => n(semi, i * step, step + 0.02, 'square', 0.06)),
-        ...curve.map((semi, i) => n(semi - 12, i * step, step + 0.02, 'triangle', 0.18)),
+      // One shake, played as it starts: a quick low "bwop" as the ball tips left (pitch falls fast to its
+      // lowest at 0.1 s), then a springy rise as it tips right (highest at 0.24 s) and settles (0.3 s).
+      // Matches .capture-shake in index.css (10%, 24%, 30% of 1 s). Notes overlap so it glides, not clicks.
+      const curve: [semi: number, len: number][] = [
+        [-8, 0.022], [-12, 0.022], [-16, 0.022], [-20, 0.022], [-22, 0.022],
+        [-20, 0.034], [-16, 0.034], [-12, 0.034], [-10, 0.034], [-12, 0.034],
       ]
+      let t = 0
+      return curve.flatMap(([semi, len]) => {
+        const at = t
+        t += len
+        return [n(semi, at, len + 0.015, 'square', 0.06), n(semi - 12, at, len + 0.015, 'triangle', 0.18)]
+      })
     }
     case 'click':
       // The ball locking shut, then the stars twinkling.

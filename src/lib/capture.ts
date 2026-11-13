@@ -3,7 +3,7 @@ export type CaptureKind = 'catch' | 'escape'
 
 /** Timings (ms). Keep the CSS animation lengths in index.css (.capture-*) in step. */
 export const DROP_MS = 700
-/** One shake: a slow rock left and right in the first ~60%, then a rest, at about the games' pace. */
+/** One shake: a rock left and right in the first ~36%, then a rest, at about the games' pace. */
 export const SHAKE_MS = 1000
 /** Three shakes either way, as in the games; then a click (caught) or a burst (broke free). */
 const SHAKES: Record<CaptureKind, number> = { catch: 3, escape: 3 }
