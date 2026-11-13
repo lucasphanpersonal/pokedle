@@ -27,7 +27,7 @@ const prefersReducedMotion = () =>
 export function HintPrompt({ gen, guesses, onTake, onClose }: HintPromptProps) {
   const [revealed, setRevealed] = useState(false)
   const text = revealed
-    ? `This Pokémon is from Gen ${gen}! The hint stays under your guess count for the rest of this game.`
+    ? `This Pokémon is from Gen ${gen}! The hint stays beside History for the rest of this game.`
     : `${guesses} guesses and still searching? Here's a hint, if you want it: I can tell you which Gen this Pokémon is from.`
   const textId = useId()
   const boxRef = useRef<HTMLDivElement>(null)

@@ -87,8 +87,8 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   stray Enter never spends the hint) and **Show Gen**. Show Gen types out "This Pokémon is from Gen N!" with a stepping
   ▼; advancing closes it. Esc or a tap on the dimmed background means Not now. The pop-up appears once per game
   (`localStorage['pokemondle:hint-offered']`, the last game offered in each mode); after Not now a white **Gen hint**
-  button (with a pixel bulb, `PixelBulb.tsx`) sits beside History until the game ends. Once taken, a "Hint: it's from
-  Gen N" badge stays under the guess count, the save gets `hinted: true`, the result screen shows **Used the Gen hint**
+  button (with a pixel bulb, `PixelBulb.tsx`) sits beside History until the game ends. Once taken, that button stays in
+  place pressed in (the inverse bevel, a non-interactive status) and reads **Hint · Gen N**, the save gets `hinted: true`, the result screen shows **Used the Gen hint**
   and History marks the Daily with a bulb. A hinted win still counts as a win and keeps the streak; History shows
   "N% of wins without a hint" for the Daily and for Endless. Analytics events carry `config.hint_used` (false until the hint is
   taken), and the Daily stats panel says what share of players used it.
@@ -185,7 +185,7 @@ asked to flag any break), and UI changes are screenshotted and measured at 320, 
    Never hand-roll a `box-shadow` or `border` bevel on a single control. A dialog's close button is a 44px
    `.ds-button bevel-paper` square holding the pixel-art cross (`ResultMark` drawn at 2px per art pixel), like the
    header's ? button. The only exception is the small on/off switch graphics in Help, which are not menu buttons.
-2. **Pressed means the inverse bevel.** A selected or "on" control (the chosen Daily/Endless side, a chosen Gen in the Endless Gens picker) adds
+2. **Pressed means the inverse bevel.** A selected or "on" control (the chosen Daily/Endless side, a chosen Gen in the Endless Gens picker, the taken Gen hint) adds
    `.bevel-pressed`: same edges, dark on top and light at the bottom. The edges stay the same size, so labels sit at
    the same height whether a control is up or down.
 3. **Equal heights and gaps.** Header and menu controls are all 44px tall (also the minimum touch target), top-aligned
