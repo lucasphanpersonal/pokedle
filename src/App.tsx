@@ -102,10 +102,11 @@ export default function App() {
       <main className="mx-auto flex w-full max-w-5xl big:max-w-[80rem] flex-col gap-4 px-3 py-4 sm:px-5 sm:py-6">
         <div className="flex flex-col items-center gap-2 text-center">
           {mode === 'endless' ? (
-            // The title names the Gens this game was drawn from; the gear beside it opens the Gens picker
-            // (view-only mid-game, since the game keeps its Gens).
-            <div className="flex items-center justify-center gap-2">
-              <p className="tx-10 sm:text-xs">Endless · {gensLabel(game.gameGens)}</p>
+            // The title names the Gens this game was drawn from, in its own box (the guess box's look); the gear,
+            // a smaller box inside it like the Guess button in the guess box, opens the Gens picker (view-only
+            // mid-game, since the game keeps its Gens).
+            <div className="ds-box flex max-w-full items-center gap-3 p-2 pl-4">
+              <p className="tx-10 leading-4 sm:text-xs">Endless · {gensLabel(game.gameGens)}</p>
               <button
                 type="button"
                 onClick={() => setShowGens(true)}
