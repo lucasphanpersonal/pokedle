@@ -177,7 +177,7 @@ export function HelpModal({ onClose }: HelpModalProps) {
           or giving up resets it. Your streak and History are on the result screen.
         </p>
         <p>
-          <strong>Endless:</strong> play as many as you like. <strong>Gens</strong> picks which generations the answer comes from.
+          <strong>Endless:</strong> play as many as you like. The gear beside the title picks which generations the answer comes from.
         </p>
       </div>
       <DisplaySettings />

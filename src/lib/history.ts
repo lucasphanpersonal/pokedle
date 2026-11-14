@@ -210,3 +210,49 @@ export function computeEndlessStats(record: EndlessRecord): EndlessStats {
     noHintPercent: noHintPercent(record.caught, record.hinted),
   }
 }
+
+/**
+ * Recent Endless games, newest first, for the list in History (`localStorage['pokemondle:endless-games']`).
+ * Only the last ENDLESS_GAMES_KEPT are kept; the totals above count every game. Games finished before
+ * this list existed aren't in it.
+ */
+export interface EndlessGameEntry {
+  /** The game's key (when it started, ISO), so each game is listed once. */
+  key: string
+  targetId: number
+  guesses: number
+  /** Given up rather than caught. */
+  lost?: true
+  hinted?: true
+}
+
+export const ENDLESS_GAMES_KEPT = 30
+
+export function parseEndlessGames(raw: unknown): EndlessGameEntry[] {
+  if (!Array.isArray(raw)) return []
+  const seen = new Set<string>()
+  const out: EndlessGameEntry[] = []
+  for (const g of raw) {
+    if (typeof g !== 'object' || g === null) continue
+    const e = g as Record<string, unknown>
+    if (typeof e.key !== 'string' || seen.has(e.key)) continue
+    if (!Number.isInteger(e.targetId) || (e.targetId as number) < 1) continue
+    if (!isCount(e.guesses) || (e.guesses as number) < 1) continue
+    seen.add(e.key)
+    out.push({
+      key: e.key,
+      targetId: e.targetId as number,
+      guesses: e.guesses as number,
+      ...(e.lost === true ? { lost: true as const } : {}),
+      ...(e.hinted === true ? { hinted: true as const } : {}),
+    })
+    if (out.length === ENDLESS_GAMES_KEPT) break
+  }
+  return out
+}
+
+/** Adds a finished Endless game to the front of the list (once per game). Returns the same list if it is already there. */
+export function recordEndlessGame(list: EndlessGameEntry[], game: EndlessGameEntry): EndlessGameEntry[] {
+  if (list.some((g) => g.key === game.key)) return list
+  return [game, ...list].slice(0, ENDLESS_GAMES_KEPT)
+}

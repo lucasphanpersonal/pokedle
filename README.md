@@ -28,7 +28,7 @@ src/lib/pokeballArt.ts        its palette and parser, shared by makeIcons.ts and
 public/                       favicon.ico, apple-touch-icon.png, manifest.json and its icons (generated, committed)
 src/components/               Header, SearchBar, GuessGrid, FeedbackRow, ResultModal, HistoryModal, HelpModal, GiveUpModal, GensModal, Modal
 src/hooks/usePokemondle.ts    game state (target, guesses, status), saved to localStorage (answer id scrambled, see below)
-src/lib/history.ts            Daily history (solved and given up), streak maths and Endless stats (pure, tested)
+src/lib/history.ts            Daily history (solved and given up), streak maths, Endless stats and recent Endless games (pure, tested)
 src/hooks/useAnalytics.ts     wraps guesses with anonymous analytics
 src/hooks/useRevealEffects.ts  flip-reveal hold, tick sounds, the catch/escape scene, then win fanfare, cry and confetti
 src/components/CaptureScene.tsx  the Poké Ball catch (win) and escape (give up) animation; timings in src/lib/capture.ts
@@ -48,7 +48,7 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   Typing the full name of a Pokémon you already guessed and pressing Enter says "You already guessed …" instead of guessing
   the next suggestion (so "pikachu" twice never guesses Pikachu Rock Star); picking a suggestion with ↑/↓ first still works.
 - **Give up (Daily and Endless)**: a white **Give up** button sits last in the menu row under the puzzle title,
-  beside the Gen hint (after Gens in Endless); the row wraps on narrow phones. It disappears once the game is over. It
+  beside the Gen hint; the row wraps on narrow phones. It disappears once the game is over. It
   is kept away from the search box on purpose, so the most-tapped control never sits next to one that ends the game,
   and it is shown all game, so nothing moves when it becomes available: before the first guess it is locked (same
   colours, grey label, `aria-disabled`, and a tap shows "Give up unlocks
@@ -57,7 +57,9 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   Pokédex entry (plus **New Pokémon** in Endless). For the Daily the dialog warns that it can't be replayed and names
   the streak that ends: a given-up Daily is listed in History as "Gave up", resets the streak straight away and stays
   out of the solved count, average, fewest and no-hint share. An Endless give up counts as given up in the Endless stats.
-- **Endless Gens**: in Endless a white **Gens** button sits first in the menu row. It opens a picker
+- **Endless Gens**: in Endless the title names the Gens the game was drawn from ("Endless · All Gens", "Endless ·
+  Gens 1-3, 5"), and a small white square button beside it with a pixel-art gear (`PixelGear.tsx`, labelled
+  "Endless Gens settings" for screen readers) opens a picker
   (`src/components/GensModal.tsx`): nine **Gen 1** to **Gen 9** toggles in a 3 by 3 grid (green and pressed in when on,
   white and raised when off), **All** and **None** buttons, a line with the selection and how many Pokémon it holds, and
   **OK**. At least one Gen must be on (OK is disabled and the line says "Pick at least one Gen."); closing the box
@@ -70,7 +72,7 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   was drawn from these generations. You can change them once you catch it or give up.", and OK just closes it. Before the first guess a
   change redraws the answer at once; once the game is solved or given up the picker can be changed again and the change
   applies from the next **New Pokémon**. Each game records the Gens it was
-  drawn from, and while they are not all nine the title reads "Endless · Gens 1-3, 5" instead of "Endless mode".
+  drawn from, which is what the title shows.
   The Daily always uses every Gen. An Endless game drawn from a single Gen never offers the Gen hint (the player already knows it).
 - **Columns**: Pokémon, Type 1, Type 2, Height, Weight, Color, Evolution (stage 1–3), Form, Egg Group, Shared Ability.
   There is no Gen column: a guess never shows its generation, so the Gen is only revealed by the optional Gen hint.
@@ -88,7 +90,7 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   stray Enter never spends the hint) and **Show Gen**. Show Gen types out "This Pokémon is from Gen N!" with a stepping
   ▼; advancing closes it. Esc or a tap on the dimmed background means Not now. The pop-up appears once per game
   (`localStorage['pokemondle:hint-offered']`, the last game offered in each mode); after Not now a white **Gen hint**
-  button (with a pixel bulb, `PixelBulb.tsx`) sits in the menu row (after Gens in Endless) until the game ends. Once taken, that button stays in
+  button (with a pixel bulb, `PixelBulb.tsx`) sits in the menu row, before Give up, until the game ends. Once taken, that button stays in
   place pressed in (the inverse bevel, a non-interactive status) and reads **Hint · Gen N**, the save gets `hinted: true`, the result screen shows **Used the Gen hint**
   and History marks the Daily with a bulb. A hinted win still counts as a win and keeps the streak; History shows
   "N% of wins without a hint" for the Daily and for Endless. Analytics events carry `config.hint_used` (false until the hint is
@@ -122,16 +124,21 @@ Older plain saves are still read.
 - Every finished Daily is saved on the player's own device in `localStorage['pokemondle:history']` (date, answer id,
   guess count, `hinted: true` if the Gen hint was taken, and `lost: true` if it was given up; entries from the Hard mode days lose their `hard` flag and count as ordinary solves). No account or server is involved, so it doesn't carry over between devices or browsers.
 - History and the streak live on the **result screen** only, never on the play page: the Daily result shows
-  "Streak: N days · Best: N", and its **History** button (in Endless too) opens a screen with current and best
+  "Streak: N days · Best: N", and its **History** button (in Endless too) opens History on the mode being played,
+  with a Daily / Endless switch at the top (styled like the header's mode switch: the chosen side green and pressed
+  in) to view the other. The Daily view shows current and best
   streak, Dailies solved, average and fewest guesses (solved Dailies only), a "Dailies given up" count once there is one, and a list of past Dailies (puzzle number, date, answer, guesses, "Gave up" for a given-up one; days before launch show only the date).
   Closing History returns to the result screen. A returning player who already finished today's Daily lands on the
   result screen; after closing it, **See results** in the guess box brings it (and History) back.
-- History also shows **Endless** stats: games played, Pokémon caught and given up, and the average and fewest guesses
-  over caught games (given-up games don't count toward those two). They are kept in
+- The **Endless** view shows games played, Pokémon caught and escaped (given up), the win rate, and the average and
+  fewest guesses over caught games (given-up games don't count toward those two), then a list of the last 30 Endless
+  games (answer, date, guesses, "Escaped" for a given-up one, a bulb for a hinted one). They are kept in
   `localStorage['pokemondle:endless-record']` (`caught`, `gaveUp`, `guesses` and `scored` (the guess total and how many
   caught games it covers), `fewest`, and the key of the last game counted, so each game counts once across reloads and
   tabs). Tallies saved before guess totals existed keep their caught and given-up counts, and the average and fewest start from
-  the next catch. Individual Endless games are not listed.
+  the next catch. The list is kept in `localStorage['pokemondle:endless-games']` (newest first, each game's key, answer
+  id, guesses, and `lost` / `hinted` flags; capped at 30, `src/lib/history.ts`), so games finished before it existed
+  (other than the last one) aren't listed but still count in the totals.
 - A streak counts consecutive days with a solved Daily. It stays alive while today's Daily is still open, and resets
   when a day goes by unsolved, or straight away when today's Daily is given up. Today's Daily, if solved before this feature existed, is added
   the next time the page loads; earlier ones can't be recovered.
@@ -225,7 +232,7 @@ asked to flag any break), and UI changes are screenshotted and measured at 320, 
    Press Start 2P, self-hosted from `@fontsource/press-start-2p` (no Google Fonts request); images use `image-rendering: pixelated`.
 6. **One action colour.** Each spot has one red main action: Guess while playing, then See results in the guess box
    once a Daily is over, or New Pokémon in Endless (where See results beside it turns white). Secondary actions
-   (History, Gens, Give up) are white.
+   (History, the Gens gear, Give up) are white.
 7. **Dialog headers.** A dialog's title is vertically centred on its close button, which sits the same distance from
    the box's top and right edges.
 8. **Readable colours, never colour alone.** White text needs at least 4.5:1 against its face, so the tile green is

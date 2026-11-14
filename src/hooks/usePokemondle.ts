@@ -24,7 +24,17 @@ import {
   type SavedGame,
 } from '../lib/game'
 import { ALL_GENS, getGensPref, reloadGensPref, setGensPref, subscribeGensPref } from '../lib/gens'
-import { parseEndlessRecord, parseHistory, recordEndless, recordSolve, type EndlessRecord, type HistoryEntry } from '../lib/history'
+import {
+  parseEndlessGames,
+  parseEndlessRecord,
+  parseHistory,
+  recordEndless,
+  recordEndlessGame,
+  recordSolve,
+  type EndlessGameEntry,
+  type EndlessRecord,
+  type HistoryEntry,
+} from '../lib/history'
 import { POKEDEX, POKEDEX_BY_ID } from '../lib/pokedex'
 import { loadJson, removeKey, saveJson, storageKey } from '../lib/storage'
 import type { Pokemon } from '../types/pokemon'
@@ -91,6 +101,22 @@ function syncEndlessRecord(endless: SavedGame): EndlessRecord {
   return next
 }
 
+/** Reads the recent Endless games list and adds the Endless game if it has just finished (once per game). */
+function syncEndlessGames(endless: SavedGame): EndlessGameEntry[] {
+  const stored = parseEndlessGames(loadJson('endless-games'))
+  const status = statusOf(endless)
+  if (status === 'playing') return stored
+  const next = recordEndlessGame(stored, {
+    key: endless.key,
+    targetId: endless.targetId,
+    guesses: endless.guessIds.length,
+    ...(status === 'lost' ? { lost: true as const } : {}),
+    ...(endless.hinted ? { hinted: true as const } : {}),
+  })
+  if (next !== stored) saveJson('endless-games', next)
+  return next
+}
+
 /** Redraws an Endless game that has no guesses yet if it doesn't match the chosen Gens. */
 function followGens(games: Games): Games {
   const endless = matchEndlessToGens(games.endless, POKEDEX, getGensPref(), ALL_GENS)
@@ -120,6 +146,7 @@ export function usePokemondle(mode: GameMode) {
   const gamesRef = useRef(games)
   const [history, setHistory] = useState<HistoryEntry[]>(() => syncHistory(games.daily))
   const [endlessRecord, setEndlessRecord] = useState<EndlessRecord>(() => syncEndlessRecord(games.endless))
+  const [endlessGames, setEndlessGames] = useState<EndlessGameEntry[]>(() => syncEndlessGames(games.endless))
 
   const commit = useCallback((next: Games) => {
     if (next === gamesRef.current) return
@@ -127,6 +154,7 @@ export function usePokemondle(mode: GameMode) {
     setGamesState(next)
     setHistory(syncHistory(next.daily))
     setEndlessRecord(syncEndlessRecord(next.endless))
+    setEndlessGames(syncEndlessGames(next.endless))
   }, [])
 
   useEffect(() => saveJson('daily', encodeSave(games.daily)), [games.daily])
@@ -144,6 +172,7 @@ export function usePokemondle(mode: GameMode) {
       }
       if (e.key === storageKey('history')) setHistory(parseHistory(loadJson('history')))
       if (e.key === storageKey('endless-record')) setEndlessRecord(parseEndlessRecord(loadJson('endless-record')))
+      if (e.key === storageKey('endless-games')) setEndlessGames(parseEndlessGames(loadJson('endless-games')))
     }
     window.addEventListener('focus', check)
     document.addEventListener('visibilitychange', check)
@@ -260,6 +289,7 @@ export function usePokemondle(mode: GameMode) {
     history,
     /** Endless games caught and given up on this device. */
     endlessRecord,
+    endlessGames,
     /** True if the current game can be given up (in progress, at least one guess). */
     canGiveUp: canGiveUp(game),
     /** Daily puzzle number (#1 = launch day); null in Endless mode. */
