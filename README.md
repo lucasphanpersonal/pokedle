@@ -58,9 +58,9 @@ src/data/pokemon.json         generated dataset (committed, so the app needs no 
   the streak that ends: a given-up Daily is listed in History as "Gave up", resets the streak straight away and stays
   out of the solved count, average, fewest and no-hint share. An Endless give up counts as given up in the Endless stats.
 - **Endless Gens**: in Endless the title names the Gens the game was drawn from ("Endless · All Gens", "Endless ·
-  Gens 1-3, 5"), and a small white square button beside it with a pixel-art gear (`PixelGear.tsx`, labelled
+  Gens 1-3, 5") inside its own box (the guess box's look), and a small white square button inside that box with a pixel-art gear (`PixelGear.tsx`, labelled
   "Endless Gens settings" for screen readers) opens a picker
-  (`src/components/GensModal.tsx`): nine **Gen 1** to **Gen 9** toggles in a 3 by 3 grid (green and pressed in when on,
+  (`src/components/GensModal.tsx`, titled **Select Gens**, or **This game's Gens** while it is view-only): nine **Gen 1** to **Gen 9** toggles in a 3 by 3 grid (green and pressed in when on,
   white and raised when off), **All** and **None** buttons, a line with the selection and how many Pokémon it holds, and
   **OK**. At least one Gen must be on (OK is disabled and the line says "Pick at least one Gen."); closing the box
   any other way keeps the old choice. The answer is then drawn only from those Gens, using each Pokémon's own

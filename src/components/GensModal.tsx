@@ -34,7 +34,7 @@ export function GensModal({ gens, locked = false, counts, gameStarted, onSave, o
   const changed = !sameGens(draft, opened)
 
   return (
-    <Modal title="Endless Gens" onClose={onClose}>
+    <Modal title={locked ? "This game's Gens" : 'Select Gens'} onClose={onClose}>
       <div className="flex flex-col gap-4 tx-10 leading-5">
         <p>
           {locked

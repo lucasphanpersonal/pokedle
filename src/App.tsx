@@ -102,10 +102,11 @@ export default function App() {
       <main className="mx-auto flex w-full max-w-5xl big:max-w-[80rem] flex-col gap-4 px-3 py-4 sm:px-5 sm:py-6">
         <div className="flex flex-col items-center gap-2 text-center">
           {mode === 'endless' ? (
-            // The title names the Gens this game was drawn from; the gear beside it opens the Gens picker
-            // (view-only mid-game, since the game keeps its Gens).
-            <div className="flex items-center justify-center gap-2">
-              <p className="tx-10 sm:text-xs">Endless · {gensLabel(game.gameGens)}</p>
+            // The title names the Gens this game was drawn from, in its own box (the guess box's look); the gear,
+            // a smaller box inside it like the Guess button in the guess box, opens the Gens picker (view-only
+            // mid-game, since the game keeps its Gens).
+            <div className="ds-box flex max-w-full items-center gap-2 p-2 pl-4">
+              <p className="tx-10 leading-4 sm:text-xs">Endless · {gensLabel(game.gameGens)}</p>
               <button
                 type="button"
                 onClick={() => setShowGens(true)}
@@ -130,7 +131,7 @@ export default function App() {
             )}
           </div>
           {/*
-            Game menu: the Gen hint and Give up (Endless's Gens settings are the gear beside the title). Give up sits beside the hint, away from the guess box,
+            Game menu: the Gen hint and Give up (Endless's Gens settings are the gear in the title box). Give up sits beside the hint, away from the guess box,
             so the thing you tap most is never next to the one that ends the game. It is shown all game (locked, with a
             note on tap, until the first guess) and gone once the game is over and its tiles have flipped. History and the streak are not here:
             they belong to the end of a game, so they live on the result screen. The row wraps on narrow phones.
