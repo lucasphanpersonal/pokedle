@@ -104,7 +104,7 @@ function StatsToggle() {
       <h3 className="mb-2 tx-11">Privacy</h3>
       <p>
         The game records anonymous game events (guesses, results, device type, Gen hint use) with no cookies, accounts or
-        personal data. They power the Daily stats on the result screen, shown while this is on. Do Not Track and Global Privacy Control are always respected. Cloudflare also counts page views, which this
+        personal data. They power the Daily stats on the result screen, whose numbers only load while this is on. Do Not Track and Global Privacy Control are always respected. Cloudflare also counts page views, which this
         switch doesn't affect.
       </p>
       <PixelSwitch
