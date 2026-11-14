@@ -138,7 +138,7 @@ Older plain saves are still read.
   tabs). Tallies saved before guess totals existed keep their caught and given-up counts, and the average and fewest start from
   the next catch. The list is kept in `localStorage['pokemondle:endless-games']` (newest first, each game's key, answer
   id, guesses, and `lost` / `hinted` flags; capped at 30, `src/lib/history.ts`), so games finished before it existed
-  aren't listed but still count in the totals.
+  (other than the last one) aren't listed but still count in the totals.
 - A streak counts consecutive days with a solved Daily. It stays alive while today's Daily is still open, and resets
   when a day goes by unsolved, or straight away when today's Daily is given up. Today's Daily, if solved before this feature existed, is added
   the next time the page loads; earlier ones can't be recovered.

@@ -1,5 +1,5 @@
-import { puzzleNumber } from '../lib/daily'
 import { useState } from 'react'
+import { puzzleNumber } from '../lib/daily'
 import type { GameMode } from '../lib/game'
 import {
   computeEndlessStats,
